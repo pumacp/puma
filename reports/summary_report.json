@@ -1,0 +1,74 @@
+{
+  "triage": {
+    "f1_macro": 0.5867181234963913,
+    "confusion_matrix": [
+      [
+        48,
+        2,
+        0,
+        0
+      ],
+      [
+        21,
+        27,
+        2,
+        0
+      ],
+      [
+        7,
+        4,
+        33,
+        6
+      ],
+      [
+        2,
+        3,
+        31,
+        14
+      ]
+    ],
+    "labels": [
+      "Critical",
+      "Major",
+      "Minor",
+      "Trivial"
+    ],
+    "per_class": {
+      "Critical": {
+        "precision": 0.6153846153846154,
+        "recall": 0.96,
+        "f1": 0.75,
+        "support": 50.0
+      },
+      "Major": {
+        "precision": 0.75,
+        "recall": 0.54,
+        "f1": 0.627906976744186,
+        "support": 50.0
+      },
+      "Minor": {
+        "precision": 0.5,
+        "recall": 0.66,
+        "f1": 0.5689655172413793,
+        "support": 50.0
+      },
+      "Trivial": {
+        "precision": 0.7,
+        "recall": 0.28,
+        "f1": 0.4,
+        "support": 50.0
+      }
+    }
+  },
+  "estimation": {
+    "mae": 1.8888888888888888,
+    "mdae": 2.0,
+    "rmse": 2.886751345948129,
+    "mean_true": 3.5555555555555554,
+    "mean_pred": 3.888888888888889,
+    "std_true": 2.2662308949301266,
+    "std_pred": 2.469567863432541,
+    "sample_size": 9
+  },
+  "wilcoxon_test": null
+}

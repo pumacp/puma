@@ -1,0 +1,42 @@
+{
+  "strategy": "few-shot",
+  "description": "Triage Few-Shot with examples per class",
+  "examples": [
+    {
+      "input": {
+        "title": "System crash on production server",
+        "description": "The production server crashes intermittently causing complete service outage. Critical business operations are affected."
+      },
+      "output": "Critical"
+    },
+    {
+      "input": {
+        "title": "Database connection pool exhausted",
+        "description": "Application cannot connect to database after 10 minutes of uptime. All users get connection errors."
+      },
+      "output": "Critical"
+    },
+    {
+      "input": {
+        "title": "Add new filter option in search",
+        "description": "Users want to filter search results by date range. This is a nice-to-have enhancement."
+      },
+      "output": "Minor"
+    },
+    {
+      "input": {
+        "title": "Typo in footer text",
+        "description": "The word 'Contac Us' should be 'Contact Us' in the footer section."
+      },
+      "output": "Trivial"
+    },
+    {
+      "input": {
+        "title": "API returns wrong error message",
+        "description": "When a user enters invalid credentials, the error message says 'User not found' instead of 'Invalid password' which is a security issue."
+      },
+      "output": "Major"
+    }
+  ],
+  "prompt_template": "Eres un experto en gestión de proyectos TIC. Clasifica el siguiente issue usando estos ejemplos como guía:\n\n{{examples}}\n\nAhora clasifica este issue:\nTítulo: {{title}}\nDescripción: {{description}}\n\nResponde solo con: Critical, Major, Minor o Trivial"
+}

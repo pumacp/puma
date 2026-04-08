@@ -1,0 +1,81 @@
+{
+  "f1_macro": 0.5867181234963913,
+  "confusion_matrix": [
+    [
+      48,
+      2,
+      0,
+      0
+    ],
+    [
+      21,
+      27,
+      2,
+      0
+    ],
+    [
+      7,
+      4,
+      33,
+      6
+    ],
+    [
+      2,
+      3,
+      31,
+      14
+    ]
+  ],
+  "labels": [
+    "Critical",
+    "Major",
+    "Minor",
+    "Trivial"
+  ],
+  "classification_report": {
+    "Critical": {
+      "precision": 0.6153846153846154,
+      "recall": 0.96,
+      "f1-score": 0.75,
+      "support": 50.0
+    },
+    "Major": {
+      "precision": 0.75,
+      "recall": 0.54,
+      "f1-score": 0.627906976744186,
+      "support": 50.0
+    },
+    "Minor": {
+      "precision": 0.5,
+      "recall": 0.66,
+      "f1-score": 0.5689655172413793,
+      "support": 50.0
+    },
+    "Trivial": {
+      "precision": 0.7,
+      "recall": 0.28,
+      "f1-score": 0.4,
+      "support": 50.0
+    },
+    "accuracy": 0.61,
+    "macro avg": {
+      "precision": 0.6413461538461538,
+      "recall": 0.6100000000000001,
+      "f1-score": 0.5867181234963913,
+      "support": 200.0
+    },
+    "weighted avg": {
+      "precision": 0.6413461538461539,
+      "recall": 0.61,
+      "f1-score": 0.5867181234963913,
+      "support": 200.0
+    }
+  },
+  "total_samples": 200,
+  "model": "qwen2.5:3b",
+  "options": {
+    "temperature": 0.0,
+    "seed": 42,
+    "num_predict": 10
+  }
+}

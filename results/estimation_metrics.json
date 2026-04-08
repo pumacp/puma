@@ -1,0 +1,13 @@
+{
+  "mae": 1.8888888888888888,
+  "mdae": 2.0,
+  "total_samples": 9,
+  "valid_predictions": 9,
+  "model": "qwen2.5:3b",
+  "options": {
+    "temperature": 0.0,
+    "seed": 42,
+    "num_predict": 50
+  },
+  "few_shot_examples": 3
+}

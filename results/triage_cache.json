@@ -1,0 +1,802 @@
+{
+  "CRIT-001": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-002": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-003": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-004": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-005": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-006": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-007": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-008": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-009": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-010": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-011": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-012": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-013": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-014": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-015": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-016": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-017": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-018": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-019": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-020": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-021": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-022": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-023": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-024": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-025": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-026": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-027": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-028": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-029": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-030": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-031": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-032": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-033": {
+    "priority": "Critical",
+    "prediction": "Major"
+  },
+  "CRIT-034": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-035": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-036": {
+    "priority": "Critical",
+    "prediction": "Major"
+  },
+  "CRIT-037": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-038": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-039": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-040": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-041": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-042": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-043": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-044": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-045": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-046": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-047": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-048": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-049": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "CRIT-050": {
+    "priority": "Critical",
+    "prediction": "Critical"
+  },
+  "MAJR-001": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-002": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-003": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-004": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-005": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-006": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-007": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-008": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-009": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-010": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-011": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-012": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-013": {
+    "priority": "Major",
+    "prediction": "Minor"
+  },
+  "MAJR-014": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-015": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-016": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-017": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-018": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-019": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-020": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-021": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-022": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-023": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-024": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-025": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-026": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-027": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-028": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-029": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-030": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-031": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-032": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-033": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-034": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-035": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-036": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-037": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-038": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-039": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-040": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-041": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-042": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-043": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-044": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-045": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-046": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-047": {
+    "priority": "Major",
+    "prediction": "Critical"
+  },
+  "MAJR-048": {
+    "priority": "Major",
+    "prediction": "Minor"
+  },
+  "MAJR-049": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MAJR-050": {
+    "priority": "Major",
+    "prediction": "Major"
+  },
+  "MINR-001": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-002": {
+    "priority": "Minor",
+    "prediction": "Trivial"
+  },
+  "MINR-003": {
+    "priority": "Minor",
+    "prediction": "Critical"
+  },
+  "MINR-004": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-005": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-006": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-007": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-008": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-009": {
+    "priority": "Minor",
+    "prediction": "Trivial"
+  },
+  "MINR-010": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-011": {
+    "priority": "Minor",
+    "prediction": "Critical"
+  },
+  "MINR-012": {
+    "priority": "Minor",
+    "prediction": "Major"
+  },
+  "MINR-013": {
+    "priority": "Minor",
+    "prediction": "Trivial"
+  },
+  "MINR-014": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-015": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-016": {
+    "priority": "Minor",
+    "prediction": "Critical"
+  },
+  "MINR-017": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-018": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-019": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-020": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-021": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-022": {
+    "priority": "Minor",
+    "prediction": "Critical"
+  },
+  "MINR-023": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-024": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-025": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-026": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-027": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-028": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-029": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-030": {
+    "priority": "Minor",
+    "prediction": "Trivial"
+  },
+  "MINR-031": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-032": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-033": {
+    "priority": "Minor",
+    "prediction": "Major"
+  },
+  "MINR-034": {
+    "priority": "Minor",
+    "prediction": "Trivial"
+  },
+  "MINR-035": {
+    "priority": "Minor",
+    "prediction": "Major"
+  },
+  "MINR-036": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-037": {
+    "priority": "Minor",
+    "prediction": "Critical"
+  },
+  "MINR-038": {
+    "priority": "Minor",
+    "prediction": "Major"
+  },
+  "MINR-039": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-040": {
+    "priority": "Minor",
+    "prediction": "Trivial"
+  },
+  "MINR-041": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-042": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-043": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-044": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-045": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-046": {
+    "priority": "Minor",
+    "prediction": "Critical"
+  },
+  "MINR-047": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-048": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "MINR-049": {
+    "priority": "Minor",
+    "prediction": "Critical"
+  },
+  "MINR-050": {
+    "priority": "Minor",
+    "prediction": "Minor"
+  },
+  "TRIV-001": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-002": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-003": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-004": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-005": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-006": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-007": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-008": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-009": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-010": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-011": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-012": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-013": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-014": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-015": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-016": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-017": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-018": {
+    "priority": "Trivial",
+    "prediction": "Major"
+  },
+  "TRIV-019": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-020": {
+    "priority": "Trivial",
+    "prediction": "Major"
+  },
+  "TRIV-021": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-022": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-023": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-024": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-025": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-026": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-027": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-028": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-029": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-030": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-031": {
+    "priority": "Trivial",
+    "prediction": "Critical"
+  },
+  "TRIV-032": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-033": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-034": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-035": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-036": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-037": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-038": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-039": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-040": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-041": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-042": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-043": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-044": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-045": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-046": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  },
+  "TRIV-047": {
+    "priority": "Trivial",
+    "prediction": "Critical"
+  },
+  "TRIV-048": {
+    "priority": "Trivial",
+    "prediction": "Major"
+  },
+  "TRIV-049": {
+    "priority": "Trivial",
+    "prediction": "Minor"
+  },
+  "TRIV-050": {
+    "priority": "Trivial",
+    "prediction": "Trivial"
+  }
+}

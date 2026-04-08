@@ -1,0 +1,3 @@
+timestamp,task_type,model_name,model_size_gb,os_system,os_release,cpu_model,cpu_cores_physical,ram_total_gb,metric_name,metric_value,target_value,status
+2026-03-26T16:38:29.232609,triage,qwen2.5:1.5b,0.92,Linux,6.8.0-106-generic,x86_64,6,31.16,f1_macro,0.5867181234963913,0.55,PASSED
+2026-03-26T16:38:50.786041,estimation,qwen2.5:1.5b,0.92,Linux,6.8.0-106-generic,x86_64,6,31.16,mae,1.8888888888888888,3.0,PASSED

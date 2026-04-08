@@ -1,0 +1,13 @@
+pandas
+scikit-learn
+scipy
+ollama
+codecarbon
+matplotlib
+seaborn
+requests
+
+# Agentic Coding + SDD dependencies (optional)
+# langgraph
+# langchain-ollama  
+# chromadb
