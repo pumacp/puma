@@ -10,7 +10,23 @@ import pandas as pd
 import re
 from sklearn.metrics import mean_absolute_error
 from codecarbon import track_emissions
+
+# Allow importing from src/puma package
+_src_root = str(Path(__file__).parent.parent)
+if _src_root not in sys.path:
+    sys.path.insert(0, _src_root)
+
 from history import save_to_history, get_ollama_model_info
+
+# Re-export from new module location for forward compatibility
+from puma.scenarios.estimation_tawos import (  # noqa: F401
+    parse_story_points,
+    EstimationEvaluator,
+    calculate_metrics,
+    FIBONACCI_SERIES,
+    FEW_SHOT_EXAMPLES,
+    DETERMINISTIC_OPTIONS,
+)
 
 logging.basicConfig(
     level=logging.INFO,

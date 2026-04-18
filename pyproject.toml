@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "puma"
+version = "2.0.0-dev"
+description = "Local, reproducible benchmarking of open LLMs on project management tasks"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "typer>=0.12",
+    "httpx>=0.27",
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "jinja2>=3.1",
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "scikit-learn>=1.4",
+    "scipy>=1.13",
+    "sqlalchemy>=2.0",
+    "alembic>=1.13",
+    "psutil>=5.9",
+    "codecarbon>=2.4",
+    "streamlit>=1.35",
+    "langdetect>=1.0.9",
+    "structlog>=24.1",
+    "rich>=13.7",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2",
+    "pytest-cov>=5.0",
+    "pytest-asyncio>=0.23",
+    "respx>=0.21",
+    "ruff>=0.4",
+    "mypy>=1.10",
+    "pre-commit>=3.7",
+]
+
+[project.scripts]
+puma = "puma.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "PT"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["puma.metrics.*", "puma.runtime.*", "puma.preflight.*"]
+strict = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "integration: Integration tests that require data files",
+    "unit: Unit tests for individual functions",
+    "slow: Tests that take longer to run",
+    "ollama: Tests that require Ollama running",
+    "smoke: End-to-end smoke tests",
+]

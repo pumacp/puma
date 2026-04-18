@@ -1,10 +1,16 @@
 import platform
 import psutil
 import os
+import sys
 import json
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, Dict, Any
+
+# Allow importing from src/puma package
+_src_root = str(Path(__file__).parent.parent)
+if _src_root not in sys.path:
+    sys.path.insert(0, _src_root)
 
 RESULTS_DIR = Path("results")
 HISTORY_FILE = RESULTS_DIR / "benchmark_history.csv"

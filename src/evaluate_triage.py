@@ -1,12 +1,28 @@
 import os
 import json
 import logging
+import sys
+from pathlib import Path
+
+# Allow importing from src/puma package
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 import pandas as pd
 from pathlib import Path
 from typing import Optional
 from sklearn.metrics import confusion_matrix, f1_score, classification_report
 from codecarbon import track_emissions
 from history import save_to_history, get_ollama_model_info
+
+# Re-export from new module location for forward compatibility
+from puma.scenarios.triage_jira import (  # noqa: F401
+    parse_prediction,
+    TriageEvaluator,
+    calculate_metrics,
+    VALID_PRIORITIES,
+    DETERMINISTIC_OPTIONS,
+    SYSTEM_PROMPT,
+)
 
 logging.basicConfig(
     level=logging.INFO,
