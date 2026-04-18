@@ -1,0 +1,93 @@
+# PUMA Hardware Execution Profiles
+# Each profile defines minimum requirements and enabled models.
+# See INDEX.md §2.1 for rationale.
+
+profiles:
+  cpu-lite:
+    description: "Minimal CPU-only profile for 8 GB RAM machines"
+    requirements:
+      min_ram_gb: 8
+      gpu_required: false
+      min_disk_gb: 10
+    models:
+      - qwen2.5:1.5b
+      - gemma3:1b
+    scenarios:
+      - triage_jira
+
+  cpu-standard:
+    description: "Standard CPU-only profile for 16 GB RAM machines"
+    requirements:
+      min_ram_gb: 16
+      gpu_required: false
+      min_disk_gb: 25
+    models:
+      - qwen2.5:3b
+      - gemma3:4b
+      - gemma4:e2b
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+
+  gpu-entry:
+    description: "Entry GPU profile — 6-8 GB VRAM"
+    requirements:
+      min_ram_gb: 16
+      gpu_required: true
+      min_vram_gb: 6
+      min_disk_gb: 35
+    models:
+      - qwen2.5:3b
+      - gemma3:4b
+      - gemma4:e2b
+      - mistral:7b
+      - llama3.1:8b
+      - gemma3:12b
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+
+  gpu-mid:
+    description: "Mid GPU profile — 12-16 GB VRAM"
+    requirements:
+      min_ram_gb: 16
+      gpu_required: true
+      min_vram_gb: 12
+      min_disk_gb: 60
+    models:
+      - qwen2.5:3b
+      - gemma3:4b
+      - gemma4:e2b
+      - mistral:7b
+      - llama3.1:8b
+      - gemma3:12b
+      - gemma4:e4b
+      - qwen2.5:14b
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+
+  gpu-high:
+    description: "High-end GPU profile — 24 GB+ VRAM"
+    requirements:
+      min_ram_gb: 32
+      gpu_required: true
+      min_vram_gb: 24
+      min_disk_gb: 100
+    models:
+      - qwen2.5:3b
+      - gemma3:4b
+      - gemma4:e2b
+      - mistral:7b
+      - llama3.1:8b
+      - gemma3:12b
+      - gemma4:e4b
+      - qwen2.5:14b
+      - gemma3:27b
+      - gemma4:26b-a4b
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
