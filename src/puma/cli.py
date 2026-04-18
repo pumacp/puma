@@ -220,9 +220,22 @@ def db(
 
 
 @app.command()
-def dashboard() -> None:
-    """Launch the Streamlit dashboard. (Phase 6)"""
-    typer.echo("[stub] puma dashboard — not yet implemented (Phase 6)")
+def dashboard(
+    port: int = typer.Option(8501, "--port", help="Port to listen on"),
+    host: str = typer.Option("0.0.0.0", "--host", help="Host address"),
+) -> None:
+    """Launch the Streamlit dashboard."""
+    import subprocess
+    from pathlib import Path
+
+    app_path = Path(__file__).parent / "dashboard" / "app.py"
+    result = subprocess.run([
+        "streamlit", "run", str(app_path),
+        "--server.port", str(port),
+        "--server.address", host,
+        "--server.headless", "true",
+    ])
+    raise typer.Exit(result.returncode)
 
 
 @app.command()
