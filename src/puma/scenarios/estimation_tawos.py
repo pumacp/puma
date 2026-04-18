@@ -209,3 +209,23 @@ def calculate_metrics(results: list) -> dict:
         "options": DETERMINISTIC_OPTIONS,
         "few_shot_examples": len(FEW_SHOT_EXAMPLES),
     }
+
+
+class EstimationTawosScenario:
+    """Story-point regression on TAWOS issues — Scenario interface."""
+
+    name = "estimation_tawos"
+    dataset = "tawos"
+    task_type = "regression"
+    labels: list = []
+
+    def sample(self, n: int, seed: int = 42) -> pd.DataFrame:
+        from puma.datasets.tawos import load, sample
+
+        return sample(load(), n, seed=seed)
+
+    def parse_response(self, raw: str) -> float | None:
+        return parse_story_points(raw)
+
+    def gold_label(self, instance: dict) -> float:
+        return float(instance.get("story_points", 0))
