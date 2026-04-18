@@ -1,54 +1,67 @@
 services:
-  ollama:
+  puma_ollama:
     image: ollama/ollama:latest
     container_name: puma_ollama
     ports:
       - "11434:11434"
     volumes:
-      - ollama_data:/root/.ollama
+      - ollama_models:/root/.ollama
     environment:
       - OLLAMA_HOST=0.0.0.0
       - OLLAMA_NUM_PARALLEL=${OLLAMA_NUM_PARALLEL:-1}
     networks:
       - puma_network
     healthcheck:
-      test: ["CMD-SHELL", "ollama list || exit 0"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:11434/api/version || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
       start_period: 30s
 
-  evaluator:
+  puma_runner:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: puma_evaluator
+    container_name: puma_runner
     volumes:
       - .:/app
+      - puma_data:/app/data
     environment:
-      - OLLAMA_HOST=${OLLAMA_HOST:-http://ollama:11434}
-      - LLM_MODEL=${LLM_MODEL:-qwen2.5:3b}
-      - TRIAGE_TARGET_F1=${TRIAGE_TARGET_F1:-0.55}
-      - TRIAGE_NUM_ISSUES=${TRIAGE_NUM_ISSUES:-200}
-      - TRIAGE_TEMPERATURE=${TRIAGE_TEMPERATURE:-0.0}
-      - TRIAGE_SEED=${TRIAGE_SEED:-42}
-      - TRIAGE_NUM_PREDICT=${TRIAGE_NUM_PREDICT:-10}
-      - ESTIMATION_TARGET_MAE=${ESTIMATION_TARGET_MAE:-3.0}
-      - ESTIMATION_PROJECT=${ESTIMATION_PROJECT:-MESOS}
-      - ESTIMATION_NUM_ITEMS=${ESTIMATION_NUM_ITEMS:-0}
-      - ESTIMATION_TEMPERATURE=${ESTIMATION_TEMPERATURE:-0.0}
-      - ESTIMATION_SEED=${ESTIMATION_SEED:-42}
-      - ESTIMATION_NUM_PREDICT=${ESTIMATION_NUM_PREDICT:-50}
-      - EVALUATION_TIMEOUT=${EVALUATION_TIMEOUT:-0}
+      - OLLAMA_HOST=http://puma_ollama:11434
+      - PYTHONPATH=/app/src
       - PYTHONUNBUFFERED=1
+      - LLM_MODEL=${LLM_MODEL:-qwen2.5:3b}
     depends_on:
-      ollama:
+      puma_ollama:
         condition: service_healthy
     networks:
       - puma_network
+    command: tail -f /dev/null
+
+  puma_dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: puma_dashboard
+    volumes:
+      - .:/app
+      - puma_data:/app/data
+    environment:
+      - PYTHONPATH=/app/src
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "8501:8501"
+    networks:
+      - puma_network
+    command: >
+      streamlit run src/puma/dashboard/app.py
+      --server.port 8501
+      --server.address 0.0.0.0
+      --server.headless true
 
 volumes:
-  ollama_data:
+  ollama_models:
+  puma_data:
 
 networks:
   puma_network:

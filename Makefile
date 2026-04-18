@@ -1,29 +1,34 @@
-.PHONY: lint test smoke install install-dev clean
+COMPOSE = docker compose
+RUNNER  = $(COMPOSE) run --rm puma_runner
 
-install:
-	pip install -e .
+.PHONY: build lint fmt typecheck test smoke up down clean
 
-install-dev:
-	pip install -e ".[dev]"
+build:
+	$(COMPOSE) build puma_runner
 
 lint:
-	ruff check src/ tests/
-	ruff format --check src/ tests/
+	$(RUNNER) ruff check src/ tests/
+	$(RUNNER) ruff format --check src/ tests/
 
 fmt:
-	ruff format src/ tests/
-	ruff check --fix src/ tests/
+	$(RUNNER) ruff format src/ tests/
+	$(RUNNER) ruff check --fix src/ tests/
 
 typecheck:
-	mypy src/puma/metrics src/puma/runtime src/puma/preflight || true
+	$(RUNNER) mypy src/puma/metrics src/puma/runtime src/puma/preflight || true
 
 test:
-	pytest tests/unit/ tests/integration/ -v
+	$(RUNNER) pytest tests/unit/ tests/integration/ -v
 
 smoke:
-	pytest tests/smoke/ -v -m smoke || pytest tests/unit/ -v -m unit
+	$(RUNNER) pytest tests/smoke/ -v -m smoke
+
+up:
+	$(COMPOSE) up -d puma_ollama puma_runner
+
+down:
+	$(COMPOSE) down
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
 	find . -name "*.pyc" -delete 2>/dev/null || true
-	rm -rf .pytest_cache .mypy_cache .ruff_cache
