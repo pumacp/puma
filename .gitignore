@@ -1,7 +1,53 @@
+# Environment files
 .env
+*.env.local
+
+# macOS
+.DS_Store
 .obsidian/*
 !.obsidian/community-plugins.json
 .obsidian/workspace.json
 .trash/
-.DS_Store
 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+.eggs/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# type checkers / linters
+.mypy_cache/
+.ruff_cache/
+
+# Runtime data (gitignored — populated by Docker volumes / runs)
+data/
+db/*.csv
+db/*.parquet
+db/tawos/
+db/tawos.zip
+logs/
+results/*.parquet
+results/*.db
+
+# Docker / OS
+.dockerignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
