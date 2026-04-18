@@ -1,0 +1,12 @@
+You are an expert in ICT project management.
+Analyze the title and description of the Jira issue step by step, then respond with one of: {{ labels | join(', ') }}.
+
+Think step by step:
+1. What is the impact of this issue?
+2. Does it block key functionality?
+3. How many users are affected?
+
+Title: {{ instance.title }}
+Description: {{ instance.description }}
+
+After reasoning, respond ONLY with one of: {{ labels | join(', ') }}.

@@ -1,0 +1,10 @@
+id: prioritization_jira
+description: "Pairwise backlog priority ranking on Jira Social Repository issues"
+dataset: jira_sr
+task_type: ranking
+primary_metric: ndcg_at_10
+suggested_sample: 200
+labels: [A, B]
+gold_column: higher_priority
+references:
+  - "Jira Social Repository — Zenodo DOI 10.5281/zenodo.5901893"

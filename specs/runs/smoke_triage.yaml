@@ -1,0 +1,21 @@
+id: smoke_triage_v1
+description: "Gate F3 smoke run: triage_jira × qwen2.5:3b × few-shot-3 × typos_5pct, 20 instances"
+scenario: triage_jira
+sample_size: 20
+models:
+  - qwen2.5:3b
+adaptation:
+  strategy: [few-shot-3]
+  cot: [false]
+inference:
+  temperature: 0.0
+  seed: 42
+  logprobs: false
+perturbations:
+  - typos_5pct
+metrics:
+  - f1_macro
+  - latency_p95
+sustainability:
+  codecarbon: false
+repeat: 1

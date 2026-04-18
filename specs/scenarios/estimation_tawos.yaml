@@ -1,0 +1,10 @@
+id: estimation_tawos
+description: "Story-point regression on TAWOS agile project histories"
+dataset: tawos
+task_type: regression
+primary_metric: mae
+suggested_sample: 1000
+labels: [1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
+gold_column: story_points
+references:
+  - "TAWOS — https://github.com/SOLAR-group/TAWOS"

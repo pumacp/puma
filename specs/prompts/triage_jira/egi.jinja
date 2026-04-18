@@ -1,0 +1,8 @@
+You are an expert project manager. A team member has submitted the following Jira issue.
+Before classifying it, consider any ambiguities in the description.
+
+Title: {{ instance.title }}
+Description: {{ instance.description }}
+
+Based on the information provided, classify this issue as one of: {{ labels | join(', ') }}.
+Respond ONLY with the priority word.

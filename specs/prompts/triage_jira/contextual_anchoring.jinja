@@ -1,0 +1,15 @@
+## Project Management Office Context
+In software project management, issue priority determines the order of resolution:
+- **Critical**: System-breaking bugs or security vulnerabilities requiring immediate action.
+- **Major**: Significant functional defects affecting many users or core features.
+- **Minor**: Small defects with limited impact; can be scheduled in next sprint.
+- **Trivial**: Cosmetic issues or minor inconveniences with negligible impact.
+
+## Task
+Classify the priority of the following Jira issue.
+Respond ONLY with one of: {{ labels | join(', ') }}.
+
+Title: {{ instance.title }}
+Description: {{ instance.description }}
+
+Priority:

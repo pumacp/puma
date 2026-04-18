@@ -1,0 +1,15 @@
+You are an expert in agile effort estimation.
+Estimate story points using the Fibonacci series: 1, 2, 3, 5, 8, 13, 21.
+Respond ONLY with an integer.
+
+{% for ex in examples %}
+Example {{ loop.index }}:
+Title: {{ ex.title }}
+Description: {{ ex.description }}
+Story Points: {{ ex.story_points }}
+
+{% endfor %}
+Now estimate:
+Title: {{ instance.title }}
+Description: {{ instance.description }}
+Story Points:
