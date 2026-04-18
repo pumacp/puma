@@ -12,10 +12,10 @@ services:
     networks:
       - puma_network
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:11434/api/version || exit 1"]
+      test: ["CMD-SHELL", "ollama list > /dev/null 2>&1 || exit 1"]
       interval: 15s
       timeout: 10s
-      retries: 5
+      retries: 8
       start_period: 30s
 
   puma_runner:
