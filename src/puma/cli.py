@@ -95,6 +95,47 @@ def models_cmd(
 
 
 @app.command()
+def datasets(
+    action: str = typer.Argument("verify", help="Action: verify"),
+) -> None:
+    """Verify dataset integrity and show statistics."""
+    if action == "verify":
+        from puma.datasets.verify import print_verify_report, verify_jira, verify_tawos
+
+        typer.echo("=" * 60)
+        typer.echo("PUMA Dataset Verification")
+        typer.echo("=" * 60)
+        reports = [verify_jira(), verify_tawos()]
+        all_ok = print_verify_report(reports)
+        typer.echo("=" * 60)
+        if not all_ok:
+            raise typer.Exit(code=1)
+    else:
+        typer.echo(f"Unknown action: {action!r}. Use 'verify'.")
+        raise typer.Exit(1)
+
+
+@app.command()
+def cache(
+    action: str = typer.Argument("stats", help="Action: stats | clear"),
+) -> None:
+    """Manage the inference cache."""
+    from puma.runtime.cache import InferenceCache
+
+    c = InferenceCache()
+    if action == "stats":
+        stats = c.stats()
+        typer.echo(f"Inference cache: {stats['total_entries']} entries, "
+                   f"{stats['db_size_bytes'] / 1024:.1f} KB")
+    elif action == "clear":
+        c.clear()
+        typer.echo("Inference cache cleared")
+    else:
+        typer.echo(f"Unknown action: {action!r}")
+        raise typer.Exit(1)
+
+
+@app.command()
 def run(
     spec: str = typer.Argument(..., help="Path to run-spec YAML"),
 ) -> None:
