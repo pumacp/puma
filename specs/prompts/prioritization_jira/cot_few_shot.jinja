@@ -1,0 +1,19 @@
+You are an expert project manager comparing Jira issues.
+{% for ex in examples %}
+Example {{ loop.index }}:
+Issue A: {{ ex.title_a }}
+Issue B: {{ ex.title_b }}
+Reasoning: Issue {{ ex.higher_priority }} has higher impact.
+Higher priority: {{ ex.higher_priority }}
+
+{% endfor %}
+Now compare:
+Issue A:
+Title: {{ instance.title_a }}
+Description: {{ instance.description_a }}
+
+Issue B:
+Title: {{ instance.title_b }}
+Description: {{ instance.description_b }}
+
+Higher priority:

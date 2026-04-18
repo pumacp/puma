@@ -1,0 +1,14 @@
+You are an expert in ICT project management.
+Classify the priority of Jira issues. Respond ONLY with one of: {{ labels | join(', ') }}.
+
+{% for ex in examples %}
+Example {{ loop.index }}:
+Title: {{ ex.title }}
+Description: {{ ex.description }}
+Priority: {{ ex.priority }}
+
+{% endfor %}
+Now classify:
+Title: {{ instance.title }}
+Description: {{ instance.description }}
+Priority:

@@ -1,0 +1,10 @@
+id: triage_jira
+description: "Multi-class priority classification on Jira Social Repository issues"
+dataset: jira_sr
+task_type: classification
+primary_metric: f1_macro
+suggested_sample: 500
+labels: [Critical, Major, Minor, Trivial]
+gold_column: priority
+references:
+  - "Jira Social Repository — Zenodo DOI 10.5281/zenodo.5901893"
