@@ -242,9 +242,17 @@ def dashboard(
 def report(
     run_id: str = typer.Argument(..., help="Run ID to generate report for"),
     fmt: str = typer.Option("md", "--format", help="Output format: md|pdf"),
+    db_path: str = typer.Option("data/puma.db", "--db"),
 ) -> None:
-    """Generate a run report. (Phase 7)"""
-    typer.echo(f"[stub] puma report {run_id} --format {fmt} — not yet implemented (Phase 7)")
+    """Generate a Markdown (or PDF) run report."""
+    from puma.reporting.report import generate_report
+
+    try:
+        path = generate_report(run_id, db_path=db_path, to_pdf=(fmt == "pdf"))
+        typer.echo(f"Report written to {path}")
+    except ValueError as exc:
+        typer.secho(f"[ERROR] {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from exc
 
 
 if __name__ == "__main__":

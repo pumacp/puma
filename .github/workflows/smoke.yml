@@ -1,0 +1,59 @@
+name: Smoke Test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.ai/install.sh | sh
+          ollama serve &
+          sleep 5
+
+      - name: Pull small model
+        run: ollama pull qwen2.5:0.5b
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Dashboard smoke tests (no Ollama needed)
+        env:
+          PYTHONPATH: src
+        run: pytest tests/smoke/ -v --no-header -m smoke
+
+      - name: Dry-run benchmark
+        env:
+          PYTHONPATH: src
+          OLLAMA_HOST: http://localhost:11434
+        run: |
+          python -c "
+          from puma.orchestrator.runspec import RunSpec
+          from puma.orchestrator.runner import Runner
+          import tempfile, pathlib
+          spec = RunSpec(
+            id='ci_smoke', scenario='triage_jira', sample_size=3,
+            models=['qwen2.5:0.5b'],
+            adaptation={'strategy': ['zero-shot']},
+            inference={'temperature': 0.0, 'seed': 42},
+            metrics=['f1_macro'],
+          )
+          with tempfile.TemporaryDirectory() as d:
+            r = Runner(spec, db_path=pathlib.Path(d)/'test.db', dry_run=True)
+            s = r.run()
+            assert s['n_predictions'] >= 3, s
+          print('Dry-run smoke OK')
+          "
