@@ -1,0 +1,130 @@
+# PUMA Model Catalog
+# Each entry defines a supported Ollama model with hardware requirements.
+# Add a new model here — no code changes needed.
+
+models:
+  - ollama_tag: "qwen2.5:1.5b"
+    params_b: 1.5
+    gguf_size_gb: 1.0
+    context_window: 32768
+    logprobs_supported: true
+    profiles_compatible: [cpu-lite, cpu-standard, gpu-entry, gpu-mid, gpu-high]
+    timeout_s: 120
+    notes: "Smallest Qwen2.5; good baseline for cpu-lite"
+
+  - ollama_tag: "qwen2.5:3b"
+    params_b: 3.0
+    gguf_size_gb: 1.9
+    context_window: 32768
+    logprobs_supported: true
+    profiles_compatible: [cpu-standard, gpu-entry, gpu-mid, gpu-high]
+    timeout_s: 120
+    notes: "MVP model; best accuracy/speed tradeoff on CPU"
+
+  - ollama_tag: "qwen2.5:7b"
+    params_b: 7.0
+    gguf_size_gb: 4.4
+    context_window: 131072
+    logprobs_supported: true
+    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    timeout_s: 120
+
+  - ollama_tag: "qwen2.5:14b"
+    params_b: 14.0
+    gguf_size_gb: 9.0
+    context_window: 131072
+    logprobs_supported: true
+    profiles_compatible: [gpu-mid, gpu-high]
+    timeout_s: 180
+
+  - ollama_tag: "gemma3:1b"
+    params_b: 1.0
+    gguf_size_gb: 0.8
+    context_window: 32768
+    logprobs_supported: true
+    profiles_compatible: [cpu-lite, cpu-standard, gpu-entry, gpu-mid, gpu-high]
+    timeout_s: 120
+
+  - ollama_tag: "gemma3:4b"
+    params_b: 4.0
+    gguf_size_gb: 3.3
+    context_window: 131072
+    logprobs_supported: true
+    profiles_compatible: [cpu-standard, gpu-entry, gpu-mid, gpu-high]
+    timeout_s: 120
+
+  - ollama_tag: "gemma3:12b"
+    params_b: 12.0
+    gguf_size_gb: 8.1
+    context_window: 131072
+    logprobs_supported: true
+    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    timeout_s: 180
+
+  - ollama_tag: "gemma3:27b"
+    params_b: 27.0
+    gguf_size_gb: 17.0
+    context_window: 131072
+    logprobs_supported: true
+    profiles_compatible: [gpu-high]
+    timeout_s: 300
+
+  - ollama_tag: "gemma4:e2b"
+    params_b: 2.0
+    gguf_size_gb: 2.0
+    context_window: 262144
+    logprobs_supported: true
+    profiles_compatible: [cpu-standard, gpu-entry, gpu-mid, gpu-high]
+    timeout_s: 120
+    notes: "Gemma4 MoE 2B effective parameters; 256K context"
+
+  - ollama_tag: "gemma4:e4b"
+    params_b: 4.0
+    gguf_size_gb: 4.0
+    context_window: 262144
+    logprobs_supported: true
+    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    timeout_s: 120
+
+  - ollama_tag: "gemma4:26b-a4b"
+    params_b: 26.0
+    gguf_size_gb: 16.0
+    context_window: 262144
+    logprobs_supported: true
+    profiles_compatible: [gpu-high]
+    timeout_s: 300
+    notes: "26B MoE with 4B active parameters"
+
+  - ollama_tag: "mistral:7b"
+    params_b: 7.0
+    gguf_size_gb: 4.4
+    context_window: 32768
+    logprobs_supported: true
+    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    timeout_s: 120
+
+  - ollama_tag: "llama3.1:8b"
+    params_b: 8.0
+    gguf_size_gb: 4.9
+    context_window: 131072
+    logprobs_supported: true
+    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    timeout_s: 120
+
+  - ollama_tag: "deepseek-r1:7b"
+    params_b: 7.0
+    gguf_size_gb: 4.7
+    context_window: 131072
+    logprobs_supported: true
+    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    timeout_s: 300
+    notes: "Reasoning model; higher latency expected"
+
+  - ollama_tag: "deepseek-r1:14b"
+    params_b: 14.0
+    gguf_size_gb: 9.0
+    context_window: 131072
+    logprobs_supported: true
+    profiles_compatible: [gpu-mid, gpu-high]
+    timeout_s: 300
+    notes: "Reasoning model; higher latency expected"

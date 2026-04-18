@@ -1,0 +1,22 @@
+detected_at: '2026-04-18T03:32:18.131914+00:00'
+hardware:
+  arch: x86_64
+  cpu: x86_64
+  cpu_cores: 6
+  cpu_threads: 12
+  gpu: null
+  gpu_backend: none
+  gpu_vram_gb: null
+  os: Linux
+  ram_gb: 31.16
+models:
+- qwen2.5:3b
+- gemma3:4b
+- gemma4:e2b
+ollama:
+  reachable: false
+  version: null
+profile: cpu-standard
+scenarios:
+- triage_jira
+- estimation_tawos
