@@ -1,0 +1,13 @@
+id: live_smoke_triage
+description: "Live end-to-end smoke: triage_jira × qwen2.5:1.5b × zero-shot × 10 instances"
+scenario: triage_jira
+sample_size: 10
+models:
+  - qwen2.5:1.5b
+adaptation:
+  strategy: [zero-shot]
+inference:
+  temperature: 0.0
+  seed: 42
+metrics:
+  - f1_macro

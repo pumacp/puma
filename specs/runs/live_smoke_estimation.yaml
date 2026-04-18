@@ -1,0 +1,13 @@
+id: live_smoke_estimation
+description: "Live end-to-end smoke: estimation_tawos × qwen2.5:1.5b × zero-shot × 10 instances"
+scenario: estimation_tawos
+sample_size: 10
+models:
+  - qwen2.5:1.5b
+adaptation:
+  strategy: [zero-shot]
+inference:
+  temperature: 0.0
+  seed: 42
+metrics:
+  - mae
