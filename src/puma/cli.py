@@ -138,9 +138,85 @@ def cache(
 @app.command()
 def run(
     spec: str = typer.Argument(..., help="Path to run-spec YAML"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Build prompts without calling Ollama"),
+    ollama_host: str = typer.Option("http://localhost:11434", "--ollama-host", envvar="OLLAMA_HOST"),
+    db_path: str = typer.Option("data/puma.db", "--db"),
 ) -> None:
-    """Execute a benchmark run-spec. (Phase 5)"""
-    typer.echo(f"[stub] puma run {spec} — not yet implemented (Phase 5)")
+    """Execute a benchmark run-spec."""
+    from puma.orchestrator.runner import Runner
+    from puma.orchestrator.runspec import RunSpec
+
+    try:
+        run_spec = RunSpec.from_yaml(spec)
+    except Exception as exc:
+        typer.secho(f"[ERROR] Invalid run-spec: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from exc
+
+    runner = Runner(run_spec, db_path=db_path, ollama_host=ollama_host, dry_run=dry_run)
+    try:
+        summary = runner.run()
+        typer.echo(f"\nRun complete: {summary['run_id']}")
+        typer.echo(f"Predictions: {summary['n_predictions']}")
+        for k, v in summary.get("metrics", {}).items():
+            if isinstance(v, (int, float)):
+                typer.echo(f"  {k}: {v:.4f}")
+    except Exception as exc:
+        typer.secho(f"[ERROR] Run failed: {exc}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1) from exc
+
+
+@app.command()
+def compare(
+    run_ids: list[str] = typer.Argument(..., help="Two or more run IDs to compare"),  # noqa: B008
+    db_path: str = typer.Option("data/puma.db", "--db"),
+    output: str | None = typer.Option(None, "--output", help="Save comparison JSON to file"),
+) -> None:
+    """Compare metrics across two or more runs."""
+    from puma.orchestrator.compare import compare_runs
+
+    if len(run_ids) < 2:
+        typer.secho("[ERROR] Provide at least two run IDs.", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
+
+    result = compare_runs(run_ids, db_path=db_path)
+    typer.echo(result["markdown_table"])
+    if result.get("diffs"):
+        typer.echo("\nDifferences (run2 - run1):")
+        for k, v in result["diffs"].items():
+            sign = "+" if v >= 0 else ""
+            typer.echo(f"  {k}: {sign}{v:.4f}")
+    if output:
+        import json
+        from pathlib import Path
+        Path(output).write_text(json.dumps(result, indent=2, default=str))
+        typer.echo(f"\nSaved to {output}")
+
+
+@app.command()
+def db(
+    action: str = typer.Argument("migrate", help="Action: migrate | status"),
+    db_path: str = typer.Option("data/puma.db", "--db"),
+) -> None:
+    """Manage the PUMA database schema."""
+    from puma.storage.db import init_db
+    from puma.storage.models import Base
+
+    if action == "migrate":
+        init_db(db_path)
+        typer.echo(f"Schema applied to {db_path}")
+        tables = Base.metadata.tables.keys()
+        for t in sorted(tables):
+            typer.echo(f"  table: {t}")
+    elif action == "status":
+        from pathlib import Path
+        p = Path(db_path)
+        if p.exists():
+            typer.echo(f"{db_path}: {p.stat().st_size / 1024:.1f} KB")
+        else:
+            typer.echo(f"{db_path}: not found (run 'puma db migrate' to create)")
+    else:
+        typer.echo(f"Unknown action: {action!r}")
+        raise typer.Exit(1)
 
 
 @app.command()
