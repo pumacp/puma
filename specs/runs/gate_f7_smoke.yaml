@@ -1,0 +1,18 @@
+id: gate_f7_smoke
+description: "Gate F7: triage_jira × 2 models × zero-shot × 50 instances"
+scenario: triage_jira
+sample_size: 50
+models:
+  - qwen2.5:3b
+  - qwen2.5:1.5b
+adaptation:
+  strategy: [zero-shot]
+inference:
+  temperature: 0.0
+  seed: 42
+  logprobs: false
+metrics:
+  - f1_macro
+sustainability:
+  codecarbon: false
+repeat: 1

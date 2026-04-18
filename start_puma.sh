@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# PUMA entry point — detects hardware, selects profile, starts services.
+# start_puma.sh — provision and start PUMA on a clean machine.
+# Requirements: docker, docker compose (v2), internet access.
 # Usage: ./start_puma.sh [--profile auto|cpu-lite|cpu-standard|gpu-entry|gpu-mid|gpu-high]
 #                        [--skip-models] [--skip-datasets] [--smoke-only]
 #                        [--observability] [--verbose]
@@ -12,142 +13,156 @@ SKIP_DATASETS=false
 SMOKE_ONLY=false
 OBSERVABILITY=false
 VERBOSE=false
+START_TIME=$(date +%s)
 
-# Parse flags
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --profile) PROFILE="$2"; shift 2 ;;
-        --skip-models) SKIP_MODELS=true; shift ;;
+        --profile)       PROFILE="$2"; shift 2 ;;
+        --skip-models)   SKIP_MODELS=true; shift ;;
         --skip-datasets) SKIP_DATASETS=true; shift ;;
-        --smoke-only) SMOKE_ONLY=true; shift ;;
+        --smoke-only)    SMOKE_ONLY=true; shift ;;
         --observability) OBSERVABILITY=true; shift ;;
-        --verbose) VERBOSE=true; set -x; shift ;;
+        --verbose)       VERBOSE=true; set -x; shift ;;
         *) echo "Unknown flag: $1"; exit 1 ;;
     esac
 done
 
-# Load .env if present
-if [[ -f .env ]]; then
-    set -a; source .env; set +a
-fi
+[[ -f .env ]] && { set -a; source .env; set +a; }
 
 LOGDIR="logs"
 mkdir -p "$LOGDIR"
 LOGFILE="$LOGDIR/startup_$(date +%Y%m%d_%H%M%S).log"
 
-log() { echo "[PUMA] $*" | tee -a "$LOGFILE"; }
-die() { echo "[PUMA ERROR] $*" | tee -a "$LOGFILE"; exit 1; }
+log()  { echo "[PUMA] $*" | tee -a "$LOGFILE"; }
+die()  { echo "[PUMA ERROR] $*" | tee -a "$LOGFILE"; exit 1; }
+warn() { echo "[PUMA WARN] $*" | tee -a "$LOGFILE"; }
 
 log "============================================================"
-log " PUMA — Starting up"
+log " PUMA v2.0.0 — Local LLM Benchmark"
 log "============================================================"
 
-# ── Step 1: Preflight ────────────────────────────────────────────
-log "Step 1/5 — Preflight: hardware detection"
+# ── Step 1: Check Docker ──────────────────────────────────────────
 
-# Run preflight inside the evaluator container (Python 3.11 environment)
-docker exec puma_evaluator python -m puma.cli preflight --profile "$PROFILE" 2>&1 | tee -a "$LOGFILE" || {
-    log "Preflight failed — see $LOGFILE"
-    # If container not yet running, run preflight on host Python if available
-    if command -v python3 &>/dev/null; then
-        PYTHONPATH="src" python3 -m puma.cli preflight --profile "$PROFILE" 2>&1 | tee -a "$LOGFILE" || true
-    fi
-}
+command -v docker &>/dev/null || die "Docker is not installed. See https://docs.docker.com/get-docker/"
+docker compose version &>/dev/null || die "Docker Compose v2 is required."
+log "Step 1/6 — Docker OK ($(docker --version | head -1))"
 
-# Read the selected profile from the written YAML
+# ── Step 2: Build image ───────────────────────────────────────────
+
+log "Step 2/6 — Building puma_runner image..."
+docker compose build puma_runner 2>&1 | tee -a "$LOGFILE"
+
+# ── Step 3: Preflight ────────────────────────────────────────────
+
+log "Step 3/6 — Preflight: hardware detection"
+docker compose run --rm --no-deps puma_runner \
+    puma preflight --profile "$PROFILE" 2>&1 | tee -a "$LOGFILE" || warn "Preflight reported warnings"
+
 SELECTED_PROFILE="cpu-standard"
 if [[ -f config/runtime_profile.yaml ]]; then
-    SELECTED_PROFILE=$(python3 -c "import yaml,sys; d=yaml.safe_load(open('config/runtime_profile.yaml')); print(d['profile'])" 2>/dev/null || echo "cpu-standard")
+    SELECTED_PROFILE=$(python3 -c \
+        "import yaml; d=yaml.safe_load(open('config/runtime_profile.yaml')); print(d.get('profile','cpu-standard'))" \
+        2>/dev/null || echo "cpu-standard")
 fi
-log "Selected profile: $SELECTED_PROFILE"
+log "  Selected profile: $SELECTED_PROFILE"
 
-# ── Step 2: Provisioning ─────────────────────────────────────────
-log "Step 2/5 — Provisioning: starting Docker services"
+# ── Step 4: Start services ────────────────────────────────────────
 
-GPU_COMPOSE_ARGS=""
-if [[ "$SELECTED_PROFILE" == gpu-* ]]; then
-    GPU_COMPOSE_ARGS="--gpus all"
-    log "GPU profile detected — enabling GPU passthrough"
-fi
+log "Step 4/6 — Starting services (Ollama + dashboard)..."
+docker compose up -d puma_ollama puma_dashboard 2>&1 | tee -a "$LOGFILE"
 
-# Ensure Ollama service is up
-if ! docker ps --format '{{.Names}}' | grep -q '^puma_ollama$'; then
-    log "Starting puma_ollama..."
-    docker compose up -d ollama 2>&1 | tee -a "$LOGFILE"
-fi
-
-# Wait for Ollama to be healthy
-log "Waiting for Ollama to be healthy..."
-for i in $(seq 1 20); do
-    if docker exec puma_ollama ollama list &>/dev/null; then
-        log "Ollama is ready"
+log "  Waiting for Ollama to be ready..."
+for i in $(seq 1 30); do
+    if docker compose exec puma_ollama ollama list &>/dev/null 2>&1; then
+        log "  Ollama ready."
         break
     fi
-    sleep 3
-    [[ $i -eq 20 ]] && die "Ollama did not become healthy after 60 seconds"
+    sleep 2
+    [[ $i -eq 30 ]] && warn "Ollama did not respond after 60s — continuing."
 done
 
-# ── Step 3: Models ───────────────────────────────────────────────
+# ── Step 5: Models ───────────────────────────────────────────────
+
 if [[ "$SKIP_MODELS" == false ]]; then
-    log "Step 3/5 — Pulling models for profile: $SELECTED_PROFILE"
+    log "Step 5/6 — Pulling models for profile: $SELECTED_PROFILE"
+
+    # Read models from catalog for selected profile
     MODELS=$(python3 -c "
-import yaml
-d = yaml.safe_load(open('config/runtime_profile.yaml'))
-print(' '.join(d.get('models', [])))
+import yaml, sys
+try:
+    d = yaml.safe_load(open('config/models_catalog.yaml'))
+    models = [m['ollama_tag'] for m in d['models']
+              if '$SELECTED_PROFILE' in m.get('profiles_compatible', [])]
+    # Limit to 2 smallest models for cpu profiles
+    print(' '.join(models[:2]))
+except Exception as e:
+    print('qwen2.5:3b', file=sys.stderr)
+    print('qwen2.5:3b')
 " 2>/dev/null || echo "qwen2.5:3b")
 
     for MODEL in $MODELS; do
-        log "Pulling $MODEL..."
-        docker exec puma_ollama ollama pull "$MODEL" 2>&1 | tee -a "$LOGFILE" || log "WARNING: Failed to pull $MODEL"
+        log "  Pulling $MODEL..."
+        docker compose exec puma_ollama ollama pull "$MODEL" 2>&1 | tee -a "$LOGFILE" \
+            || warn "Failed to pull $MODEL — skipping."
     done
 else
-    log "Step 3/5 — Skipping model downloads (--skip-models)"
+    log "Step 5/6 — Skipping model downloads (--skip-models)"
 fi
 
-# ── Step 4: Datasets ─────────────────────────────────────────────
+# ── Step 6: Datasets + DB schema ─────────────────────────────────
+
 if [[ "$SKIP_DATASETS" == false ]]; then
-    log "Step 4/5 — Verifying datasets"
-    docker exec puma_evaluator python -c "
-import sys; sys.path.insert(0,'src')
-from pathlib import Path
-ok = True
-for f in ['data/jira_balanced_200.csv', 'data/tawos_clean.csv']:
-    if Path(f).exists():
-        print(f'  OK: {f}')
-    else:
-        print(f'  MISSING: {f}')
-        ok = False
-sys.exit(0 if ok else 1)
-" 2>&1 | tee -a "$LOGFILE" || log "WARNING: Some dataset files are missing"
+    log "Step 6/6 — Verifying / downloading datasets..."
+    if ! docker compose run --rm --no-deps puma_runner puma datasets verify \
+            2>&1 | tee -a "$LOGFILE"; then
+        log "  Dataset missing — downloading..."
+        docker compose run --rm --no-deps puma_runner \
+            python scripts/download_datasets.py 2>&1 | tee -a "$LOGFILE" \
+            || warn "Dataset download failed — manual intervention may be needed."
+    fi
 else
-    log "Step 4/5 — Skipping dataset verification (--skip-datasets)"
+    log "Step 6/6 — Skipping dataset verification (--skip-datasets)"
 fi
 
-# ── Step 5: Smoke test or full start ─────────────────────────────
+log "  Applying database schema..."
+docker compose run --rm --no-deps puma_runner puma db migrate 2>&1 | tee -a "$LOGFILE"
+
+# ── Optional smoke-only run ───────────────────────────────────────
+
 if [[ "$SMOKE_ONLY" == true ]]; then
-    log "Step 5/5 — Smoke test"
-    docker exec puma_evaluator python -c "
-import sys; sys.path.insert(0,'src')
-from puma.preflight import detect_capabilities
-caps = detect_capabilities()
-print(f'  RAM: {caps.ram_total_gb:.1f} GB')
-print(f'  GPU: {caps.gpu_name or \"none\"}')
-print('  Smoke test PASSED')
-" 2>&1 | tee -a "$LOGFILE" && log "Smoke test complete" || die "Smoke test failed"
-else
-    log "Step 5/5 — Starting remaining services"
-    docker compose up -d 2>&1 | tee -a "$LOGFILE"
+    log "Running dry-run smoke test..."
+    docker compose run --rm --no-deps puma_runner \
+        puma run specs/runs/smoke_triage.yaml --dry-run 2>&1 | tee -a "$LOGFILE" \
+        && log "Smoke test PASSED" || die "Smoke test FAILED"
+fi
+
+# ── Optional observability overlay ────────────────────────────────
+
+if [[ "$OBSERVABILITY" == true ]]; then
+    if [[ -f docker/docker-compose.observability.yml ]]; then
+        log "Starting observability services (Grafana)..."
+        docker compose -f docker-compose.yml \
+            -f docker/docker-compose.observability.yml up -d 2>&1 | tee -a "$LOGFILE"
+    else
+        warn "Observability overlay not found at docker/docker-compose.observability.yml"
+    fi
 fi
 
 # ── Summary ──────────────────────────────────────────────────────
+
+END_TIME=$(date +%s)
+ELAPSED=$(( END_TIME - START_TIME ))
+
 log ""
 log "============================================================"
-log " PUMA is ready"
+log " PUMA is ready (${ELAPSED}s elapsed)"
 log "  Profile   : $SELECTED_PROFILE"
-log "  Dashboard : http://localhost:8501 (when Phase 6 deployed)"
-log "  Next steps:"
-log "    puma run specs/runs/smoke_triage.yaml"
-log "    puma dashboard"
-log "    puma report <run_id>"
+log "  Dashboard : http://localhost:8501"
+log "  Ollama    : http://localhost:11434"
+log ""
+log "  Quick start:"
+log "    docker compose run --rm puma_runner puma run specs/runs/smoke_triage.yaml"
+log "    docker compose run --rm puma_runner puma report <run_id>"
+log "    docker compose run --rm puma_runner puma compare <id1> <id2>"
 log "  Log: $LOGFILE"
 log "============================================================"
