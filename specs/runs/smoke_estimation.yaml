@@ -1,0 +1,16 @@
+id: smoke_estimation_v1
+description: "Smoke run: estimation_tawos × qwen2.5:3b × zero-shot × 20 instances"
+scenario: estimation_tawos
+sample_size: 20
+models:
+  - qwen2.5:3b
+adaptation:
+  strategy: [zero-shot]
+inference:
+  temperature: 0.0
+  seed: 42
+metrics:
+  - mae
+sustainability:
+  codecarbon: false
+repeat: 1

@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt requirements-dev.txt ./
 RUN pip install -r requirements.txt -r requirements-dev.txt
 
-# Copy source (volume-mounted and overridden during development)
+# Copy source and install the puma package (registers the CLI entrypoint)
 COPY . .
+RUN pip install --no-deps -e .
 
 CMD ["tail", "-f", "/dev/null"]
