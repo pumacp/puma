@@ -1,0 +1,27 @@
+adaptation:
+  cot:
+  - false
+  strategy:
+  - zero-shot
+description: Unit test
+id: test_run_v1
+inference:
+  format: null
+  logprobs: false
+  max_tokens: 256
+  seed: 42
+  temperature: 0.0
+  top_logprobs: 0
+metrics:
+- f1_macro
+models:
+- qwen2.5:3b
+perturbations:
+- typos_5pct
+profile_required: null
+repeat: 1
+sample_size: 3
+scenario: triage_jira
+sustainability:
+  codecarbon: false
+  country_iso: ESP

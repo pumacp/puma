@@ -1,0 +1,28 @@
+adaptation:
+  cot:
+  - false
+  strategy:
+  - zero-shot
+  - few-shot-3
+description: 'Benchmark: estimation_tawos x gemma4:e2b (profile: gpu-entry)'
+id: benchmark_estimation_tawos_gemma4_e2b
+inference:
+  format: null
+  logprobs: false
+  max_tokens: 256
+  seed: 42
+  temperature: 0.0
+  top_logprobs: 0
+metrics:
+- mae
+- latency_p95
+models:
+- gemma4:e2b
+perturbations: []
+profile_required: null
+repeat: 1
+sample_size: 30
+scenario: estimation_tawos
+sustainability:
+  codecarbon: false
+  country_iso: ESP

@@ -1,0 +1,22 @@
+id: benchmark_estimation_tawos_gemma3_4b
+description: "Benchmark: estimation_tawos x gemma3:4b (profile: gpu-entry)"
+scenario: estimation_tawos
+sample_size: 30
+models:
+  - gemma3:4b
+adaptation:
+  strategy:
+  - zero-shot
+  - few-shot-3
+  cot: [false]
+inference:
+  temperature: 0.0
+  seed: 42
+  logprobs: false
+  max_tokens: 256
+metrics:
+  - mae
+  - latency_p95
+sustainability:
+  codecarbon: false
+repeat: 1

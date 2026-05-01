@@ -1,0 +1,22 @@
+id: benchmark_estimation_tawos_qwen2.5_3b
+description: "Benchmark: estimation_tawos x qwen2.5:3b (profile: gpu-entry)"
+scenario: estimation_tawos
+sample_size: 30
+models:
+  - qwen2.5:3b
+adaptation:
+  strategy:
+  - zero-shot
+  - few-shot-3
+  cot: [false]
+inference:
+  temperature: 0.0
+  seed: 42
+  logprobs: false
+  max_tokens: 256
+metrics:
+  - mae
+  - latency_p95
+sustainability:
+  codecarbon: false
+repeat: 1
