@@ -1,0 +1,263 @@
+===================================================================
+ PUMA Benchmark — sáb 18 abr 2026 22:34:35 CEST
+===================================================================
+Profile   : gpu-entry
+Models    : qwen2.5:3b gemma3:4b gemma4:e2b mistral:7b llama3.1:8b gemma3:12b
+Scenarios : triage_jira estimation_tawos prioritization_jira
+Strategies: zero-shot,few-shot-3
+Mode      : LIVE
+===================================================================
+
+===================================================================
+MODEL: qwen2.5:3b  [sáb 18 abr 2026 22:34:35 CEST]
+===================================================================
+--- Pulling qwen2.5:3b ---
+[?2026h[?25l[1Gpulling manifest ⠋ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠹ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠹ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠸ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠴ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest [K
+pulling 5ee4f07cdb9b: 100% ▕██████████████████▏ 1.9 GB                         [K
+pulling 66b9ea09bd5b: 100% ▕██████████████████▏   68 B                         [K
+pulling eb4402837c78: 100% ▕██████████████████▏ 1.5 KB                         [K
+pulling b5c0e5cf74cf: 100% ▕██████████████████▏ 7.4 KB                         [K
+pulling 161ddde4c9cd: 100% ▕██████████████████▏  487 B                         [K
+verifying sha256 digest [K
+writing manifest [K
+success [K[?25h[?2026l
+
+--- Scenario: triage_jira ---
+ Container puma_ollama  Running
+2026-04-18 20:34:36 [info     ] run.start                      run_id=benchmark_triage_jira_qwen2.5_3b__bc9e73476af98e6e__20260418T203436 spec_hash=bc9e73476af98e6e
+ benchmark_triage_jira_qwen2.5_3b__bc9e73476af98e6e__20260418T203436 ━ 100/100 …
+2026-04-18 20:34:58 [info     ] run.end                        duration_s=21.3 n_predictions=100 run_id=benchmark_triage_jira_qwen2.5_3b__bc9e73476af98e6e__20260418T203436
+
+Run complete: benchmark_triage_jira_qwen2.5_3b__bc9e73476af98e6e__20260418T203436
+Predictions: 100
+  f1_macro: 0.5085
+  f1_weighted: 0.5022
+  accuracy: 0.5600
+  n_samples: 100.0000
+  parse_failure_rate: 0.0000
+  n_predictions: 100.0000
+Saved → results/benchmark_qwen2.5_3b_triage_jira.json
+
+--- Scenario: estimation_tawos ---
+ Container puma_ollama  Running
+2026-04-18 20:34:59 [info     ] run.start                      run_id=benchmark_estimation_tawos_qwen2.5_3b__383a708ace53dbbd__20260418T203459 spec_hash=383a708ace53dbbd
+benchmark_estimation_tawos_qwen2.5_3b__383a708ace53dbbd__20260418T203459 60/60 …
+2026-04-18 20:35:23 [info     ] run.end                        duration_s=23.9 n_predictions=60 run_id=benchmark_estimation_tawos_qwen2.5_3b__383a708ace53dbbd__20260418T203459
+
+Run complete: benchmark_estimation_tawos_qwen2.5_3b__383a708ace53dbbd__20260418T203459
+Predictions: 60
+  mae: 5.9667
+  mdae: 5.0000
+  rmse: 7.8379
+  n_samples: 60.0000
+  parse_failure_rate: 0.0000
+  n_predictions: 60.0000
+Saved → results/benchmark_qwen2.5_3b_estimation_tawos.json
+
+--- Scenario: prioritization_jira ---
+ Container puma_ollama  Running
+2026-04-18 20:35:25 [info     ] run.start                      run_id=benchmark_prioritization_jira_qwen2.5_3b__a20844d7913da444__20260418T203524 spec_hash=a20844d7913da444
+benchmark_prioritization_jira_qwen2.5_3b__a20844d7913da444__20260418T2035… 60/… 
+2026-04-18 20:35:38 [info     ] run.end                        duration_s=13.4 n_predictions=60 run_id=benchmark_prioritization_jira_qwen2.5_3b__a20844d7913da444__20260418T203524
+
+Run complete: benchmark_prioritization_jira_qwen2.5_3b__a20844d7913da444__20260418T203524
+Predictions: 60
+  accuracy: 0.5667
+  parse_failure_rate: 0.0000
+  n_predictions: 60.0000
+Saved → results/benchmark_qwen2.5_3b_prioritization_jira.json
+=== DONE: qwen2.5:3b ===
+
+===================================================================
+MODEL: gemma3:4b  [sáb 18 abr 2026 22:35:38 CEST]
+===================================================================
+--- Pulling gemma3:4b ---
+[?2026h[?25l[1Gpulling manifest ⠋ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠹ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠹ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠸ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠴ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠴ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠦ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest [K
+pulling aeda25e63ebd: 100% ▕██████████████████▏ 3.3 GB                         [K
+pulling e0a42594d802: 100% ▕██████████████████▏  358 B                         [K
+pulling dd084c7d92a3: 100% ▕██████████████████▏ 8.4 KB                         [K
+pulling 3116c5225075: 100% ▕██████████████████▏   77 B                         [K
+pulling b6ae5839783f: 100% ▕██████████████████▏  489 B                         [K
+verifying sha256 digest [K
+writing manifest [K
+success [K[?25h[?2026l
+
+--- Scenario: triage_jira ---
+ Container puma_ollama  Running
+2026-04-18 20:35:40 [info     ] run.start                      run_id=benchmark_triage_jira_gemma3_4b__3a1d96e666f6adb7__20260418T203540 spec_hash=3a1d96e666f6adb7
+  benchmark_triage_jira_gemma3_4b__3a1d96e666f6adb7__20260418T203540 ━ 100/100 …
+2026-04-18 20:36:42 [info     ] run.end                        duration_s=61.6 n_predictions=100 run_id=benchmark_triage_jira_gemma3_4b__3a1d96e666f6adb7__20260418T203540
+
+Run complete: benchmark_triage_jira_gemma3_4b__3a1d96e666f6adb7__20260418T203540
+Predictions: 100
+  f1_macro: 0.3338
+  f1_weighted: 0.3243
+  accuracy: 0.4200
+  n_samples: 100.0000
+  parse_failure_rate: 0.0000
+  n_predictions: 100.0000
+Saved → results/benchmark_gemma3_4b_triage_jira.json
+
+--- Scenario: estimation_tawos ---
+ Container puma_ollama  Running
+2026-04-18 20:36:43 [info     ] run.start                      run_id=benchmark_estimation_tawos_gemma3_4b__9a683d389466f831__20260418T203643 spec_hash=9a683d389466f831
+ benchmark_estimation_tawos_gemma3_4b__9a683d389466f831__20260418T203643 60/60 …
+2026-04-18 20:37:20 [info     ] run.end                        duration_s=36.5 n_predictions=60 run_id=benchmark_estimation_tawos_gemma3_4b__9a683d389466f831__20260418T203643
+
+Run complete: benchmark_estimation_tawos_gemma3_4b__9a683d389466f831__20260418T203643
+Predictions: 60
+  mae: 39.9000
+  mdae: 5.5000
+  rmse: 261.2737
+  n_samples: 60.0000
+  parse_failure_rate: 0.0000
+  n_predictions: 60.0000
+Saved → results/benchmark_gemma3_4b_estimation_tawos.json
+
+--- Scenario: prioritization_jira ---
+ Container puma_ollama  Running
+2026-04-18 20:37:21 [info     ] run.start                      run_id=benchmark_prioritization_jira_gemma3_4b__163a96b3e7a97784__20260418T203721 spec_hash=163a96b3e7a97784
+benchmark_prioritization_jira_gemma3_4b__163a96b3e7a97784__20260418T203721 60/… 
+2026-04-18 20:37:48 [info     ] run.end                        duration_s=26.7 n_predictions=60 run_id=benchmark_prioritization_jira_gemma3_4b__163a96b3e7a97784__20260418T203721
+
+Run complete: benchmark_prioritization_jira_gemma3_4b__163a96b3e7a97784__20260418T203721
+Predictions: 60
+  accuracy: 0.7667
+  parse_failure_rate: 0.0000
+  n_predictions: 60.0000
+Saved → results/benchmark_gemma3_4b_prioritization_jira.json
+=== DONE: gemma3:4b ===
+
+===================================================================
+MODEL: gemma4:e2b  [sáb 18 abr 2026 22:37:49 CEST]
+===================================================================
+--- Pulling gemma4:e2b ---
+[?2026h[?25l[1Gpulling manifest ⠋ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠙ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠹ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠸ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠼ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠴ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest [K
+pulling 4e30e2665218: 100% ▕██████████████████▏ 7.2 GB                         [K
+pulling 7339fa418c9a: 100% ▕██████████████████▏  11 KB                         [K
+pulling 56380ca2ab89: 100% ▕██████████████████▏   42 B                         [K
+pulling c6bc3775a3fa: 100% ▕██████████████████▏  473 B                         [K
+verifying sha256 digest [K
+writing manifest [K
+success [K[?25h[?2026l
+
+--- Scenario: triage_jira ---
+ Container puma_ollama  Running
+2026-04-18 20:37:50 [info     ] run.start                      run_id=benchmark_triage_jira_gemma4_e2b__36987f5831f493b2__20260418T203750 spec_hash=36987f5831f493b2
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+Could not parse triage response: ''
+
+[WARN] Metrics not found for gemma4:e2b × triage_jira
+
+--- Scenario: estimation_tawos ---
+ Container puma_ollama  Running
+2026-04-18 20:58:17 [info     ] run.start                      run_id=benchmark_estimation_tawos_gemma4_e2b__a353f420122ec100__20260418T205816 spec_hash=a353f420122ec100
+Timeout on attempt 1, retrying in 1s
+Timeout on attempt 2, retrying in 2s
+Timeout on attempt 3, retrying in 4s
+2026-04-18 21:07:27 [warning  ] inference.error                error='Ollama request failed after 3 retries' model=gemma4:e2b
+Timeout on attempt 1, retrying in 1s
+2026-04-18 21:11:26 [warning  ] inference.error                error='Server disconnected without sending a response.' model=gemma4:e2b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=gemma4:e2b

@@ -1,11 +1,11 @@
 # PUMA Constitution (SDD + Agentic Coding)
-- Fuente única de verdad: los archivos .spec.md
-- Todo código generado debe pasar pytest antes de merge
-- Reproducibilidad obligatoria: seed=42, temperature=0.0
-- Output siempre en JSON Schema definido en cada spec
-- Medir CodeCarbon en cada ejecución experimental
-- Human-in-the-loop: ninguna acción final sin validación humana
-- Licencia: MIT
-- Metodología: Spec-First Development (SDD)
-- Agentes: Code generation, Testing, Review integrados
-- Contexto: RAG + Context Engineering para prompts optimizados
+- Single source of truth: the .spec.md files
+- All generated code must pass pytest before merge
+- Mandatory reproducibility: seed=42, temperature=0.0
+- Output always in the JSON Schema defined in each spec
+- Measure CodeCarbon in every experimental run
+- Human-in-the-loop: no final action without human validation
+- License: MIT
+- Methodology: Spec-First Development (SDD)
+- Agents: Code generation, Testing, Review integrated
+- Context: RAG + Context Engineering for optimised prompts

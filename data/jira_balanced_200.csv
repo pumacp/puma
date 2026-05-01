@@ -1,0 +1,201 @@
+issue_key,title,description,priority
+CRIT-001,System crash on production server,The production server crashes intermittently causing complete service outage. Critical business operations are affected. Need immediate investigation and fix.,Critical
+CRIT-002,Database connection pool exhausted,Application cannot connect to database after 10 minutes of uptime. All users get connection errors. This is a critical production issue.,Critical
+CRIT-003,Security vulnerability in authentication,SQL injection vulnerability discovered in login form. Immediate patch required to prevent unauthorized access.,Critical
+CRIT-004,Payment processing failure,All credit card transactions are failing. Revenue impact is significant. Need hotfix deployment immediately.,Critical
+CRIT-005,Data loss during backup,Scheduled backup corrupted database files. Critical customer data may be lost. Need recovery plan ASAP.,Critical
+CRIT-006,API returning 500 errors,REST API endpoints returning 500 Internal Server Error for all requests. Mobile app is completely non-functional.,Critical
+CRIT-007,Memory leak causing OOM crashes,Application memory usage grows unbounded until JVM crashes with OutOfMemoryError. Service restarts every few hours.,Critical
+CRIT-008,SSL certificate expired,Production SSL certificate expired. Website showing security warnings to all users. Traffic dropping rapidly.,Critical
+CRIT-009,Race condition in transaction processing,Double charges being processed due to race condition. Multiple customer complaints received. Need urgent fix.,Critical
+CRIT-010,Critical data corruption,Database records being overwritten with null values. Customer orders disappearing from system. Emergency fix needed.,Critical
+CRIT-011,Load balancer misconfiguration,Traffic not being distributed correctly. Some servers overloaded while others idle. Service degraded.,Critical
+CRIT-012,Cache invalidation bug,Stale cache serving incorrect prices to customers. Wrong amounts charged. Immediate rollback required.,Critical
+CRIT-013,Third-party API integration down,Payment gateway API returning errors. Cannot process any transactions. Affects all customers globally.,Critical
+CRIT-014,Service bus message loss,Critical messages being dropped from message queue. Orders not being processed. Customer notifications failing.,Critical
+CRIT-015,Cron job not executing,Scheduled batch jobs not running. Daily reports not generated. End-of-day processing failing.,Critical
+CRIT-016,File storage quota exceeded,Upload functionality broken due to storage quota. Users cannot upload documents. Blocking business operations.,Critical
+CRIT-017,Email notification system down,Transactional emails not being sent. Users not receiving password resets or order confirmations.,Critical
+CRIT-018,Search index corrupted,Search functionality returning no results. Users cannot find products. Conversion rate dropping significantly.,Critical
+CRIT-019,Admin panel inaccessible,System administrators cannot access admin panel. Cannot manage users or content. Security risk.,Critical
+CRIT-020,WebSocket connection failures,Real-time updates not working. Chat and notifications broken. User engagement severely impacted.,Critical
+CRIT-021,CDN configuration error,Static assets not loading. Website completely broken. All assets returning 404 errors.,Critical
+CRIT-022,Backup restoration failed,Disaster recovery test failed. Cannot restore from backups. Business continuity at risk.,Critical
+CRIT-023,DNS resolution failure,Domain not resolving to server. Website completely inaccessible. Affecting all users worldwide.,Critical
+CRIT-024,Session management broken,Users being logged out immediately. Cannot maintain login state. All user sessions affected.,Critical
+CRIT-025,Rate limiting too aggressive,Legitimate users being blocked by rate limiter. Service effectively unusable for real users.,Critical
+CRIT-026,Database migration failure,Schema migration corrupted table structure. Application cannot read data. Emergency rollback needed.,Critical
+CRIT-027,Encryption key compromised,Encryption keys exposed in logs. All sensitive data potentially compromised. Need key rotation.,Critical
+CRIT-028,Monitoring system alerts failing,No alerts being sent when services go down. Outages going unnoticed for hours.,Critical
+CRIT-029,Container orchestration failure,Kubernetes pods not scheduling correctly. Services running on insufficient resources. Performance degraded.,Critical
+CRIT-030,Code deployment broke authentication,Latest deployment broke login flow. No users can authenticate. Need immediate rollback.,Critical
+CRIT-031,Database deadlock causing timeouts,Deadlocks causing request timeouts. Application unresponsive during peak hours.,Critical
+CRIT-032,API rate limit not working,Rate limiting completely broken. Server overloaded by malicious bot traffic.,Critical
+CRIT-033,File upload size limit too small,Users cannot upload files over 1MB. Business users need to upload larger documents.,Critical
+CRIT-034,Background job queue stuck,All background jobs queued but not executing. Data processing completely halted.,Critical
+CRIT-035,Timezone handling incorrect,All timestamps off by hours due to timezone bug. Reports contain wrong dates.,Critical
+CRIT-036,Pagination returning duplicates,List endpoints returning duplicate records. Users seeing same items multiple times.,Critical
+CRIT-037,Validation bypass vulnerability,Input validation not working. Malformed data entering system. Potential security issue.,Critical
+CRIT-038,Mobile app sync broken,Mobile app cannot sync with server. Offline mode not working. User data lost.,Critical
+CRIT-039,Webhook delivery failures,Third-party webhooks not being delivered. Integration partners complaining.,Critical
+CRIT-040,SSO authentication loop,Users stuck in redirect loop during SSO login. Cannot access application.,Critical
+CRIT-041,Report generation timeout,Large reports timing out. Business users cannot access important data.,Critical
+CRIT-042,GraphQL query depth limit missing,Malicious queries causing server resource exhaustion. Need query complexity limits.,Critical
+CRIT-043,Custom domain SSL not working,Custom domains showing certificate errors. Partner integrations broken.,Critical
+CRIT-044,Push notification certificates expired,iOS and Android push notifications not working. User engagement down significantly.,Critical
+CRIT-045,Database query plan caching bug,Query performance degrading over time. Need to restart database daily.,Critical
+CRIT-046,Audit log gap detected,Security audit logs have gaps. Cannot track user actions. Compliance risk.,Critical
+CRIT-047,Microservice health checks failing,Health check endpoints returning false negatives. Load balancer removing healthy instances.,Critical
+CRIT-048,Feature flag system down,Cannot toggle features on/off. Cannot do gradual rollouts. Deployment blocked.,Critical
+CRIT-049,Object storage bucket full,File storage at capacity. Cannot accept new uploads. Business operations halted.,Critical
+CRIT-050,APM agent causing latency,Application performance monitoring adding 500ms latency to every request.,Critical
+MAJR-001,Performance degradation under load,Page load times increased from 2s to 8s during peak hours. Users complaining about slowness.,Major
+MAJR-002,Search results not relevant,Search algorithm returning irrelevant results. Users cannot find what they need. Bounce rate increasing.,Major
+MAJR-003,Mobile app crashes on Android 14,App crashes immediately on devices running Android 14. Significant user impact.,Major
+MAJR-004,Export to CSV producing duplicates,"When exporting large datasets, duplicate rows appear in CSV. Data integrity concern.",Major
+MAJR-005,Dashboard widgets not loading,Dashboard shows loading spinner indefinitely for some widgets. No data displayed.,Major
+MAJR-006,Image upload failing for large files,Files over 5MB fail to upload with timeout error. Need to increase limit or optimize.,Major
+MAJR-007,Date filter not working in reports,Date range filter in reports ignores user input. Always shows default range.,Major
+MAJR-008,PDF generation missing logos,Generated PDFs missing company logo. Brand consistency issue in customer communications.,Major
+MAJR-009,Sorting not persisting in tables,User sorts table by column but sort order resets on page refresh. Poor UX.,Major
+MAJR-010,Email templates showing raw HTML,Some email clients displaying HTML source instead of rendered content. Requires fix.,Major
+MAJR-011,API documentation outdated,API docs show endpoints that no longer exist. Confusing for developers.,Major
+MAJR-012,Filter dropdown showing deleted options,Filter dropdown includes options for deleted categories. Selecting them returns empty results.,Major
+MAJR-013,Chart tooltips not displaying,Hovering over chart data points shows no tooltip. Cannot see exact values.,Major
+MAJR-014,Bulk actions timing out,Selecting more than 100 items for bulk update causes timeout. Need pagination.,Major
+MAJR-015,User profile picture not updating,Uploaded profile picture not appearing. Old image remains cached.,Major
+MAJR-016,Two-factor auth QR code scanning fails,Google Authenticator cannot scan QR code. Users cannot enable 2FA.,Major
+MAJR-017,Breadcrumb navigation broken,Breadcrumbs show incorrect parent pages. Users get lost navigating hierarchy.,Major
+MAJR-018,Dark mode has contrast issues,Some text in dark mode is hard to read. Contrast ratio below accessibility standards.,Major
+MAJR-019,Calendar events showing wrong timezone,Events display in UTC instead of user's timezone. Confusion for scheduling.,Major
+MAJR-020,Autocomplete suggestions slow,Type-ahead suggestions take 3+ seconds to appear. Should be near-instant.,Major
+MAJR-021,Form validation messages unclear,Error messages don't explain what went wrong. Users confused about fixes.,Major
+MAJR-022,File browser navigation slow,Browsing through folders takes 5+ seconds per action. Needs optimization.,Major
+MAJR-023,Comments not loading on posts,Comment section shows loading spinner forever. Cannot view or add comments.,Major
+MAJR-024,Video playback buffering constantly,Embedded videos buffer every few seconds. Unwatchable experience.,Major
+MAJR-025,RSS feed not updating,RSS feed shows stale content. New posts not appearing in feed readers.,Major
+MAJR-026,Webhook retry logic broken,Failed webhooks not being retried. External systems not receiving updates.,Major
+MAJR-027,Admin cannot see all user roles,User management page truncates role names. Cannot distinguish permissions.,Major
+MAJR-028,API rate limit counter inaccurate,Rate limit headers show wrong numbers. Confusing for API consumers.,Major
+MAJR-029,Print stylesheet missing,Pages print poorly. Content runs off pages. Need print-optimized styles.,Major
+MAJR-030,Markdown rendering inconsistent,"Some markdown syntax renders correctly, some doesn't. Inconsistent user content.",Major
+MAJR-031,Data table sticky header not working,Table header scrolls away on long lists. Hard to read data.,Major
+MAJR-032,Currency formatting incorrect,Some currencies display wrong symbols. Euro showing as dollar sign.,Major
+MAJR-033,Timeago displaying wrong times,"""5 minutes ago"" shows for items from hours ago. Cache invalidation issue.",Major
+MAJR-034,Infinite scroll pagination broken,Loading more items replaces existing items instead of appending. Data loss.,Major
+MAJR-035,OAuth token refresh failing,Access tokens not being refreshed. Users logged out unexpectedly after 1 hour.,Major
+MAJR-036,Data visualization colors wrong,Chart colors don't match legend. Misleading data representation.,Major
+MAJR-037,Keyboard shortcuts not working,Ctrl+S and other shortcuts have no effect. Power user feature broken.,Major
+MAJR-038,Pagination state not in URL,Page number not reflected in URL. Sharing links doesn't work correctly.,Major
+MAJR-039,File preview not generating,Preview thumbnails not showing for uploaded files. Users must download to view.,Major
+MAJR-040,Tag suggestions from wrong dataset,Auto-suggested tags are irrelevant. ML model needs retraining.,Major
+MAJR-041,Modal dialogs not closing on backdrop click,Clicking outside modal doesn't close it. Inconsistent with UX expectations.,Major
+MAJR-042,CSV import mapping not saving,Column mappings not persisted between imports. Users redo setup each time.,Major
+MAJR-043,Progress bar inaccurate,Upload progress shows 100% before completion. Confusing feedback.,Major
+MAJR-044,Favicon not displaying in browser tab,Site icon missing. Brand visibility issue across browser tabs.,Major
+MAJR-045,JSON API returning XML content-type,API responses have wrong Content-Type header. Breaks some HTTP clients.,Major
+MAJR-046,Tab order in forms incorrect,Tab key jumps to unexpected fields. Accessibility and UX issue.,Major
+MAJR-047,Batch delete confirmation unclear,Delete confirmation doesn't show how many items will be affected. Safety concern.,Major
+MAJR-048,Tooltips truncated on overflow,Long tooltips get cut off. Cannot read full message.,Major
+MAJR-049,Responsive menu broken on tablet,Navigation menu doesn't work properly on iPad. Touch targets too small.,Major
+MAJR-050,Error logs not rotated,Log files growing unbounded. Disk space will be exhausted soon.,Major
+MINR-001,Typos in error messages,Several error messages have spelling mistakes. Should be corrected for professionalism.,Minor
+MINR-002,Minor spacing inconsistency in footer,Footer links have uneven spacing. Visual polish issue.,Minor
+MINR-003,Placeholder text not localized,Form placeholders show English text for non-English locales.,Minor
+MINR-004,Loading spinner slightly off-center,Spinner icon misaligned by 2 pixels. Minor visual issue.,Minor
+MINR-005,Unused console.log statements in JS,Debug logging left in production code. Should be removed for cleanliness.,Minor
+MINR-006,Alt text missing on decorative images,Decorative images should have empty alt attribute for accessibility.,Minor
+MINR-007,Timestamp showing seconds when not needed,Dates show unnecessary precision. Should round to nearest minute.,Minor
+MINR-008,Button hover state barely visible,Hover color change too subtle. Users may not notice interaction.,Minor
+MINR-009,Unnecessary scrollbar appearing,Vertical scrollbar shows even when content fits. Minor visual distraction.,Minor
+MINR-010,Favicon cache not clearing on update,New favicon doesn't show until cache cleared. Minor deployment issue.,Minor
+MINR-011,Debug info visible in footer,Development environment info showing in production footer.,Minor
+MINR-012,Text selection color inconsistent,Highlight color different across browsers. Should standardize.,Minor
+MINR-013,Help icon tooltip slightly delayed,Info tooltips take 1 second to appear. Slight UX improvement.,Minor
+MINR-014,Breadcrumb separator inconsistent,"Some separators are pipes, others are chevrons. Should standardize.",Minor
+MINR-015,Login page logo slightly blurry,Logo resolution not optimal on retina displays. Minor visual quality issue.,Minor
+MINR-016,Warning banner border-radius mismatch,Warning box has different corner radius than error/success boxes.,Minor
+MINR-017,Unused CSS selectors in stylesheet,Stylesheet contains dead code. Should be cleaned up.,Minor
+MINR-018,Page title doesn't match heading,Browser tab title slightly different from page H1. Minor inconsistency.,Minor
+MINR-019,Empty state illustration not centered,Empty state graphic slightly off-center on wide screens.,Minor
+MINR-020,Form labels slightly misaligned,Labels are 1px out of alignment with inputs. Minor visual polish.,Minor
+MINR-021,Tooltip arrow pointing slightly off,Tooltip pointer not perfectly aligned with trigger element.,Minor
+MINR-022,Disabled button still clickable briefly,Click event fires before button becomes disabled. Race condition.,Minor
+MINR-023,Notification badge slightly mispositioned,Notification count badge is 1px too high. Minor positioning fix.,Minor
+MINR-024,Table row hover effect too subtle,Row highlight on hover barely visible. Should be more obvious.,Minor
+MINR-025,Link underline style inconsistent,"Some links have underlines, others don't. Need consistent styling.",Minor
+MINR-026,Modal close button slightly small,X button in modal is 2px smaller than design spec.,Minor
+MINR-027,Font weight slightly different on mobile,Headings appear bolder on mobile devices. Rendering difference.,Minor
+MINR-028,Padding inconsistent in card components,"Some cards have 16px padding, others 15px. Should standardize.",Minor
+MINR-029,Search icon color contrast low,Search icon doesn't meet WCAG contrast requirements. Minor accessibility.,Minor
+MINR-030,Progress bar color slightly off-brand,Progress indicator is 2% lighter than brand color.,Minor
+MINR-031,Dropdown arrow not vertically centered,Select dropdown arrow is 1px too high.,Minor
+MINR-032,Focus ring color not matching design,Keyboard focus indicator uses wrong shade of blue.,Minor
+MINR-033,Avatar placeholder showing initials wrong,User initials display in wrong order for multi-word names.,Minor
+MINR-034,Checkbox checkmark slightly thin,Checkmark in checkbox is 1px thinner than design spec.,Minor
+MINR-035,Success toast timeout inconsistent,Success messages disappear at different intervals. Should standardize.,Minor
+MINR-036,Tab underline animation jerky,Tab switch animation has slight stutter. Could be smoothed.,Minor
+MINR-037,Date picker year dropdown too narrow,Year selector truncates 4-digit years in some locales.,Minor
+MINR-038,Breadcrumb truncation inconsistent,Long paths truncated at different lengths. Should standardize.,Minor
+MINR-039,Skeleton loader animation slightly fast,Loading placeholder animation feels slightly rushed. Minor UX tweak.,Minor
+MINR-040,Section divider line too light,Horizontal rules are barely visible. Should increase opacity.,Minor
+MINR-041,Card shadow depth inconsistent,Some cards have stronger shadows than others. Should match.,Minor
+MINR-042,Icon button size slightly off,Icon-only buttons are 2px larger than specified.,Minor
+MINR-043,Status indicator pulse animation slow,Online status dot pulses slower than other indicators.,Minor
+MINR-044,Description text line height tight,Body text line height is 0.1 less than recommended.,Minor
+MINR-045,Mobile menu icon line spacing wrong,Hamburger menu lines have incorrect spacing.,Minor
+MINR-046,Star rating component half-star off,Half-star ratings display incorrectly for some values.,Minor
+MINR-047,Tag background color saturation low,Tag colors appear more muted than design mocks.,Minor
+MINR-048,Footer links underline animation slow,Link underline animation takes 300ms instead of 200ms.,Minor
+MINR-049,Profile dropdown z-index too low,User menu appears behind some page elements occasionally.,Minor
+MINR-050,Toast notification position slightly high,Notifications appear 4px higher than specified.,Minor
+TRIV-001,Typo in footer copyright year,Copyright shows 2024 instead of 2026. Minor text correction.,Trivial
+TRIV-002,Extra space after paragraph in about page,About page has double line break in one spot. Simple formatting fix.,Trivial
+TRIV-003,Capitalization inconsistency in menu,Menu items have mixed case styles. Should standardize to title case.,Trivial
+TRIV-004,Favicon shows old logo version,Browser tab icon is still the old logo. Already updated elsewhere.,Trivial
+TRIV-005,Minor grammatical error in tooltip,Help text has small grammar issue. Should say 'an' not 'a'.,Trivial
+TRIV-006,Missing Oxford comma in sentences,Text lacks serial comma in several places. Style consistency.,Trivial
+TRIV-007,Whitespace inconsistency in source code,Code indentation uses mixed tabs and spaces. Cleanup task.,Trivial
+TRIV-008,Commented-out code in template,Old commented code left in HTML template. Should be removed.,Trivial
+TRIV-009,Console warning on page load,Browser console shows minor deprecation warning. Low priority.,Trivial
+TRIV-010,Unused variable in JavaScript,Code contains declared but unused variable. Should clean up.,Trivial
+TRIV-011,Date format using US style globally,Dates show MM/DD/YYYY even for international users. Low priority i18n.,Trivial
+TRIV-012,Placeholder text has typo,Search placeholder says 'Searc' missing 'h'. Simple typo fix.,Trivial
+TRIV-013,Dev dependency in package.json,Development-only package included in production bundle. Bundle size impact minimal.,Trivial
+TRIV-014,Missing semicolon in JS file,JavaScript missing semicolon after statement. Linting issue.,Trivial
+TRIV-015,Image alt text says 'image' generically,All images have generic alt text. Should be more descriptive.,Trivial
+TRIV-016,Button text not centered vertically,Button labels are 1px off-center. Visual polish.,Trivial
+TRIV-017,Hyperlink color slightly off-brand,Links are #0066CC instead of #0066CC. Barely noticeable.,Trivial
+TRIV-018,Unused CSS class in stylesheet,Style file has selectors for removed UI elements.,Trivial
+TRIV-019,Page load time 100ms slower than optimal,Minor performance improvement opportunity. Not urgent.,Trivial
+TRIV-020,Email address in footer needs update,Support email changed. Footer has old address.,Trivial
+TRIV-021,Copyright company name slightly wrong,Company name has extra space in footer.,Trivial
+TRIV-022,Redundant HTTP request on page load,Page makes unnecessary API call. Low priority optimization.,Trivial
+TRIV-023,Analytics event tracking misspelled,Event name has typo in tracking code.,Trivial
+TRIV-024,Help text punctuation inconsistency,"Some help sentences end with periods, others don't.",Trivial
+TRIV-025,Console error on legacy browser,Minor JS error on IE11. Small user base affected.,Trivial
+TRIV-026,Unused import in React component,Component imports but doesn't use a function. Code cleanup.,Trivial
+TRIV-027,Meta description slightly over character limit,SEO description 10 characters over optimal length.,Trivial
+TRIV-028,Favicon not showing in dark mode,Light favicon doesn't show well on dark browser tabs.,Trivial
+TRIV-029,Duplicate key in translation file,i18n file has redundant entry. Should deduplicate.,Trivial
+TRIV-030,Text shadow on heading too subtle,Title text shadow barely visible. Design preference.,Trivial
+TRIV-031,Missing aria-label on icon button,Screen readers can't identify icon-only button purpose.,Trivial
+TRIV-032,Cache headers slightly misconfigured,Static assets cached 1 hour less than optimal.,Trivial
+TRIV-033,Console log in production code,Debug statement left in. Low priority cleanup.,Trivial
+TRIV-034,Social share icons slightly misaligned,Share buttons are 1px out of horizontal alignment.,Trivial
+TRIV-035,Breadcrumb separator uses wrong character,Breadcrumb uses '>' instead of '/' for separator.,Trivial
+TRIV-036,Table header background not consistent,Some table headers have different background shades.,Trivial
+TRIV-037,Tooltip appears 50ms slower than spec,Delayed tooltip feels unresponsive. Minor UX.,Trivial
+TRIV-038,Empty state text could be friendlier,Copy could be more welcoming. Content improvement.,Trivial
+TRIV-039,Success message not including emoji,Brand guidelines recommend emoji in success messages.,Trivial
+TRIV-040,Mobile viewport meta tag order,Meta tags in wrong order. Works but not ideal.,Trivial
+TRIV-041,Button border-radius 1px inconsistent,"Some buttons have 4px radius, others 3px.",Trivial
+TRIV-042,Heading hierarchy has skipped level,Page goes from H1 to H3. Should use H2.,Trivial
+TRIV-043,Unused sprite in image sprite sheet,Old icons still in sprite. Minor file size.,Trivial
+TRIV-044,Input placeholder color contrast low,Placeholder text slightly hard to read.,Trivial
+TRIV-045,Tab index order not optimal,Keyboard navigation could be more logical. Minor a11y.,Trivial
+TRIV-046,Footer background color slightly wrong,Footer is #F5F5F5 instead of #F8F8F8.,Trivial
+TRIV-047,Code comment describes wrong function,Comment refers to old function name. Misleading.,Trivial
+TRIV-048,Page jump link missing top padding,Anchor links don't account for fixed header.,Trivial
+TRIV-049,Social meta tags have minor issues,Open Graph image size slightly off spec.,Trivial
+TRIV-050,Cookie consent button slightly delayed,Accept button appears 200ms after page load.,Trivial

@@ -324,7 +324,7 @@ elif view == "Instance Drill-down":
 
             if chosen_instance:
                 rows = run_preds[run_preds["instance_id"] == chosen_instance]
-                for _, pred in rows.iterrows():
+                for _i, (_, pred) in enumerate(rows.iterrows()):
                     with st.expander(
                         f"Model: {pred.get('model', '?')} | "
                         f"Strategy: {pred.get('strategy', '?')} | "
@@ -350,7 +350,7 @@ elif view == "Instance Drill-down":
                             "response",
                             value=str(pred.get("raw_response", "")),
                             height=120,
-                            key=f"resp_{pred.get('prompt_hash', '')}",
+                            key=f"resp_{_i}_{pred.get('prompt_hash', '')}",
                             disabled=True,
                         )
 

@@ -38,5 +38,5 @@
       "output": "Major"
     }
   ],
-  "prompt_template": "Eres un experto en gestión de proyectos TIC. Clasifica el siguiente issue usando estos ejemplos como guía:\n\n{{examples}}\n\nAhora clasifica este issue:\nTítulo: {{title}}\nDescripción: {{description}}\n\nResponde solo con: Critical, Major, Minor o Trivial"
+  "prompt_template": "You are an expert in ICT project management. Classify the following issue using these examples as a guide:\n\n{{examples}}\n\nNow classify this issue:\nTitle: {{title}}\nDescription: {{description}}\n\nRespond only with: Critical, Major, Minor or Trivial"
 }

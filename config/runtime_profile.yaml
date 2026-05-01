@@ -1,22 +1,26 @@
-detected_at: '2026-04-18T03:32:18.131914+00:00'
+detected_at: '2026-04-18T20:17:34.328491+00:00'
 hardware:
   arch: x86_64
   cpu: x86_64
   cpu_cores: 6
   cpu_threads: 12
-  gpu: null
-  gpu_backend: none
-  gpu_vram_gb: null
+  gpu: NVIDIA GeForce RTX 2060
+  gpu_backend: nvidia
+  gpu_vram_gb: 6.0
   os: Linux
   ram_gb: 31.16
 models:
 - qwen2.5:3b
 - gemma3:4b
 - gemma4:e2b
+- mistral:7b
+- llama3.1:8b
+- gemma3:12b
 ollama:
   reachable: false
   version: null
-profile: cpu-standard
+profile: gpu-entry
 scenarios:
 - triage_jira
 - estimation_tawos
+- prioritization_jira
