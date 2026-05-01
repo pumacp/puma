@@ -1,19 +1,19 @@
-# Arquitectura PUMA (Agentic)
+# PUMA Architecture (Agentic)
 
-## Visión General
-PUMA (Puma Unified Model Assessment) es un framework de evaluación de LLMs para tareas de ingeniería de software.
+## Overview
+PUMA (Puma Unified Model Assessment) is an LLM evaluation framework for software engineering tasks.
 
-## Componentes Principales
+## Main Components
 
-### Agentes (LangGraph + Ollama)
-- **Orchestrator**: Coordina flujo de trabajo entre agentes
-- **Triage Agent**: Clasifica issues en prioridades (Critical, Major, Minor, Trivial)
-- **Estimation Agent**: Estima story points usando serie Fibonacci
-- **Code Generator Agent**: Genera código desde especificaciones .spec.md
-- **Tester Agent**: Genera y ejecuta tests automáticamente
-- **Reviewer Agent**: Valida código generado contra specs
+### Agents (LangGraph + Ollama)
+- **Orchestrator**: Coordinates workflow between agents
+- **Triage Agent**: Classifies issues into priorities (Critical, Major, Minor, Trivial)
+- **Estimation Agent**: Estimates story points using the Fibonacci series
+- **Code Generator Agent**: Generates code from .spec.md specifications
+- **Tester Agent**: Generates and runs tests automatically
+- **Reviewer Agent**: Validates generated code against specs
 
-## Flujo de Trabajo (Agentic Workflow)
+## Workflow (Agentic Workflow)
 ```
 Spec (SDD) → Architect → Coder → Tester → Reviewer → Deploy
      ↑                                                         
@@ -21,17 +21,17 @@ Spec (SDD) → Architect → Coder → Tester → Reviewer → Deploy
 ```
 
 ## RAG + Context Engineering
-- ChromaDB indexa /data/ y /specs/
-- Retrieval de los 5 documentos más relevantes
-- Summary de 200 tokens antes de prompts largos
-- Limpieza de contexto entre experimentos
+- ChromaDB indexes /data/ and /specs/
+- Retrieval of the 5 most relevant documents
+- Summary of 200 tokens before long prompts
+- Context cleanup between experiments
 
-## Infraestructura
-- **Docker**: Contenedores para Ollama y evaluator
-- **Ollama**: LLM local (qwen2.5:3b, mistral:7b, etc.)
-- **CodeCarbon**: Medición de CO₂ en cada ejecución
+## Infrastructure
+- **Docker**: Containers for Ollama and evaluator
+- **Ollama**: Local LLM (qwen2.5:3b, mistral:7b, etc.)
+- **CodeCarbon**: CO₂ measurement per execution
 
-## Reproducibilidad
-- Temperatura = 0.0 en todos los agentes
-- Seed = 42 en todas las ejecuciones
-- docker-compose down && up debe dar resultados idénticos
+## Reproducibility
+- Temperature = 0.0 in all agents
+- Seed = 42 in all runs
+- docker-compose down && up must produce identical results

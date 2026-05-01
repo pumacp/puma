@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import platform
 import shutil
 import subprocess
@@ -45,7 +46,7 @@ def _query_nvidia() -> tuple[str | None, float | None]:
         vram_str = parts[1].strip() if len(parts) > 1 else ""
         vram_mib = float("".join(c for c in vram_str if c.isdigit() or c == "."))
         return name, round(vram_mib / 1024, 1)
-    except (FileNotFoundError, subprocess.TimeoutExpired, ValueError):
+    except (FileNotFoundError, NotADirectoryError, OSError, subprocess.TimeoutExpired, ValueError):
         return None, None
 
 
@@ -60,7 +61,7 @@ def _query_rocm() -> tuple[str | None, float | None]:
         if result.returncode != 0:
             return None, None
         return "AMD ROCm GPU", None
-    except (FileNotFoundError, subprocess.TimeoutExpired):
+    except (FileNotFoundError, NotADirectoryError, OSError, subprocess.TimeoutExpired):
         return None, None
 
 
@@ -79,7 +80,7 @@ def _query_metal() -> tuple[str | None, float | None]:
                 name = line.split(":")[-1].strip()
                 return name, None
         return "Apple Metal GPU", None
-    except (FileNotFoundError, subprocess.TimeoutExpired):
+    except (FileNotFoundError, NotADirectoryError, OSError, subprocess.TimeoutExpired):
         return None, None
 
 
@@ -93,7 +94,7 @@ def _query_ollama_version() -> str | None:
         )
         if result.returncode == 0:
             return result.stdout.strip()
-    except (FileNotFoundError, subprocess.TimeoutExpired):
+    except (FileNotFoundError, NotADirectoryError, OSError, subprocess.TimeoutExpired):
         pass
     return None
 
@@ -126,6 +127,19 @@ def detect_capabilities() -> SystemCapabilities:
             name, vram = _query_metal()
             if name:
                 gpu_name, gpu_vram_gb, gpu_backend = name, vram, "metal"
+
+    # Fallback: env vars injected by start_puma.sh when running inside Docker
+    if gpu_backend == "none":
+        env_backend = os.environ.get("PUMA_GPU_BACKEND", "").strip()
+        env_name = os.environ.get("PUMA_GPU_NAME", "").strip()
+        env_vram = os.environ.get("PUMA_GPU_VRAM_GB", "").strip()
+        if env_backend and env_backend != "none":
+            gpu_backend = env_backend
+            gpu_name = env_name or "Unknown GPU"
+            try:
+                gpu_vram_gb = float(env_vram) if env_vram else None
+            except ValueError:
+                gpu_vram_gb = None
 
     try:
         cpu_freq = psutil.cpu_freq()

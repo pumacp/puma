@@ -1,19 +1,19 @@
-# Specification: Estimation Agent (Etapa 1 MVP)
+# Specification: Estimation Agent (Phase 1 MVP)
 
-## Información General
-- **Nombre**: Estimation Agent
-- **Versión**: 1.0.0
-- **Tipo**: Estimador de Esfuerzo
-- **Fecha**: 2026-03-26
-- **Metodología**: SDD + Agentic Coding
+## General Information
+- **Name**: Estimation Agent
+- **Version**: 1.0.0
+- **Type**: Effort Estimator
+- **Date**: 2026-03-26
+- **Methodology**: SDD + Agentic Coding
 
-## Requisitos Funcionales
+## Functional Requirements
 
 ### Input
-- **Fuente de datos**: `data/tawos_clean.csv`
-- **Estructura CSV**: `project, title, description, story_points`
-- **Proyectos disponibles**: MESOS, APSTUD, XD
-- **Total de items**: ~31,000
+- **Data source**: `data/tawos_clean.csv`
+- **CSV structure**: `project, title, description, story_points`
+- **Available projects**: MESOS, APSTUD, XD
+- **Total items**: ~31,000
 
 ### Output
 ```json
@@ -27,33 +27,33 @@
 }
 ```
 
-### Estrategias Soportadas
-1. **Zero-shot**: Sin ejemplos previos
-2. **Few-shot**: Con ejemplos de proyectos similares
-3. **CoT (Chain of Thought)**: Reasoning sobre complejidad
+### Supported Strategies
+1. **Zero-shot**: No prior examples
+2. **Few-shot**: With examples from similar projects
+3. **CoT (Chain of Thought)**: Explicit reasoning about complexity
 
-### Parámetros de LLM
-- Temperatura: 0.0
+### LLM Parameters
+- Temperature: 0.0
 - Seed: 42
-- max_tokens: 10 (solo números Fibonacci)
+- max_tokens: 10 (Fibonacci numbers only)
 
-## Criterios de Aceptación
+## Acceptance Criteria
 
-### Métricas
+### Metrics
 - **MAE** ≤ 3.0 (Mean Absolute Error)
 - **MdAE** ≤ 2.0 (Median Absolute Error)
-- **Latencia** < 120s por batch de 100 (CPU)
+- **Latency** < 120s per batch of 100 (CPU)
 
-### Validaciones
-- Tests en `tests/test_estimation.py` pasan al 100%
-- Resultados en `results/estimation_metrics.json`
-- Reporte CO₂ generado en `results/emissions.csv`
+### Validations
+- Tests in `tests/test_estimation.py` pass at 100%
+- Results in `results/estimation_metrics.json`
+- CO₂ report generated in `results/emissions.csv`
 
-### Reproducibilidad
-- Mismo seed debe producir identical MAE
-- docker-compose down && up debe dar mismo resultado
+### Reproducibility
+- Same seed must produce identical MAE
+- docker-compose down && up must give the same result
 
-## JSON Schema de Salida
+## Output JSON Schema
 
 ```json
 {
@@ -73,11 +73,11 @@
 }
 ```
 
-## Serie Fibonacci
-Story points válidos: 1, 2, 3, 5, 8, 13, 21
+## Fibonacci Series
+Valid story points: 1, 2, 3, 5, 8, 13, 21
 
-## Integración con Sistema
-- Agente Orchestrator llama a Estimation Agent
-- RAG retrieval desde `/specs/` y `/data/`
-- CodeCarbon mide CO₂ en cada ejecución
-- Soporte para múltiples proyectos (MESOS, APSTUD, XD)
+## System Integration
+- Orchestrator Agent calls Estimation Agent
+- RAG retrieval from `/specs/` and `/data/`
+- CodeCarbon measures CO₂ per execution
+- Support for multiple projects (MESOS, APSTUD, XD)

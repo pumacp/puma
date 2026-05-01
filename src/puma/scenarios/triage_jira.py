@@ -1,12 +1,17 @@
 """Triage scenario: multi-class priority classification on Jira issues."""
 
+from __future__ import annotations
+
 import json
 import logging
 import os
+import re
 from pathlib import Path
 
 import pandas as pd
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
+
+from puma.scenarios.base import Scenario
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +42,8 @@ DETERMINISTIC_OPTIONS = {
 
 VALID_PRIORITIES = ["Critical", "Major", "Minor", "Trivial"]
 
+_PRIORITY_RE = re.compile(r"\b(critical|major|minor|trivial)\b", re.IGNORECASE)
+
 
 def _load_cache() -> dict:
     if CACHE_FILE.exists():
@@ -55,12 +62,31 @@ def _save_cache(cache: dict) -> None:
 
 
 def parse_prediction(response: str) -> str | None:
-    cleaned = response.strip().strip(".").strip(",")
-    for priority in VALID_PRIORITIES:
-        if priority.lower() in cleaned.lower():
-            return priority
+    m = _PRIORITY_RE.search(response)
+    if m:
+        return m.group(0).capitalize()
     logger.warning("Could not parse triage response: %r", response)
     return None
+
+
+class TriageJiraScenario(Scenario):
+    """Multi-class priority classification on Jira Social Repository issues."""
+
+    name = "triage_jira"
+    dataset = "jira_sr"
+    task_type = "classification"
+    labels = VALID_PRIORITIES
+
+    def sample(self, n: int, seed: int = 42) -> pd.DataFrame:
+        from puma.datasets.jira_sr import load, sample
+
+        return sample(load(), n, seed=seed)
+
+    def parse_response(self, raw: str) -> str | None:
+        return parse_prediction(raw)
+
+    def gold_label(self, instance: dict) -> str:
+        return str(instance.get("priority", ""))
 
 
 class TriageEvaluator:

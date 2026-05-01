@@ -1,18 +1,18 @@
-# Specification: Triage Agent (Etapa 1 MVP)
+# Specification: Triage Agent (Phase 1 MVP)
 
-## Información General
-- **Nombre**: Triage Agent
-- **Versión**: 1.0.0
-- **Tipo**: Clasificador de Issues
-- **Fecha**: 2026-03-26
-- **Metodología**: SDD + Agentic Coding
+## General Information
+- **Name**: Triage Agent
+- **Version**: 1.0.0
+- **Type**: Issue Classifier
+- **Date**: 2026-03-26
+- **Methodology**: SDD + Agentic Coding
 
-## Requisitos Funcionales
+## Functional Requirements
 
 ### Input
-- **Fuente de datos**: `data/jira_balanced_200.csv`
-- **Estructura CSV**: `issue_key, title, description, priority`
-- **Total de issues**: 200 (50 por clase: Critical, Major, Minor, Trivial)
+- **Data source**: `data/jira_balanced_200.csv`
+- **CSV structure**: `issue_key, title, description, priority`
+- **Total issues**: 200 (50 per class: Critical, Major, Minor, Trivial)
 
 ### Output
 ```json
@@ -25,33 +25,33 @@
 }
 ```
 
-### Estrategias Soportadas
-1. **Zero-shot**: Sin ejemplos previos
-2. **Few-shot**: Con 2-3 ejemplos por clase
-3. **CoT (Chain of Thought)**: Reasoning explícito
+### Supported Strategies
+1. **Zero-shot**: No prior examples
+2. **Few-shot**: With 2-3 examples per class
+3. **CoT (Chain of Thought)**: Explicit reasoning
 
-### Parámetros de LLM
-- Temperatura: 0.0
+### LLM Parameters
+- Temperature: 0.0
 - Seed: 42
 - max_tokens: 50
 
-## Criterios de Aceptación
+## Acceptance Criteria
 
-### Métricas
+### Metrics
 - **F1-Macro** ≥ 0.55
-- **Latencia** < 60s por batch de 200 (CPU)
-- **Accuracy** por clase balanceado
+- **Latency** < 60s per batch of 200 (CPU)
+- **Accuracy** balanced per class
 
-### Validaciones
-- Tests en `tests/test_triage.py` pasan al 100%
-- Resultados en `results/triage_metrics.json`
-- Reporte CO₂ generado en `results/emissions.csv`
+### Validations
+- Tests in `tests/test_triage.py` pass at 100%
+- Results in `results/triage_metrics.json`
+- CO₂ report generated in `results/emissions.csv`
 
-### Reproducibilidad
-- Mismo seed debe producir identical F1-score
-- docker-compose down && up debe dar mismo resultado
+### Reproducibility
+- Same seed must produce identical F1-score
+- docker-compose down && up must give the same result
 
-## JSON Schema de Salida
+## Output JSON Schema
 
 ```json
 {
@@ -70,7 +70,7 @@
 }
 ```
 
-## Integración con Sistema
-- Agente Orchestrator llama a Triage Agent
-- RAG retrieval desde `/specs/` y `/data/`
-- CodeCarbon mide CO₂ en cada ejecución
+## System Integration
+- Orchestrator Agent calls Triage Agent
+- RAG retrieval from `/specs/` and `/data/`
+- CodeCarbon measures CO₂ per execution

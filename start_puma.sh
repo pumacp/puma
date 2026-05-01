@@ -41,11 +41,40 @@ log "============================================================"
 log " PUMA v2.0.0 — Local LLM Benchmark"
 log "============================================================"
 
+# ── Step 0: Detect GPU on host and export for containers ─────────
+
+export PUMA_GPU_NAME=""
+export PUMA_GPU_VRAM_GB=""
+export PUMA_GPU_BACKEND="none"
+
+if command -v nvidia-smi &>/dev/null; then
+    _GPU_LINE=$(nvidia-smi --query-gpu=name,memory.total --format=csv,noheader 2>/dev/null | head -1 || true)
+    if [[ -n "$_GPU_LINE" ]]; then
+        PUMA_GPU_NAME=$(echo "$_GPU_LINE" | cut -d',' -f1 | xargs)
+        _VRAM_MIB=$(echo "$_GPU_LINE" | cut -d',' -f2 | tr -dc '0-9.')
+        PUMA_GPU_VRAM_GB=$(python3 -c "print(round($_VRAM_MIB/1024, 1))" 2>/dev/null || echo "")
+        PUMA_GPU_BACKEND="nvidia"
+    fi
+fi
+
+# Persist GPU vars to .env so every subsequent `docker compose run` picks them up
+{
+    grep -v "^PUMA_GPU_" .env 2>/dev/null || true
+    echo "PUMA_GPU_NAME=$PUMA_GPU_NAME"
+    echo "PUMA_GPU_VRAM_GB=$PUMA_GPU_VRAM_GB"
+    echo "PUMA_GPU_BACKEND=$PUMA_GPU_BACKEND"
+} > .env.tmp && mv .env.tmp .env
+
 # ── Step 1: Check Docker ──────────────────────────────────────────
 
 command -v docker &>/dev/null || die "Docker is not installed. See https://docs.docker.com/get-docker/"
 docker compose version &>/dev/null || die "Docker Compose v2 is required."
 log "Step 1/6 — Docker OK ($(docker --version | head -1))"
+if [[ "$PUMA_GPU_BACKEND" != "none" ]]; then
+    log "  GPU detected on host: $PUMA_GPU_NAME (${PUMA_GPU_VRAM_GB} GB VRAM) — will be passed to containers"
+else
+    log "  No GPU detected on host — CPU-only mode"
+fi
 
 # ── Step 2: Build image ───────────────────────────────────────────
 

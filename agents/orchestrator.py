@@ -22,10 +22,14 @@ class Orchestrator:
     
     def load_spec(self, spec_name: str) -> dict:
         """Carga especificación desde specs/"""
-        spec_path = Path(f"specs/{spec_name}.spec.md")
-        if spec_path.exists():
-            logger.info(f"Loaded spec: {spec_name}")
-            return {"status": "loaded", "spec": spec_name}
+        candidates = [
+            Path(f"specs/{spec_name}.spec.md"),
+            Path(f"specs/{spec_name}-agent.spec.md"),
+        ]
+        for spec_path in candidates:
+            if spec_path.exists():
+                logger.info(f"Loaded spec: {spec_path}")
+                return {"status": "loaded", "spec": spec_name}
         logger.warning(f"Spec not found: {spec_name}")
         return {"status": "not_found", "spec": spec_name}
     
