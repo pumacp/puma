@@ -1,0 +1,28 @@
+adaptation:
+  cot:
+  - false
+  strategy:
+  - zero-shot
+  - few-shot-3
+description: 'Benchmark: triage_jira x gemma3:4b (profile: gpu-entry)'
+id: benchmark_triage_jira_gemma3_4b
+inference:
+  format: null
+  logprobs: false
+  max_tokens: 256
+  seed: 42
+  temperature: 0.0
+  top_logprobs: 0
+metrics:
+- f1_macro
+- latency_p95
+models:
+- gemma3:4b
+perturbations: []
+profile_required: null
+repeat: 1
+sample_size: 50
+scenario: triage_jira
+sustainability:
+  codecarbon: false
+  country_iso: ESP
