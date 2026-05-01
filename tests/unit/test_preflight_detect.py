@@ -23,8 +23,10 @@ class TestDetectCapabilities:
         assert caps.disk_free_gb > 0
 
     def test_no_gpu_when_nvidia_smi_absent(self):
+        no_gpu_env = {"PUMA_GPU_BACKEND": "", "PUMA_GPU_NAME": "", "PUMA_GPU_VRAM_GB": ""}
         with patch("subprocess.run", side_effect=FileNotFoundError):
-            caps = detect_capabilities()
+            with patch.dict("os.environ", no_gpu_env, clear=False):
+                caps = detect_capabilities()
         assert caps.gpu_name is None
         assert caps.gpu_vram_gb is None
         assert caps.gpu_backend == "none"
@@ -42,13 +44,15 @@ class TestDetectCapabilities:
         assert caps.gpu_backend == "nvidia"
 
     def test_nvidia_smi_nonzero_fallback(self):
-        """If nvidia-smi returns non-zero, GPU should be none."""
+        """If nvidia-smi returns non-zero and no env vars, GPU should be none."""
         mock_fail = MagicMock()
         mock_fail.returncode = 1
         mock_fail.stdout = ""
+        no_gpu_env = {"PUMA_GPU_BACKEND": "", "PUMA_GPU_NAME": "", "PUMA_GPU_VRAM_GB": ""}
 
         with patch("subprocess.run", return_value=mock_fail):
-            caps = detect_capabilities()
+            with patch.dict("os.environ", no_gpu_env, clear=False):
+                caps = detect_capabilities()
 
         assert caps.gpu_name is None
         assert caps.gpu_backend == "none"

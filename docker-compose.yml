@@ -11,6 +11,14 @@ services:
       - OLLAMA_NUM_PARALLEL=${OLLAMA_NUM_PARALLEL:-1}
     networks:
       - puma_network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: cdi
+              capabilities: [gpu]
+              device_ids:
+                - nvidia.com/gpu=all
     healthcheck:
       test: ["CMD-SHELL", "ollama list > /dev/null 2>&1 || exit 1"]
       interval: 15s
@@ -31,6 +39,9 @@ services:
       - PYTHONPATH=/app/src
       - PYTHONUNBUFFERED=1
       - LLM_MODEL=${LLM_MODEL:-qwen2.5:3b}
+      - PUMA_GPU_NAME=${PUMA_GPU_NAME:-}
+      - PUMA_GPU_VRAM_GB=${PUMA_GPU_VRAM_GB:-}
+      - PUMA_GPU_BACKEND=${PUMA_GPU_BACKEND:-}
     depends_on:
       puma_ollama:
         condition: service_healthy
@@ -49,6 +60,9 @@ services:
     environment:
       - PYTHONPATH=/app/src
       - PYTHONUNBUFFERED=1
+      - PUMA_GPU_NAME=${PUMA_GPU_NAME:-}
+      - PUMA_GPU_VRAM_GB=${PUMA_GPU_VRAM_GB:-}
+      - PUMA_GPU_BACKEND=${PUMA_GPU_BACKEND:-}
     ports:
       - "8501:8501"
     networks:
@@ -66,3 +80,4 @@ volumes:
 networks:
   puma_network:
     driver: bridge
+    name: puma_network

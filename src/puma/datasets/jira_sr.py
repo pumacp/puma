@@ -63,9 +63,10 @@ def sample(
     if stratify_by in df.columns:
         groups = df.groupby(stratify_by, group_keys=False)
         per_class = max(1, n // df[stratify_by].nunique())
-        sampled = groups.apply(
-            lambda g: g.sample(min(per_class, len(g)), random_state=seed)
-        )
+        sampled = pd.concat([
+            g.sample(min(per_class, len(g)), random_state=seed)
+            for _, g in groups
+        ])
         if len(sampled) < n:
             remaining = df.drop(sampled.index)
             extra = remaining.sample(min(n - len(sampled), len(remaining)), random_state=seed)
