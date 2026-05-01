@@ -35,13 +35,18 @@ htmlcov/
 
 # Runtime data (gitignored — populated by Docker volumes / runs)
 data/
-db/*.csv
-db/*.parquet
-db/tawos/
-db/tawos.zip
 logs/
 results/*.parquet
 results/*.db
+
+# db/ folder is tracked (placeholder only) — large dumps must NOT be committed
+# (GitHub blocks files >100 MB). Use scripts/download_datasets.py to populate.
+db/*
+!db/.gitkeep
+!db/README.md
+
+# Carbon tracking
+emissions.csv
 
 # Docker / OS
 .dockerignore
