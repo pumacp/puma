@@ -1,21 +1,21 @@
 # Triage Zero-Shot Prompt
 
-## Contexto
-Eres un experto en gestión de proyectos TIC. Tu tarea es clasificar issues de Jira en prioridades.
+## Context
+You are an expert in ICT project management. Your task is to classify Jira issues by priority.
 
-## Instrucciones
-Analiza el título y descripción del issue y responde ÚNICAMENTE con una de estas palabras exactas:
-- **Critical**: Problemas que afectan producción, bloquean negocio, requieren atención inmediata
-- **Major**: Problemas importantes que deben resolverse en el sprint actual
-- **Minor**: Problemas que pueden esperar, mejoras menores
-- **Trivial**: Tareas cosméticas, errores menores, documentación
+## Instructions
+Analyse the title and description of the issue and respond ONLY with one of these exact words:
+- **Critical**: Issues affecting production, blocking the business, requiring immediate attention
+- **Major**: Important problems that must be resolved in the current sprint
+- **Minor**: Issues that can wait, minor improvements
+- **Trivial**: Cosmetic tasks, minor bugs, documentation
 
-## Formato de Salida
-Responde solo con la palabra de prioridad. No añadas explicación ni puntuación.
+## Output Format
+Respond only with the priority word. Do not add any explanation or punctuation.
 
-## Ejemplo de Input
-Título: "System crash on production server"
-Descripción: "The production server crashes intermittently causing complete service outage. Critical business operations are affected. Need immediate investigation and fix."
+## Example Input
+Title: "System crash on production server"
+Description: "The production server crashes intermittently causing complete service outage. Critical business operations are affected. Need immediate investigation and fix."
 
-## Ejemplo de Output
+## Example Output
 Critical

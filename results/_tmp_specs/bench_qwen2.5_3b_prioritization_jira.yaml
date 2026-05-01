@@ -1,0 +1,22 @@
+id: benchmark_prioritization_jira_qwen2.5_3b
+description: "Benchmark: prioritization_jira x qwen2.5:3b (profile: gpu-entry)"
+scenario: prioritization_jira
+sample_size: 30
+models:
+  - qwen2.5:3b
+adaptation:
+  strategy:
+  - zero-shot
+  - few-shot-3
+  cot: [false]
+inference:
+  temperature: 0.0
+  seed: 42
+  logprobs: false
+  max_tokens: 256
+metrics:
+  - ndcg_at_10
+  - latency_p95
+sustainability:
+  codecarbon: false
+repeat: 1

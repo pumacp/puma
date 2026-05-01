@@ -1,0 +1,65 @@
+===================================================================
+ PUMA Benchmark — sáb 18 abr 2026 22:58:51 CEST
+===================================================================
+Profile   : gpu-entry
+Models    : qwen2.5:3b gemma3:4b gemma4:e2b mistral:7b llama3.1:8b gemma3:12b
+Scenarios : triage_jira estimation_tawos prioritization_jira
+Strategies: zero-shot,few-shot-3
+Mode      : LIVE
+===================================================================
+
+===================================================================
+MODEL: qwen2.5:3b  [sáb 18 abr 2026 22:58:52 CEST]
+===================================================================
+--- Pulling qwen2.5:3b ---
+[?2026h[?25l[1Gpulling manifest ⠋ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠙ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠹ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠸ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠼ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest ⠴ [K[?25h[?2026l[?2026h[?25l[1Gpulling manifest [K
+pulling 5ee4f07cdb9b: 100% ▕██████████████████▏ 1.9 GB                         [K
+pulling 66b9ea09bd5b: 100% ▕██████████████████▏   68 B                         [K
+pulling eb4402837c78: 100% ▕██████████████████▏ 1.5 KB                         [K
+pulling b5c0e5cf74cf: 100% ▕██████████████████▏ 7.4 KB                         [K
+pulling 161ddde4c9cd: 100% ▕██████████████████▏  487 B                         [K
+verifying sha256 digest [K
+writing manifest [K
+success [K[?25h[?2026l
+
+--- Scenario: triage_jira ---
+ Container puma_ollama  Running
+2026-04-18 20:58:56 [info     ] run.start                      run_id=benchmark_triage_jira_qwen2.5_3b__bc9e73476af98e6e__20260418T205855 spec_hash=bc9e73476af98e6e
+ benchmark_triage_jira_qwen2.5_3b__bc9e73476af98e6e__20260418T205855 ━ 100/100 …
+2026-04-18 21:04:41 [info     ] run.end                        duration_s=344.2 n_predictions=100 run_id=benchmark_triage_jira_qwen2.5_3b__bc9e73476af98e6e__20260418T205855
+
+Run complete: benchmark_triage_jira_qwen2.5_3b__bc9e73476af98e6e__20260418T205855
+Predictions: 100
+  f1_macro: 0.5085
+  f1_weighted: 0.5022
+  accuracy: 0.5600
+  n_samples: 100.0000
+  parse_failure_rate: 0.0000
+  n_predictions: 100.0000
+Saved → results/benchmark_qwen2.5_3b_triage_jira.json
+
+--- Scenario: estimation_tawos ---
+ Container puma_ollama  Running
+2026-04-18 21:04:45 [info     ] run.start                      run_id=benchmark_estimation_tawos_qwen2.5_3b__383a708ace53dbbd__20260418T210444 spec_hash=383a708ace53dbbd
+Timeout on attempt 1, retrying in 1s
+Timeout on attempt 2, retrying in 2s
+Timeout on attempt 3, retrying in 4s
+2026-04-18 21:11:12 [warning  ] inference.error                error='Ollama request failed after 3 retries' model=qwen2.5:3b
+2026-04-18 21:11:26 [warning  ] inference.error                error='Server disconnected without sending a response.' model=qwen2.5:3b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:26 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
+2026-04-18 21:11:27 [warning  ] inference.error                error='[Errno 111] Connection refused' model=qwen2.5:3b
