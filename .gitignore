@@ -56,3 +56,10 @@ emissions.csv
 .vscode/
 *.swp
 *.swo
+.gitnexus
+docs/internal/
+
+# Agent / AI tooling artifacts (environment, not project sources)
+.claude/
+AGENTS.md
+CLAUDE.md
