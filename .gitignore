@@ -78,6 +78,9 @@ emissions.csv
 .gitnexus
 docs/internal/
 
+# GitNexus operational artifacts (auto-generated graph images, etc.)
+assets/img/*GitNexus*
+
 # Agent / AI tooling artifacts (environment, not project sources)
 .claude/
 AGENTS.md
