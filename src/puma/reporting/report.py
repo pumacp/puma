@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import subprocess
 from datetime import UTC, datetime
@@ -32,9 +33,7 @@ def generate_report(
     metrics_df = load_metrics(db_path, run_ids=[run_id])
     preds_df = load_predictions(db_path, run_id=run_id)
 
-    metrics: dict[str, Any] = {
-        r["metric_name"]: r["value"] for _, r in metrics_df.iterrows()
-    }
+    metrics: dict[str, Any] = {r["metric_name"]: r["value"] for _, r in metrics_df.iterrows()}
 
     lines: list[str] = []
 
@@ -187,11 +186,10 @@ def _append_emissions_section(lines: list[str], run_dir: Path) -> None:
 
 def _convert_to_pdf(report_md: Path) -> None:
     pdf_path = report_md.with_suffix(".pdf")
-    try:
+    # pandoc not installed → silently skip
+    with contextlib.suppress(FileNotFoundError, subprocess.CalledProcessError):
         subprocess.run(
             ["pandoc", str(report_md), "-o", str(pdf_path), "--pdf-engine=xelatex"],
             check=True,
             capture_output=True,
         )
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        pass  # pandoc not installed — silently skip

@@ -19,8 +19,9 @@ def _engine(db_path: Path):
 def load_runs(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
     """Return all runs as a DataFrame, newest first."""
     if not db_path.exists():
-        return pd.DataFrame(columns=["run_id", "spec_hash", "profile", "started_at",
-                                     "finished_at", "status"])
+        return pd.DataFrame(
+            columns=["run_id", "spec_hash", "profile", "started_at", "finished_at", "status"]
+        )
     engine = _engine(db_path)
     with engine.connect() as conn:
         df = pd.read_sql("SELECT * FROM runs ORDER BY started_at DESC", conn)
@@ -35,26 +36,20 @@ def load_metrics(db_path: Path = _DEFAULT_DB, run_ids: list[str] | None = None) 
     with engine.connect() as conn:
         if run_ids:
             placeholders = ",".join(f"'{r}'" for r in run_ids)
-            df = pd.read_sql(
-                f"SELECT * FROM metrics WHERE run_id IN ({placeholders})", conn
-            )
+            df = pd.read_sql(f"SELECT * FROM metrics WHERE run_id IN ({placeholders})", conn)
         else:
             df = pd.read_sql("SELECT * FROM metrics", conn)
     return df
 
 
-def load_predictions(
-    db_path: Path = _DEFAULT_DB, run_id: str | None = None
-) -> pd.DataFrame:
+def load_predictions(db_path: Path = _DEFAULT_DB, run_id: str | None = None) -> pd.DataFrame:
     """Return predictions for a run, or all predictions."""
     if not db_path.exists():
         return pd.DataFrame()
     engine = _engine(db_path)
     with engine.connect() as conn:
         if run_id:
-            df = pd.read_sql(
-                "SELECT * FROM predictions WHERE run_id = ?", conn, params=(run_id,)
-            )
+            df = pd.read_sql("SELECT * FROM predictions WHERE run_id = ?", conn, params=(run_id,))
         else:
             df = pd.read_sql("SELECT * FROM predictions", conn)
     return df
@@ -69,7 +64,7 @@ def load_profile_snapshots(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
 
 
 def metrics_pivot(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
-    """Return a run × metric pivot table (useful for heatmaps)."""
+    """Return a run × metric pivot table (useful for heatmaps)."""  # noqa: RUF002 -- intentional Unicode multiplication sign in formula docstring
     df = load_metrics(db_path)
     if df.empty:
         return pd.DataFrame()

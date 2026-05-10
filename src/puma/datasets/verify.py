@@ -45,7 +45,7 @@ def verify_tawos(sql_path: Path | None = None) -> DatasetReport:
             projs = df["project_key"].value_counts().head(5).to_dict()
             notes.append(f"Top projects: {projs}")
         if "story_points" in df.columns:
-            notes.append(f"SP range: {df['story_points'].min():.0f}–{df['story_points'].max():.0f}")
+            notes.append(f"SP range: {df['story_points'].min():.0f}–{df['story_points'].max():.0f}")  # noqa: RUF001 -- intentional Unicode en-dash for numeric range display
         return DatasetReport("tawos", True, len(df), list(df.columns), notes)
     except FileNotFoundError as exc:
         return DatasetReport("tawos", False, 0, [], [str(exc)])

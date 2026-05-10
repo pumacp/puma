@@ -7,6 +7,7 @@ import re
 import signal
 import time
 from pathlib import Path
+from typing import ClassVar
 
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
@@ -165,13 +166,17 @@ class EstimationEvaluator:
             item_id = str(row.get("item_id", f"item_{idx}"))
             if item_id in cache and cache[item_id].get("prediction") is not None:
                 skipped += 1
-                results.append({
-                    "item_id": item_id,
-                    "title": row.get("title", ""),
-                    "description": row.get("description", ""),
-                    "story_points": cache[item_id].get("story_points", row.get("story_points", 0)),
-                    "prediction": cache[item_id]["prediction"],
-                })
+                results.append(
+                    {
+                        "item_id": item_id,
+                        "title": row.get("title", ""),
+                        "description": row.get("description", ""),
+                        "story_points": cache[item_id].get(
+                            "story_points", row.get("story_points", 0)
+                        ),
+                        "prediction": cache[item_id]["prediction"],
+                    }
+                )
                 continue
 
             prediction = self.evaluate_item(
@@ -217,7 +222,7 @@ class EstimationTawosScenario:
     name = "estimation_tawos"
     dataset = "tawos"
     task_type = "regression"
-    labels: list = []
+    labels: ClassVar[list] = []
 
     def sample(self, n: int, seed: int = 42) -> pd.DataFrame:
         from puma.datasets.tawos import load, sample

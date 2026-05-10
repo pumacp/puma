@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from typing import ClassVar
 
 import pandas as pd
 
@@ -22,7 +23,7 @@ class PrioritizationJiraScenario(Scenario):
     name = "prioritization_jira"
     dataset = "jira_sr"
     task_type = "ranking"
-    labels = ["A", "B"]
+    labels: ClassVar[list[str]] = ["A", "B"]
 
     def sample(self, n: int, seed: int = 42) -> pd.DataFrame:
         from puma.datasets.jira_sr import load, sample
@@ -35,17 +36,19 @@ class PrioritizationJiraScenario(Scenario):
             rank_a = _priority_rank(str(a.get("priority", "")))
             rank_b = _priority_rank(str(b.get("priority", "")))
             gold = "A" if rank_a >= rank_b else "B"
-            pairs.append({
-                "issue_key_a": a.get("issue_key", f"A_{i}"),
-                "issue_key_b": b.get("issue_key", f"B_{i}"),
-                "title_a": a.get("title", ""),
-                "description_a": a.get("description", ""),
-                "priority_a": a.get("priority", ""),
-                "title_b": b.get("title", ""),
-                "description_b": b.get("description", ""),
-                "priority_b": b.get("priority", ""),
-                "higher_priority": gold,
-            })
+            pairs.append(
+                {
+                    "issue_key_a": a.get("issue_key", f"A_{i}"),
+                    "issue_key_b": b.get("issue_key", f"B_{i}"),
+                    "title_a": a.get("title", ""),
+                    "description_a": a.get("description", ""),
+                    "priority_a": a.get("priority", ""),
+                    "title_b": b.get("title", ""),
+                    "description_b": b.get("description", ""),
+                    "priority_b": b.get("priority", ""),
+                    "higher_priority": gold,
+                }
+            )
         return pd.DataFrame(pairs[:n])
 
     def parse_response(self, raw: str) -> str | None:

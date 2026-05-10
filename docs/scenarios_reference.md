@@ -6,8 +6,8 @@ This document describes the three benchmark scenarios implemented in PUMA.
 
 ## triage_jira
 
-**Class**: `puma.scenarios.triage_jira.TriageJiraScenario`  
-**Task type**: Multi-class classification  
+**Class**: `puma.scenarios.triage_jira.TriageJiraScenario`
+**Task type**: Multi-class classification
 **Scenario ID**: `triage_jira`
 
 ### Task definition
@@ -71,8 +71,8 @@ metrics: [f1_macro]
 
 ## estimation_tawos
 
-**Class**: `puma.scenarios.estimation_tawos.EstimationTawosScenario`  
-**Task type**: Regression (ordinal Fibonacci)  
+**Class**: `puma.scenarios.estimation_tawos.EstimationTawosScenario`
+**Task type**: Regression (ordinal Fibonacci)
 **Scenario ID**: `estimation_tawos`
 
 ### Task definition
@@ -142,8 +142,8 @@ metrics: [mae]
 
 ## prioritization_jira
 
-**Class**: `puma.scenarios.prioritization_jira.PrioritizationJiraScenario`  
-**Task type**: Binary classification (pairwise ranking)  
+**Class**: `puma.scenarios.prioritization_jira.PrioritizationJiraScenario`
+**Task type**: Binary classification (pairwise ranking)
 **Scenario ID**: `prioritization_jira`
 
 ### Task definition

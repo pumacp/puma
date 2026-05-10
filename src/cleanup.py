@@ -1,7 +1,7 @@
+import logging
 import os
 import shutil
 from pathlib import Path
-import logging
 
 logging.basicConfig(
     level=logging.INFO,
@@ -26,7 +26,7 @@ def cleanup_results():
     logger.info("Cleaning results directory...")
 
     cleaned = 0
-    
+
     for ext in ["*.json", "*.csv"]:
         for file in RESULTS_DIR.glob(ext):
             try:

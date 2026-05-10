@@ -147,7 +147,7 @@ puma/
 | requests | (unpinned) | HTTP calls |
 | pytest | (unpinned) | Tests |
 
-**Missing vs. target** (from `CLAUDE_CODE_INSTRUCTIONS.md §F0.2`):  
+**Missing vs. target** (from `CLAUDE_CODE_INSTRUCTIONS.md §F0.2`):
 `typer`, `httpx`, `pydantic`, `pyyaml`, `jinja2`, `numpy`, `sqlalchemy`, `psutil`, `streamlit`, `langdetect`, `pytest-cov`, `ruff`, `mypy`, `structlog`, `rich`, `pre-commit`, `alembic`, `respx`
 
 ---

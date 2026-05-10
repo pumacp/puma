@@ -9,7 +9,6 @@ from typing import TYPE_CHECKING
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 if TYPE_CHECKING:
-
     from puma.scenarios.base import Scenario
 
 PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "specs" / "prompts"

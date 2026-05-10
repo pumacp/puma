@@ -14,16 +14,28 @@ _DB_CSV = Path("db") / "jira_sr.csv"
 
 _REQUIRED_COLS = {"issue_key", "title", "description", "priority"}
 _PRIORITY_MAP = {
-    "blocker": "Blocker", "critical": "Critical",
-    "major": "Major", "minor": "Minor", "trivial": "Trivial",
+    "blocker": "Blocker",
+    "critical": "Critical",
+    "major": "Major",
+    "minor": "Minor",
+    "trivial": "Trivial",
 }
 
 
 def _normalise(df: pd.DataFrame) -> pd.DataFrame:
     rename = {}
     col_lower = {c.lower(): c for c in df.columns}
-    for canon in ("issue_key", "title", "summary", "description", "priority",
-                  "project_key", "issue_type", "created", "resolved"):
+    for canon in (
+        "issue_key",
+        "title",
+        "summary",
+        "description",
+        "priority",
+        "project_key",
+        "issue_type",
+        "created",
+        "resolved",
+    ):
         if canon in col_lower and col_lower[canon] != canon:
             rename[col_lower[canon]] = canon
     if rename:
@@ -43,9 +55,7 @@ def load(csv_path: Path = _CSV_PATH, db_path: Path = _DB_CSV) -> pd.DataFrame:
     """Load Jira SR dataset from CSV."""
     target = db_path if db_path.exists() else csv_path
     if not target.exists():
-        raise FileNotFoundError(
-            f"Jira SR data not found. Expected {db_path} or {csv_path}."
-        )
+        raise FileNotFoundError(f"Jira SR data not found. Expected {db_path} or {csv_path}.")
     df = _normalise(pd.read_csv(target))
     logger.info("Loaded %d Jira issues from %s", len(df), target)
     return df
@@ -63,10 +73,9 @@ def sample(
     if stratify_by in df.columns:
         groups = df.groupby(stratify_by, group_keys=False)
         per_class = max(1, n // df[stratify_by].nunique())
-        sampled = pd.concat([
-            g.sample(min(per_class, len(g)), random_state=seed)
-            for _, g in groups
-        ])
+        sampled = pd.concat(
+            [g.sample(min(per_class, len(g)), random_state=seed) for _, g in groups]
+        )
         if len(sampled) < n:
             remaining = df.drop(sampled.index)
             extra = remaining.sample(min(n - len(sampled), len(remaining)), random_state=seed)

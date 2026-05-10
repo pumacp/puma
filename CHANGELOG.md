@@ -1,7 +1,7 @@
 # Changelog
 
-All notable changes to PUMA are documented here.  
-Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).  
+All notable changes to PUMA are documented here.
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
@@ -80,5 +80,5 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [1.0.0] — 2025 (pre-restructuring)
 
-Initial evaluation scripts: `evaluate_triage.py`, `evaluate_estimation.py`, `agents/orchestrator.py`.  
+Initial evaluation scripts: `evaluate_triage.py`, `evaluate_estimation.py`, `agents/orchestrator.py`.
 Single-file, non-reproducible, not packaged.

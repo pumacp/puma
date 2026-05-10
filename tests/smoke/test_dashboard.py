@@ -97,15 +97,27 @@ def _seed_db(db_path: Path) -> str:
         "INSERT INTO predictions (run_id,instance_id,model,strategy,prompt_hash,"
         "raw_response,parsed_label,gold_label,latency_ms,tokens_in,tokens_out,seed)"
         " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-        (run_id, "INST-001", "qwen2.5:3b", "zero-shot", "abc123",
-         "The answer is Critical.", "Critical", "Critical", 350.0, 120, 30, 42),
+        (
+            run_id,
+            "INST-001",
+            "qwen2.5:3b",
+            "zero-shot",
+            "abc123",
+            "The answer is Critical.",
+            "Critical",
+            "Critical",
+            350.0,
+            120,
+            30,
+            42,
+        ),
     )
     conn.commit()
     conn.close()
     return run_id
 
 
-@pytest.mark.smoke
+@pytest.mark.smoke()
 class TestDashboardSmoke:
     """Smoke-level tests: app loads and all views render without exceptions."""
 

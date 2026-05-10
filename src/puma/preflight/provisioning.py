@@ -35,7 +35,9 @@ def _model_sizes(models: list[str], catalog_path: Path = _CATALOG_PATH) -> dict[
     return {m["ollama_tag"]: float(m.get("gguf_size_gb", 0)) for m in raw.get("models", [])}
 
 
-def _check_disk(caps: SystemCapabilities, profile: Profile, catalog_path: Path) -> list[ProvisioningIssue]:
+def _check_disk(
+    caps: SystemCapabilities, profile: Profile, catalog_path: Path
+) -> list[ProvisioningIssue]:
     sizes = _model_sizes(profile.models, catalog_path)
     required = sum(sizes.get(m, 2.0) for m in profile.models) + 5.0
     if caps.disk_free_gb < required:
@@ -89,8 +91,13 @@ def _check_docker_gpu() -> list[ProvisioningIssue]:
     try:
         result = subprocess.run(
             [
-                "docker", "run", "--rm", "--gpus", "all",
-                "nvidia/cuda:12.2.0-base-ubuntu22.04", "nvidia-smi",
+                "docker",
+                "run",
+                "--rm",
+                "--gpus",
+                "all",
+                "nvidia/cuda:12.2.0-base-ubuntu22.04",
+                "nvidia-smi",
             ],
             capture_output=True,
             timeout=60,

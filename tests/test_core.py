@@ -22,7 +22,7 @@ class TestDataFiles:
         """Verificar estructura de CSV Jira"""
         df = pd.read_csv("data/jira_balanced_200.csv")
 
-        required_cols = ['issue_key', 'title', 'description', 'priority']
+        required_cols = ["issue_key", "title", "description", "priority"]
         for col in required_cols:
             assert col in df.columns, f"Columna {col} no encontrada"
 
@@ -30,11 +30,11 @@ class TestDataFiles:
         """Verificar balanceo de clases en Jira"""
         df = pd.read_csv("data/jira_balanced_200.csv")
 
-        priorities = df['priority'].value_counts()
+        priorities = df["priority"].value_counts()
 
         assert len(priorities) <= 4, "Demasiadas prioridades"
 
-        for priority in ['Critical', 'Major', 'Minor', 'Trivial']:
+        for priority in ["Critical", "Major", "Minor", "Trivial"]:
             if priority in priorities.index:
                 count = priorities[priority]
                 assert 40 <= count <= 60, f"Prioridad {priority} fuera de rango: {count}"
@@ -43,7 +43,7 @@ class TestDataFiles:
         """Verificar estructura de CSV TAWOS"""
         df = pd.read_csv("data/tawos_clean.csv")
 
-        required_cols = ['project', 'title', 'description', 'story_points']
+        required_cols = ["project", "title", "description", "story_points"]
         for col in required_cols:
             assert col in df.columns, f"Columna {col} no encontrada"
 
@@ -51,9 +51,9 @@ class TestDataFiles:
         """Verificar que existe proyecto MESOS"""
         df = pd.read_csv("data/tawos_clean.csv")
 
-        assert 'MESOS' in df['project'].values, "Proyecto MESOS no encontrado"
+        assert "MESOS" in df["project"].values, "Proyecto MESOS no encontrado"
 
-        mesos_df = df[df['project'] == 'MESOS']
+        mesos_df = df[df["project"] == "MESOS"]
         assert len(mesos_df) >= 100, f"Insuficientes registros MESOS: {len(mesos_df)}"
 
 
@@ -100,8 +100,8 @@ class TestTriageEvaluator:
         """Verificar opciones deterministas"""
         from evaluate_triage import DETERMINISTIC_OPTIONS
 
-        assert DETERMINISTIC_OPTIONS['temperature'] == 0.0
-        assert DETERMINISTIC_OPTIONS['seed'] == 42
+        assert DETERMINISTIC_OPTIONS["temperature"] == 0.0
+        assert DETERMINISTIC_OPTIONS["seed"] == 42
 
     def test_system_prompt_structure(self):
         """Verificar estructura del system prompt"""
@@ -160,16 +160,16 @@ class TestEstimationEvaluator:
         from evaluate_estimation import FEW_SHOT_EXAMPLES
 
         for ex in FEW_SHOT_EXAMPLES:
-            assert 'title' in ex
-            assert 'description' in ex
-            assert 'story_points' in ex
+            assert "title" in ex
+            assert "description" in ex
+            assert "story_points" in ex
 
     def test_fibonacci_series(self):
         """Verificar serie Fibonacci"""
         from evaluate_estimation import FIBONACCI_SERIES
 
         expected = [1, 2, 3, 5, 8, 13, 21]
-        assert FIBONACCI_SERIES == expected
+        assert expected == FIBONACCI_SERIES
 
 
 class TestStatisticalAnalysis:
@@ -178,7 +178,8 @@ class TestStatisticalAnalysis:
     def test_wilcoxon_import(self):
         """Test importación scipy.stats.wilcoxon"""
         from scipy import stats
-        assert hasattr(stats, 'wilcoxon')
+
+        assert hasattr(stats, "wilcoxon")
         assert callable(stats.wilcoxon)
 
     def test_sklearn_metrics_import(self):
@@ -193,8 +194,8 @@ class TestStatisticalAnalysis:
         """Test básico matriz de confusión"""
         from sklearn.metrics import confusion_matrix
 
-        y_true = ['A', 'B', 'A', 'B']
-        y_pred = ['A', 'B', 'B', 'B']
+        y_true = ["A", "B", "A", "B"]
+        y_pred = ["A", "B", "B", "B"]
 
         cm = confusion_matrix(y_true, y_pred)
 
@@ -206,10 +207,10 @@ class TestStatisticalAnalysis:
         """Test cálculo F1-score"""
         from sklearn.metrics import f1_score
 
-        y_true = ['A', 'B', 'A', 'B']
-        y_pred = ['A', 'B', 'B', 'B']
+        y_true = ["A", "B", "A", "B"]
+        y_pred = ["A", "B", "B", "B"]
 
-        f1 = f1_score(y_true, y_pred, average='macro')
+        f1 = f1_score(y_true, y_pred, average="macro")
 
         assert 0.4 <= f1 <= 1.0
 
@@ -221,6 +222,7 @@ class TestCodeCarbon:
         """Test importación codecarbon"""
         try:
             from codecarbon import track_emissions
+
             assert callable(track_emissions)
         except ImportError:
             pytest.skip("codecarbon no disponible")
@@ -233,7 +235,8 @@ class TestOllamaClient:
         """Test importación ollama"""
         try:
             import ollama
-            assert hasattr(ollama, 'Client')
+
+            assert hasattr(ollama, "Client")
         except ImportError:
             pytest.skip("ollama no disponible")
 
@@ -253,9 +256,7 @@ class TestEndToEnd:
         results = []
         for _idx, row in sample.iterrows():
             pred = evaluator.evaluate_issue(
-                row['issue_key'],
-                str(row['title']),
-                str(row['description'])
+                row["issue_key"], str(row["title"]), str(row["description"])
             )
             results.append(pred)
 
@@ -268,17 +269,13 @@ class TestEndToEnd:
         from evaluate_estimation import EstimationEvaluator
 
         df = pd.read_csv("data/tawos_clean.csv")
-        mesos_df = df[df['project'] == 'MESOS'].head(5)
+        mesos_df = df[df["project"] == "MESOS"].head(5)
 
         evaluator = EstimationEvaluator()
 
         results = []
         for idx, row in mesos_df.iterrows():
-            pred = evaluator.evaluate_item(
-                str(idx),
-                str(row['title']),
-                str(row['description'])
-            )
+            pred = evaluator.evaluate_item(str(idx), str(row["title"]), str(row["description"]))
             results.append(pred)
 
         valid_results = [r for r in results if r is not None]

@@ -28,14 +28,21 @@ def _make_instance() -> dict:
     return {"title": "Login fails", "description": "Users cannot log in after update."}
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestStrategyRegistry:
     def test_all_strategies_registered(self):
         expected = {
-            "zero-shot", "zero-shot-cot", "one-shot",
-            "few-shot-3", "few-shot-5", "few-shot-8",
-            "cot-few-shot", "rcoif", "contextual-anchoring",
-            "self-consistency", "egi",
+            "zero-shot",
+            "zero-shot-cot",
+            "one-shot",
+            "few-shot-3",
+            "few-shot-5",
+            "few-shot-8",
+            "cot-few-shot",
+            "rcoif",
+            "contextual-anchoring",
+            "self-consistency",
+            "egi",
         }
         assert expected.issubset(set(STRATEGY_REGISTRY.keys()))
 
@@ -53,7 +60,7 @@ class TestStrategyRegistry:
             get_strategy("does-not-exist")
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestZeroShotPrompt:
     def test_renders_instance_fields(self):
         strategy = ZeroShot()
@@ -74,10 +81,12 @@ class TestZeroShotPrompt:
         strategy = ZeroShot()
         scenario = _make_scenario()
         instance = _make_instance()
-        assert strategy.build_prompt(scenario, instance) == strategy.build_prompt(scenario, instance)
+        assert strategy.build_prompt(scenario, instance) == strategy.build_prompt(
+            scenario, instance
+        )
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestFewShotKPrompt:
     def test_limits_examples_to_k(self):
         strategy = get_strategy("few-shot-3")
@@ -99,7 +108,7 @@ class TestFewShotKPrompt:
         assert len(prompt) > 10
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestSelfConsistencyAggregate:
     def test_majority_vote(self):
         strategy = SelfConsistency()
@@ -117,15 +126,14 @@ class TestSelfConsistencyAggregate:
         assert result is None
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestSelectExamples:
     def test_returns_k_examples(self):
         import pandas as pd
 
-        df = pd.DataFrame([
-            {"title": f"T{i}", "priority": ["Critical", "Major"][i % 2]}
-            for i in range(20)
-        ])
+        df = pd.DataFrame(
+            [{"title": f"T{i}", "priority": ["Critical", "Major"][i % 2]} for i in range(20)]
+        )
         result = select_examples(df, k=4, seed=42)
         assert len(result) <= 4
 
@@ -148,10 +156,12 @@ class TestSelectExamples:
     def test_stratified_returns_all_classes(self):
         import pandas as pd
 
-        df = pd.DataFrame([
-            {"title": f"T{i}", "priority": ["Critical", "Major", "Minor", "Trivial"][i % 4]}
-            for i in range(40)
-        ])
+        df = pd.DataFrame(
+            [
+                {"title": f"T{i}", "priority": ["Critical", "Major", "Minor", "Trivial"][i % 4]}
+                for i in range(40)
+            ]
+        )
         result = select_examples(df, k=8, seed=42, stratify_by="priority")
         classes = {d["priority"] for d in result}
         assert len(classes) >= 2

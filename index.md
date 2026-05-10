@@ -56,24 +56,24 @@ Full data-flow and package map → [docs/architecture.md](docs/architecture.md)
 
 ### 3.1 Issue Triage (`triage_jira`)
 
-**Task**: Given a Jira issue title and description, assign a priority label.  
-**Labels**: `Critical`, `Major`, `Minor`, `Trivial`  
-**Dataset**: 200 balanced Jira issues (50 per class)  
-**Primary metric**: F1 macro  
+**Task**: Given a Jira issue title and description, assign a priority label.
+**Labels**: `Critical`, `Major`, `Minor`, `Trivial`
+**Dataset**: 200 balanced Jira issues (50 per class)
+**Primary metric**: F1 macro
 
 ### 3.2 Story-Point Estimation (`estimation_tawos`)
 
-**Task**: Given a user story title and description, predict story points.  
-**Output**: Fibonacci number from {1, 2, 3, 5, 8, 13, 21, 34, 55, 89}  
-**Dataset**: TAWOS — 9 020 agile backlog items  
-**Primary metric**: MAE  
+**Task**: Given a user story title and description, predict story points.
+**Output**: Fibonacci number from {1, 2, 3, 5, 8, 13, 21, 34, 55, 89}
+**Dataset**: TAWOS — 9 020 agile backlog items
+**Primary metric**: MAE
 
 ### 3.3 Backlog Prioritization (`prioritization_jira`)
 
-**Task**: Given two Jira issues A and B, decide which has higher priority.  
-**Output**: `A` or `B`  
-**Dataset**: Pairwise samples from Jira SR dataset  
-**Primary metric**: Accuracy  
+**Task**: Given two Jira issues A and B, decide which has higher priority.
+**Output**: `A` or `B`
+**Dataset**: Pairwise samples from Jira SR dataset
+**Primary metric**: Accuracy
 
 Full scenario specs → [docs/scenarios_reference.md](docs/scenarios_reference.md)
 

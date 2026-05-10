@@ -16,7 +16,7 @@ PUMA (Puma Unified Model Assessment) is an LLM evaluation framework for software
 ## Workflow (Agentic Workflow)
 ```
 Spec (SDD) → Architect → Coder → Tester → Reviewer → Deploy
-     ↑                                                         
+     ↑
      └────────────── Feedback Loop ←─────────────────────────┘
 ```
 

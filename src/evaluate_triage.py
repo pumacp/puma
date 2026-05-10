@@ -1,27 +1,29 @@
-import os
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 
 # Allow importing from src/puma package
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-import pandas as pd
 from pathlib import Path
 from typing import Optional
-from sklearn.metrics import confusion_matrix, f1_score, classification_report
+
+import pandas as pd
 from codecarbon import track_emissions
-from history import save_to_history, get_ollama_model_info
+from sklearn.metrics import classification_report, confusion_matrix, f1_score
+
+from history import get_ollama_model_info, save_to_history
 
 # Re-export from new module location for forward compatibility
 from puma.scenarios.triage_jira import (  # noqa: F401
-    parse_prediction,
-    TriageEvaluator,
-    calculate_metrics,
-    VALID_PRIORITIES,
     DETERMINISTIC_OPTIONS,
     SYSTEM_PROMPT,
+    VALID_PRIORITIES,
+    TriageEvaluator,
+    calculate_metrics,
+    parse_prediction,
 )
 
 logging.basicConfig(
@@ -80,11 +82,11 @@ def save_cache(cache: dict):
 
 def parse_prediction(response: str) -> Optional[str]:
     response_clean = response.strip().strip('.').strip(',')
-    
+
     for priority in VALID_PRIORITIES:
         if priority.lower() in response_clean.lower():
             return priority
-    
+
     logger.warning(f"Could not parse response: '{response}'")
     return None
 
@@ -95,10 +97,10 @@ class TriageEvaluator:
         self.client = ollama.Client(host=OLLAMA_HOST)
         self.model = model
         logger.info(f"TriageEvaluator initialized with model: {model}")
-    
+
     def evaluate_issue(self, issue_key: str, title: str, description: str) -> Optional[str]:
         user_prompt = f"Título: {title}\n\nDescripción: {description}"
-        
+
         try:
             response = self.client.chat(
                 model=self.model,
@@ -108,25 +110,25 @@ class TriageEvaluator:
                 ],
                 options=DETERMINISTIC_OPTIONS
             )
-            
+
             prediction = parse_prediction(response["message"]["content"])
             logger.debug(f"Issue {issue_key}: {prediction}")
             return prediction
-            
+
         except Exception as e:
             logger.error(f"Error evaluating issue {issue_key}: {e}")
             return None
-    
+
     def evaluate_batch(self, df: pd.DataFrame) -> dict:
         cache = load_cache()
-        
+
         results = []
         skipped = 0
         processed = 0
-        
+
         for idx, row in df.iterrows():
             issue_key = str(row.get("issue_key", f"issue_{idx}"))
-            
+
             if issue_key in cache:
                 logger.info(f"Skipping cached issue: {issue_key}")
                 skipped += 1
@@ -138,13 +140,13 @@ class TriageEvaluator:
                     "prediction": cache[issue_key]["prediction"]
                 })
                 continue
-            
+
             title = row.get("title", "")
             description = row.get("description", "")
             true_priority = row.get("priority", "")
-            
+
             prediction = self.evaluate_issue(issue_key, title, description)
-            
+
             result = {
                 "issue_key": issue_key,
                 "title": title,
@@ -152,41 +154,41 @@ class TriageEvaluator:
                 "priority": true_priority,
                 "prediction": prediction
             }
-            
+
             cache[issue_key] = {"priority": true_priority, "prediction": prediction}
             results.append(result)
             processed += 1
-            
+
             if processed % 10 == 0:
                 save_cache(cache)
                 logger.info(f"Processed {processed} issues, saved cache")
-        
+
         save_cache(cache)
         logger.info(f"Batch complete: {processed} new, {skipped} cached")
-        
+
         return results
 
 
 def calculate_metrics(results: list) -> dict:
     y_true = []
     y_pred = []
-    
+
     for r in results:
         if r["priority"] and r["prediction"]:
             y_true.append(r["priority"])
             y_pred.append(r["prediction"])
-    
+
     if not y_true:
         logger.error("No valid predictions to calculate metrics")
         return {}
-    
+
     labels = VALID_PRIORITIES
-    
+
     cm = confusion_matrix(y_true, y_pred, labels=labels)
     f1_macro = f1_score(y_true, y_pred, labels=labels, average="macro")
-    
+
     report = classification_report(y_true, y_pred, labels=labels, output_dict=True)
-    
+
     metrics = {
         "f1_macro": f1_macro,
         "confusion_matrix": cm.tolist(),
@@ -196,7 +198,7 @@ def calculate_metrics(results: list) -> dict:
         "model": MODEL_NAME,
         "options": DETERMINISTIC_OPTIONS
     }
-    
+
     return metrics
 
 
@@ -207,38 +209,38 @@ def run_evaluation():
     logger.info(f"Model: {MODEL_NAME}")
     logger.info(f"Ollama Host: {OLLAMA_HOST}")
     logger.info("=" * 60)
-    
+
     if not JIRA_INPUT.exists():
         logger.error(f"Input file not found: {JIRA_INPUT}")
         logger.info("Run 'python src/data_prep.py' first to generate the dataset")
         return
-    
+
     df = pd.read_csv(JIRA_INPUT)
     logger.info(f"Loaded {len(df)} issues from {JIRA_INPUT}")
-    
+
     evaluator = TriageEvaluator()
-    
+
     results = evaluator.evaluate_batch(df)
-    
+
     metrics = calculate_metrics(results)
-    
+
     logger.info("=" * 60)
     logger.info("EVALUATION RESULTS")
     logger.info("=" * 60)
-    
+
     f1_value = metrics.get('f1_macro')
     if f1_value is not None:
         logger.info(f"F1-Macro: {f1_value:.4f}")
     else:
         logger.info("F1-Macro: N/A (no valid predictions)")
-    
+
     if "classification_report" in metrics:
         logger.info("\nPer-class metrics:")
         for priority in VALID_PRIORITIES:
             if priority in metrics["classification_report"]:
                 p = metrics["classification_report"][priority]
                 logger.info(f"  {priority:10} - Precision: {p['precision']:.3f}, Recall: {p['recall']:.3f}, F1: {p['f1-score']:.3f}")
-    
+
     target = TRIAGE_TARGET_F1
     f1 = metrics.get("f1_macro", 0)
     status = "PASSED" if f1 >= target else "BELOW TARGET"
@@ -255,12 +257,12 @@ def run_evaluation():
         target_value=target,
         status=status
     )
-    
+
     metrics_file = RESULTS_DIR / "triage_metrics.json"
     with open(metrics_file, "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=2, ensure_ascii=False)
     logger.info(f"Metrics saved to {metrics_file}")
-    
+
     return metrics
 
 

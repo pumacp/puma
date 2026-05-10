@@ -22,7 +22,7 @@ def _spec_dict(**overrides) -> dict:
     return base
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestRunSpecFromYaml:
     def test_round_trip_yaml(self, tmp_path):
         import yaml
@@ -41,7 +41,7 @@ class TestRunSpecFromYaml:
             RunSpec.from_yaml(str(bad_file))
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestRunnerDryRun:
     def _run_spec(self, **overrides) -> RunSpec:
         return RunSpec(**_spec_dict(**overrides))
@@ -83,7 +83,9 @@ class TestRunnerDryRun:
         runner.run()
         assert db_file.exists()
         conn = sqlite3.connect(db_file)
-        tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        tables = {
+            row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'")
+        }
         conn.close()
         assert "runs" in tables
         assert "predictions" in tables

@@ -122,13 +122,15 @@ class TriageEvaluator:
             issue_key = str(row.get("issue_key", f"issue_{idx}"))
             if issue_key in cache:
                 skipped += 1
-                results.append({
-                    "issue_key": issue_key,
-                    "title": row.get("title", ""),
-                    "description": row.get("description", ""),
-                    "priority": row.get("priority", ""),
-                    "prediction": cache[issue_key]["prediction"],
-                })
+                results.append(
+                    {
+                        "issue_key": issue_key,
+                        "title": row.get("title", ""),
+                        "description": row.get("description", ""),
+                        "priority": row.get("priority", ""),
+                        "prediction": cache[issue_key]["prediction"],
+                    }
+                )
                 continue
 
             prediction = self.evaluate_issue(

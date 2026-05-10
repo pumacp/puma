@@ -10,18 +10,20 @@ from puma.runtime.cache import InferenceCache
 from puma.runtime.client import GenerationResult, OllamaClient
 
 
-@pytest.mark.integration
-@pytest.mark.ollama
+@pytest.mark.integration()
+@pytest.mark.ollama()
 class TestOllamaClientReal:
     """Requires Ollama running with qwen2.5:1.5b or qwen2.5:3b available."""
 
     def _client(self):
         import os
+
         host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
         return OllamaClient(base_url=host, timeout_s=120.0)
 
     def _model(self):
         import os
+
         return os.environ.get("LLM_MODEL", "qwen2.5:3b")
 
     def test_generate_sync_returns_result(self):
@@ -70,7 +72,9 @@ class TestOllamaClientReal:
         key = cache.build_key(model, prompt, 0.0, 42, False, None)
 
         t0 = time.perf_counter()
-        result = client.generate_sync(model=model, prompt=prompt, temperature=0.0, seed=42, max_tokens=5)
+        result = client.generate_sync(
+            model=model, prompt=prompt, temperature=0.0, seed=42, max_tokens=5
+        )
         first_ms = (time.perf_counter() - t0) * 1000
 
         cache.put(key, result)

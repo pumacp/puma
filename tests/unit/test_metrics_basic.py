@@ -4,7 +4,7 @@ import pytest
 from sklearn.metrics import confusion_matrix, f1_score
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestSklearnMetrics:
     def test_f1_macro_basic(self):
         y_true = ["A", "B", "A", "B"]

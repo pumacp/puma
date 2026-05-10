@@ -125,10 +125,16 @@ class OllamaClient:
     ) -> GenerationResult:
         """Synchronous generate call with retries."""
         payload = _build_payload(
-            model, prompt,
-            temperature=temperature, seed=seed, max_tokens=max_tokens,
-            logprobs=logprobs, top_logprobs=top_logprobs,
-            format=format, system=system, stream=False,
+            model,
+            prompt,
+            temperature=temperature,
+            seed=seed,
+            max_tokens=max_tokens,
+            logprobs=logprobs,
+            top_logprobs=top_logprobs,
+            format=format,
+            system=system,
+            stream=False,
         )
         url = f"{self.base_url}/api/generate"
         last_exc: Exception | None = None
@@ -138,16 +144,23 @@ class OllamaClient:
                 with httpx.Client(timeout=self.timeout_s) as client:
                     response = client.post(url, json=payload)
                     if response.status_code in _RETRY_STATUSES:
-                        wait = 2 ** attempt
-                        logger.warning("HTTP %s on attempt %d, retrying in %ds", response.status_code, attempt + 1, wait)
+                        wait = 2**attempt
+                        logger.warning(
+                            "HTTP %s on attempt %d, retrying in %ds",
+                            response.status_code,
+                            attempt + 1,
+                            wait,
+                        )
                         time.sleep(wait)
                         continue
                     response.raise_for_status()
                     raw = response.json()
-                    logger.debug("inference done model=%s eval_count=%s", model, raw.get("eval_count"))
+                    logger.debug(
+                        "inference done model=%s eval_count=%s", model, raw.get("eval_count")
+                    )
                     return _result_from_json(raw)
             except httpx.TimeoutException as exc:
-                wait = 2 ** attempt
+                wait = 2**attempt
                 logger.warning("Timeout on attempt %d, retrying in %ds", attempt + 1, wait)
                 last_exc = exc
                 time.sleep(wait)
@@ -172,10 +185,16 @@ class OllamaClient:
     ) -> GenerationResult:
         """Async generate call with retries."""
         payload = _build_payload(
-            model, prompt,
-            temperature=temperature, seed=seed, max_tokens=max_tokens,
-            logprobs=logprobs, top_logprobs=top_logprobs,
-            format=format, system=system, stream=False,
+            model,
+            prompt,
+            temperature=temperature,
+            seed=seed,
+            max_tokens=max_tokens,
+            logprobs=logprobs,
+            top_logprobs=top_logprobs,
+            format=format,
+            system=system,
+            stream=False,
         )
         url = f"{self.base_url}/api/generate"
         last_exc: Exception | None = None
@@ -185,7 +204,7 @@ class OllamaClient:
                 try:
                     response = await client.post(url, json=payload)
                     if response.status_code in _RETRY_STATUSES:
-                        wait = 2 ** attempt
+                        wait = 2**attempt
                         logger.warning("HTTP %s retry in %ds", response.status_code, wait)
                         await asyncio.sleep(wait)
                         continue
@@ -193,9 +212,11 @@ class OllamaClient:
                     raw = response.json()
                     return _result_from_json(raw)
                 except httpx.TimeoutException as exc:
-                    wait = 2 ** attempt
+                    wait = 2**attempt
                     logger.warning("Timeout attempt %d, retry in %ds", attempt + 1, wait)
                     last_exc = exc
                     await asyncio.sleep(wait)
 
-        raise RuntimeError(f"Ollama async request failed after {self.retries} retries") from last_exc
+        raise RuntimeError(
+            f"Ollama async request failed after {self.retries} retries"
+        ) from last_exc

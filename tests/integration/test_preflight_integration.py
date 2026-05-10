@@ -8,7 +8,7 @@ import yaml
 from puma.preflight import detect_capabilities, select_profile, write_runtime_profile
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 class TestPreflightIntegration:
     def test_detect_runs_without_error(self):
         caps = detect_capabilities()
@@ -24,9 +24,7 @@ class TestPreflightIntegration:
     def test_write_runtime_profile_creates_file(self, tmp_path, monkeypatch):
         from puma.preflight import report as report_mod
 
-        monkeypatch.setattr(
-            report_mod, "_RUNTIME_PROFILE", tmp_path / "runtime_profile.yaml"
-        )
+        monkeypatch.setattr(report_mod, "_RUNTIME_PROFILE", tmp_path / "runtime_profile.yaml")
         caps = detect_capabilities()
         profile = select_profile(caps)
         path = write_runtime_profile(caps, profile)
@@ -41,9 +39,7 @@ class TestPreflightIntegration:
     def test_runtime_profile_has_models(self, tmp_path, monkeypatch):
         from puma.preflight import report as report_mod
 
-        monkeypatch.setattr(
-            report_mod, "_RUNTIME_PROFILE", tmp_path / "runtime_profile.yaml"
-        )
+        monkeypatch.setattr(report_mod, "_RUNTIME_PROFILE", tmp_path / "runtime_profile.yaml")
         caps = detect_capabilities()
         profile = select_profile(caps)
         path = write_runtime_profile(caps, profile)

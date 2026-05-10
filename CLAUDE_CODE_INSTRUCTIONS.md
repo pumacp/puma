@@ -4,7 +4,7 @@ Documento operativo. Dirigido a Claude Code trabajando sobre el repositorio puma
 
 0. Principios operativos (de obligada lectura antes de empezar)
 Toda la documentación y comentarios de código producida debe de estar en inglés. No se deben de incluir comentarios, nombres de archivos, documentación, nombres de variables, clases o cualquier otra información, en un idioma diferente al inglés.
-Se debe de partir de la versión actual de código, eliminando todos aquellos archivos o códigos o carpetas que no sean necesarios para la versión final descrita a continuación. 
+Se debe de partir de la versión actual de código, eliminando todos aquellos archivos o códigos o carpetas que no sean necesarios para la versión final descrita a continuación.
 Se debe de seguir el modelo de "https://github.com/stanford-crfm/helm" como ejemplo para implementar las diferentes funcionalidades, pero siempre sin nombrar HELM en ningún lugar de PUMA.
 El repositorio original del Proyecto PUMA es "https://github.com/pumacp/puma". Contiene la última versión publicada que debe de servir de ejemplo inicial a partir del cual se debe de comenzar a implementar las nuevas funcionalidades que se describen en este documento y en index.md.
 No se deben de hacer referencia a las diferentes fases de implementación descritas a continuación, ni en el código, ni en los posibles commits, ni en la documentación generada. Las diferentes fases indicadas a continuación unicamente servirán como guía interna para la implementación de las nuevas funcionalidades.
@@ -679,5 +679,3 @@ Estrategia de warm-up del modelo (¿primera llamada descartada?).
 Criterio de corte para considerar un modelo "robusto" (¿robustness_score ≥ 0.95?).
 
 Estas decisiones se consolidan en docs/design_decisions.md al cerrar cada fase.
-
-

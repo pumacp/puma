@@ -9,7 +9,7 @@ import pytest
 from puma.runtime.client import GenerationResult, OllamaClient, TokenLogprob
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestTokenLogprob:
     def test_basic_fields(self):
         tl = TokenLogprob(token="Critical", logprob=-0.1, top_logprobs=[])
@@ -22,7 +22,7 @@ class TestTokenLogprob:
             tl.token = "B"  # type: ignore[misc]
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestGenerationResult:
     def test_fields_accessible(self):
         gr = GenerationResult(
@@ -41,15 +41,21 @@ class TestGenerationResult:
 
     def test_frozen(self):
         gr = GenerationResult(
-            model="m", response="r", logprobs=[],
-            total_duration_ns=0, load_duration_ns=0,
-            prompt_eval_count=0, eval_count=0, eval_duration_ns=0, raw={},
+            model="m",
+            response="r",
+            logprobs=[],
+            total_duration_ns=0,
+            load_duration_ns=0,
+            prompt_eval_count=0,
+            eval_count=0,
+            eval_duration_ns=0,
+            raw={},
         )
         with pytest.raises((AttributeError, TypeError)):
             gr.response = "hacked"  # type: ignore[misc]
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestOllamaClientSync:
     def _make_response_json(self, text="Critical"):
         return {
@@ -93,9 +99,13 @@ class TestOllamaClientSync:
             mock_resp = MagicMock()
             mock_resp.status_code = 200
             mock_resp.json.return_value = {
-                "response": "ok", "model": "m",
-                "total_duration": 0, "load_duration": 0,
-                "prompt_eval_count": 0, "eval_count": 0, "eval_duration": 0,
+                "response": "ok",
+                "model": "m",
+                "total_duration": 0,
+                "load_duration": 0,
+                "prompt_eval_count": 0,
+                "eval_count": 0,
+                "eval_duration": 0,
             }
             mock_resp.raise_for_status = MagicMock()
             return mock_resp
@@ -103,8 +113,11 @@ class TestOllamaClientSync:
         with patch("httpx.Client") as mock_httpx:
             mock_httpx.return_value.__enter__.return_value.post.side_effect = capture_post
             client.generate_sync(
-                model="qwen2.5:3b", prompt="test",
-                temperature=0.0, seed=42, max_tokens=10,
+                model="qwen2.5:3b",
+                prompt="test",
+                temperature=0.0,
+                seed=42,
+                max_tokens=10,
             )
 
         assert "options" in captured_payload
@@ -120,9 +133,13 @@ class TestOllamaClientSync:
             mock_resp = MagicMock()
             mock_resp.status_code = 200
             mock_resp.json.return_value = {
-                "response": "ok", "model": "m",
-                "total_duration": 0, "load_duration": 0,
-                "prompt_eval_count": 0, "eval_count": 0, "eval_duration": 0,
+                "response": "ok",
+                "model": "m",
+                "total_duration": 0,
+                "load_duration": 0,
+                "prompt_eval_count": 0,
+                "eval_count": 0,
+                "eval_duration": 0,
             }
             mock_resp.raise_for_status = MagicMock()
             return mock_resp
@@ -130,8 +147,12 @@ class TestOllamaClientSync:
         with patch("httpx.Client") as mock_httpx:
             mock_httpx.return_value.__enter__.return_value.post.side_effect = capture_post
             client.generate_sync(
-                model="qwen2.5:3b", prompt="test",
-                temperature=0.0, seed=42, logprobs=True, top_logprobs=5,
+                model="qwen2.5:3b",
+                prompt="test",
+                temperature=0.0,
+                seed=42,
+                logprobs=True,
+                top_logprobs=5,
             )
 
         assert captured_payload.get("logprobs") is True

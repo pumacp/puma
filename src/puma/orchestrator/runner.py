@@ -89,17 +89,23 @@ class Runner:
                 r.status = "done"
                 r.finished_at = datetime.now(UTC)
             for metric_name, value in _flatten_metrics(metrics):
-                db.add(Metric(
-                    run_id=self.run_id,
-                    scope="global",
-                    metric_name=metric_name,
-                    value=float(value),
-                ))
+                db.add(
+                    Metric(
+                        run_id=self.run_id,
+                        scope="global",
+                        metric_name=metric_name,
+                        value=float(value),
+                    )
+                )
             _add_profile_snapshot(db, self.run_id)
 
         _save_metrics_json(metrics, results_dir)
-        logger.info("run.end", run_id=self.run_id, duration_s=round(duration_s, 1),
-                    n_predictions=len(predictions))
+        logger.info(
+            "run.end",
+            run_id=self.run_id,
+            duration_s=round(duration_s, 1),
+            n_predictions=len(predictions),
+        )
         return {"run_id": self.run_id, "metrics": metrics, "n_predictions": len(predictions)}
 
     # ------------------------------------------------------------------
@@ -135,9 +141,7 @@ class Runner:
         )
         InferenceCache(db_path=Path("data/cache/inferences.db"))
 
-        perturb_fns = _build_perturbation_fns(
-            self.spec.perturbations, self.spec.inference.seed
-        )
+        perturb_fns = _build_perturbation_fns(self.spec.perturbations, self.spec.inference.seed)
 
         all_predictions: list[dict] = []
         rows = df.to_dict("records")
@@ -159,7 +163,10 @@ class Runner:
                         instance = dict(row)
                         gold = str(scenario.gold_label(instance))
 
-                        for perturb_name, perturb_fn in [("original", None)] + list(perturb_fns.items()):  # noqa: E501
+                        for perturb_name, perturb_fn in [
+                            ("original", None),
+                            *perturb_fns.items(),
+                        ]:
                             perturbed = _apply_perturbation(instance, perturb_fn)
                             prompt = strategy.build_prompt(scenario, perturbed)
                             prompt_hash = hashlib.sha256(prompt.encode()).hexdigest()[:16]
@@ -191,21 +198,29 @@ class Runner:
                                     tokens_in = tokens_out = 0
 
                             parsed = scenario.parse_response(raw_response)
-                            all_predictions.append({
-                                "run_id": self.run_id,
-                                "instance_id": str(row.get("issue_key", row.get("item_id", uuid.uuid4().hex[:8]))),
-                                "model": model,
-                                "strategy": strategy_name,
-                                "prompt_hash": prompt_hash,
-                                "raw_response": raw_response,
-                                "parsed_label": str(parsed) if parsed is not None else None,
-                                "gold_label": gold,
-                                "latency_ms": latency_ms,
-                                "tokens_in": tokens_in,
-                                "tokens_out": tokens_out,
-                                "perturbation": perturb_name if perturb_name != "original" else None,
-                                "seed": self.spec.inference.seed,
-                            })
+                            all_predictions.append(
+                                {
+                                    "run_id": self.run_id,
+                                    "instance_id": str(
+                                        row.get(
+                                            "issue_key", row.get("item_id", uuid.uuid4().hex[:8])
+                                        )
+                                    ),
+                                    "model": model,
+                                    "strategy": strategy_name,
+                                    "prompt_hash": prompt_hash,
+                                    "raw_response": raw_response,
+                                    "parsed_label": str(parsed) if parsed is not None else None,
+                                    "gold_label": gold,
+                                    "latency_ms": latency_ms,
+                                    "tokens_in": tokens_in,
+                                    "tokens_out": tokens_out,
+                                    "perturbation": perturb_name
+                                    if perturb_name != "original"
+                                    else None,
+                                    "seed": self.spec.inference.seed,
+                                }
+                            )
 
                         progress.advance(task_id)
 
@@ -242,7 +257,9 @@ class Runner:
             except ValueError:
                 result["parse_error"] = "could not convert to float"
         else:
-            result["accuracy"] = sum(a == b for a, b in zip(y_true, y_pred, strict=False)) / len(y_true)
+            result["accuracy"] = sum(a == b for a, b in zip(y_true, y_pred, strict=False)) / len(
+                y_true
+            )
 
         latencies = [p["latency_ms"] for p in orig if p.get("latency_ms") is not None]
         if latencies:
@@ -264,27 +281,31 @@ class Runner:
                 iid = p["instance_id"]
                 if iid not in seen_instances and not db.get(Instance, iid):
                     seen_instances.add(iid)
-                    db.add(Instance(
+                    db.add(
+                        Instance(
+                            instance_id=iid,
+                            dataset=self.spec.scenario,
+                            source_id=iid,
+                            input_text="",
+                            gold_label=p["gold_label"],
+                        )
+                    )
+                db.add(
+                    Prediction(
+                        run_id=p["run_id"],
                         instance_id=iid,
-                        dataset=self.spec.scenario,
-                        source_id=iid,
-                        input_text="",
-                        gold_label=p["gold_label"],
-                    ))
-                db.add(Prediction(
-                    run_id=p["run_id"],
-                    instance_id=iid,
-                    model=p["model"],
-                    strategy=p["strategy"],
-                    prompt_hash=p["prompt_hash"],
-                    raw_response=p["raw_response"],
-                    parsed_label=p["parsed_label"],
-                    latency_ms=p["latency_ms"],
-                    tokens_in=p["tokens_in"],
-                    tokens_out=p["tokens_out"],
-                    perturbation=p["perturbation"],
-                    seed=p["seed"],
-                ))
+                        model=p["model"],
+                        strategy=p["strategy"],
+                        prompt_hash=p["prompt_hash"],
+                        raw_response=p["raw_response"],
+                        parsed_label=p["parsed_label"],
+                        latency_ms=p["latency_ms"],
+                        tokens_in=p["tokens_in"],
+                        tokens_out=p["tokens_out"],
+                        perturbation=p["perturbation"],
+                        seed=p["seed"],
+                    )
+                )
 
     def _persist_metrics(self, metrics: dict, results_dir: Path) -> None:
         pass  # JSON saved separately; SQLAlchemy rows added in run()
@@ -294,12 +315,14 @@ class Runner:
 # Module-level helpers
 # ------------------------------------------------------------------
 
+
 def _ts() -> str:
     return datetime.now(UTC).strftime("%Y%m%dT%H%M%S")
 
 
 def _save_frozen_spec(spec: RunSpec, results_dir: Path) -> None:
     import yaml
+
     path = results_dir / "runspec.yaml"
     with open(path, "w", encoding="utf-8") as fh:
         yaml.dump(spec.model_dump(mode="json"), fh, default_flow_style=False)
@@ -313,6 +336,7 @@ def _save_metrics_json(metrics: dict, results_dir: Path) -> None:
 
 def _empty_dataframe():
     import pandas as pd
+
     return pd.DataFrame()
 
 
@@ -348,7 +372,7 @@ def _flatten_metrics(metrics: dict, prefix: str = "") -> list[tuple[str, float]]
     result = []
     for k, v in metrics.items():
         full_key = f"{prefix}.{k}" if prefix else k
-        if isinstance(v, (int, float)):
+        if isinstance(v, int | float):
             result.append((full_key, float(v)))
         elif isinstance(v, dict):
             result.extend(_flatten_metrics(v, prefix=full_key))
@@ -360,16 +384,19 @@ def _add_profile_snapshot(db, run_id: str) -> None:
 
     try:
         from puma.preflight.detect import detect_capabilities
+
         caps = detect_capabilities()
-        db.add(ProfileSnapshot(
-            run_id=run_id,
-            os=caps.os_system,
-            cpu=caps.cpu_model,
-            ram_gb=caps.ram_total_gb,
-            gpu=caps.gpu_name,
-            vram_gb=caps.gpu_vram_gb,
-            ollama_version=caps.ollama_version,
-            puma_version="2.0.0-dev",
-        ))
+        db.add(
+            ProfileSnapshot(
+                run_id=run_id,
+                os=caps.os_system,
+                cpu=caps.cpu_model,
+                ram_gb=caps.ram_total_gb,
+                gpu=caps.gpu_name,
+                vram_gb=caps.gpu_vram_gb,
+                ollama_version=caps.ollama_version,
+                puma_version="2.0.0-dev",
+            )
+        )
     except Exception:
         db.add(ProfileSnapshot(run_id=run_id, puma_version="2.0.0-dev"))
