@@ -44,6 +44,21 @@ Versions follow [Semantic Versioning](https://semver.org/).
   `load_catalog()`, `models_for_profile(profile_name)`, and
   `get_model_by_tag(tag)` as the single-source-of-truth API for model
   metadata.
+- `docs/HARDWARE.md`: hardware specification of the reference development
+  machine (MSI GS66 Stealth 10SE: i7-10750H, 32 GB DDR4 2667 MHz, RTX
+  2060 Mobile 6 GB GDDR6, NVMe 1 TB) with sections on profile detection,
+  sustained-load thermal behavior, memory bandwidth, VRAM constraints,
+  CodeCarbon accuracy on this hardware, and reproducibility scope.
+  Includes empirical observations from Phase B sweep (mistral:7b 10–18×
+  duration variance) and CPU-offload behavior of large models.
+- `docs/known_debt.md`: consolidated tracker of methodological findings
+  detected during v2.0.0 release validation (8 closed) and open
+  technical debt classified by severity (15 open: 3 critical, 7 medium,
+  5 low; one decided-no-action). New critical debt #D18 added
+  documenting gemma4 family parser incompatibility detected during
+  B.3 sweep. Existing debt #D15 (CodeCarbon GPU detection), #D16
+  (gemma4 sizes), and #D20 (laptop thermal) reinforced with empirical
+  evidence from the sweep.
 
 ## [2.0.0] — 2026-05-10
 

@@ -157,6 +157,4 @@ def test_emissions_row_fk_integrity(tmp_path):
         (summary["run_id"],),
     )
     row = cur.fetchone()
-    assert row is not None, (
-        "FK integrity violated: emissions row has no matching runs entry"
-    )
+    assert row is not None, "FK integrity violated: emissions row has no matching runs entry"
