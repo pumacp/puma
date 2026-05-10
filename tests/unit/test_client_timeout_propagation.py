@@ -50,9 +50,7 @@ def test_client_for_model_uses_catalog_timeout(monkeypatch: pytest.MonkeyPatch) 
         "get_model_by_tag",
         lambda tag: _StubEntry(ollama_tag=tag, timeout_s=600),
     )
-    built = client_module.client_for_model(
-        "deepseek-r1:7b", base_url="http://localhost:11434"
-    )
+    built = client_module.client_for_model("deepseek-r1:7b", base_url="http://localhost:11434")
     assert isinstance(built, OllamaClient)
     assert built.timeout_s == 600.0
 
@@ -65,9 +63,7 @@ def test_client_for_model_falls_back_when_unknown_tag(
     from puma.runtime import client as client_module
 
     monkeypatch.setattr(client_module, "get_model_by_tag", lambda tag: None)
-    built = client_module.client_for_model(
-        "unknown:99b", base_url="http://localhost:11434"
-    )
+    built = client_module.client_for_model("unknown:99b", base_url="http://localhost:11434")
     assert built.timeout_s == 120.0
 
 
@@ -78,7 +74,5 @@ def test_client_for_model_real_catalog_returns_300_for_deepseek(
     """End-to-end with the real catalog: deepseek-r1:7b → 300 s."""
     from puma.runtime import client as client_module
 
-    built = client_module.client_for_model(
-        "deepseek-r1:7b", base_url="http://localhost:11434"
-    )
+    built = client_module.client_for_model("deepseek-r1:7b", base_url="http://localhost:11434")
     assert built.timeout_s == 300.0
