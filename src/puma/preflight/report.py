@@ -8,6 +8,7 @@ from pathlib import Path
 
 import yaml
 
+from puma.preflight.catalog import models_for_profile
 from puma.preflight.detect import SystemCapabilities
 from puma.preflight.profile import Profile
 from puma.preflight.provisioning import IssueSeverity, ProvisioningIssue
@@ -36,7 +37,7 @@ def write_runtime_profile(caps: SystemCapabilities, profile: Profile) -> Path:
             "version": caps.ollama_version,
             "reachable": caps.ollama_reachable,
         },
-        "models": profile.models,
+        "models": [m.ollama_tag for m in models_for_profile(profile.name)],
         "scenarios": profile.scenarios,
     }
     with open(_RUNTIME_PROFILE, "w", encoding="utf-8") as fh:
@@ -81,7 +82,8 @@ def print_report(
 
     print(f"\n  Selected profile : {profile.name}", file=file)
     print(f"  Description      : {profile.description}", file=file)
-    print(f"  Models enabled   : {', '.join(profile.models)}", file=file)
+    enabled_tags = [m.ollama_tag for m in models_for_profile(profile.name)]
+    print(f"  Models enabled   : {', '.join(enabled_tags)}", file=file)
     print(f"  Scenarios        : {', '.join(profile.scenarios)}", file=file)
 
     if issues:

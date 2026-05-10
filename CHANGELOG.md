@@ -8,6 +8,43 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- CodeCarbon integration: v2.0.0 declared CodeCarbon as a first-class
+  sustainability metric, but the orchestrator never invoked the
+  `EmissionsTracker`. The infrastructure (`puma.sustainability` module,
+  `Emission` ORM, `emissions` table) was complete but the runner never
+  consulted the `spec.sustainability.codecarbon` flag. Now wired: runs
+  with the flag enabled persist an emissions row per run with `kwh`,
+  `co2_kg`, `duration_s`, and `cpu_energy` / `gpu_energy` / `ram_energy`
+  breakdowns. Lazy import of `codecarbon` keeps it out of the hot path
+  when tracking is disabled. Closes empirical finding #6 from v2.0.0
+  release validation.
+- Model catalog size: corrected `gguf_size_gb` for `gemma4:e2b` from
+  2.0 GB (effective parameters) to 7.2 GB (actual GGUF size on disk;
+  includes all MoE experts, not just active ones). The previous value
+  caused `check_provisioning` to underestimate disk requirements by
+  ~5.2 GB per profile that includes this model. Added explanatory notes
+  to `gemma4:e4b` and `gemma4:26b-a4b` indicating their `gguf_size_gb`
+  values are unverified estimates pending local pull.
+
+### Changed
+
+- `config/profiles.yaml` no longer carries a manually-curated `models[]`
+  list per profile. The new `puma.preflight.catalog.models_for_profile()`
+  derives the dispatch list dynamically from
+  `config/models_catalog.yaml.profiles_compatible[]`. This eliminates the
+  17 `(profile, tag)` drift pairs that had silently accumulated between
+  the two sources. `Profile` dataclass loses its `models` field; callers
+  in `provisioning.py` and `report.py` are updated.
+
+### Added
+
+- `puma.preflight.catalog` module exposing `ModelEntry`,
+  `load_catalog()`, `models_for_profile(profile_name)`, and
+  `get_model_by_tag(tag)` as the single-source-of-truth API for model
+  metadata.
+
 ## [2.0.0] — 2026-05-10
 
 ### Added

@@ -11,11 +11,10 @@ from puma.preflight.profile import Profile
 from puma.preflight.provisioning import IssueSeverity, ProvisioningIssue, check_provisioning
 
 
-def _make_profile(name="cpu-standard", min_disk_gb=25.0, models=None, gpu_required=False):
+def _make_profile(name="cpu-standard", min_disk_gb=25.0, gpu_required=False):
     return Profile(
         name=name,
         description="test",
-        models=models or ["qwen2.5:3b"],
         scenarios=["triage_jira"],
         min_ram_gb=16.0,
         gpu_required=gpu_required,
