@@ -53,7 +53,7 @@ def load(csv_path: Path = _CSV_PATH, db_path: Path = _DB_CSV) -> pd.DataFrame:
     if not target.exists():
         raise FileNotFoundError(
             f"TAWOS data not found. Expected {db_path} or {csv_path}.\n"
-            "Run `python scripts/download_datasets.py` or place tawos_clean.csv in data/."
+            "Run `python scripts/prepare_datasets.py` or place tawos_clean.csv in data/."
         )
     df = _normalise(pd.read_csv(target))
     if "story_points" in df.columns:
