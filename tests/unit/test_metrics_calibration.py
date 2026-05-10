@@ -15,7 +15,7 @@ from puma.metrics.calibration import (
 from puma.runtime.client import TokenLogprob
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestECE:
     def test_perfect_calibration(self):
         # 80 items at 0.8 confidence, exactly 80% correct → bin gap = 0
@@ -33,6 +33,7 @@ class TestECE:
 
     def test_output_in_range(self):
         import random
+
         rng = random.Random(42)
         confs = [rng.random() for _ in range(200)]
         corrects = [rng.random() > 0.5 for _ in range(200)]
@@ -48,7 +49,7 @@ class TestECE:
             expected_calibration_error([0.5, 0.6], [True])
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestMCE:
     def test_output_ge_ece(self):
         confs = [0.9] * 50 + [0.1] * 50
@@ -64,7 +65,7 @@ class TestMCE:
         assert 0.0 <= mce <= 1.0
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestBrierScore:
     def test_perfect_score_is_zero(self):
         confs = [1.0, 1.0, 0.0, 0.0]
@@ -83,16 +84,17 @@ class TestBrierScore:
         assert 0.0 <= bs <= 1.0
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestClassConfidenceFromLogprobs:
-    def _make_token_logprob(self, token: str, logprob: float, top: list[tuple[str, float]]) -> TokenLogprob:
+    def _make_token_logprob(
+        self, token: str, logprob: float, top: list[tuple[str, float]]
+    ) -> TokenLogprob:
         top_lps = [TokenLogprob(token=t, logprob=lp, top_logprobs=[]) for t, lp in top]
         return TokenLogprob(token=token, logprob=logprob, top_logprobs=top_lps)
 
     def test_sums_to_one(self):
         first = self._make_token_logprob(
-            "Critical", math.log(0.6),
-            [("Major", math.log(0.3)), ("Minor", math.log(0.1))]
+            "Critical", math.log(0.6), [("Major", math.log(0.3)), ("Minor", math.log(0.1))]
         )
         label_tokens = {
             "Critical": ["Critical", "critical"],
@@ -106,8 +108,7 @@ class TestClassConfidenceFromLogprobs:
 
     def test_dominant_class_has_highest_prob(self):
         first = self._make_token_logprob(
-            "Critical", math.log(0.7),
-            [("Major", math.log(0.2)), ("Minor", math.log(0.1))]
+            "Critical", math.log(0.7), [("Major", math.log(0.2)), ("Minor", math.log(0.1))]
         )
         label_tokens = {
             "Critical": ["Critical"],

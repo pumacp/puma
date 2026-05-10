@@ -6,7 +6,7 @@ All metric functions live in `src/puma/metrics/`. This document lists every metr
 
 ## Classification Metrics
 
-**Module**: `puma.metrics.accuracy`  
+**Module**: `puma.metrics.accuracy`
 **Applies to**: `triage_jira`, `prioritization_jira`
 
 | Metric key | Formula | Notes |
@@ -25,7 +25,7 @@ All metric functions live in `src/puma/metrics/`. This document lists every metr
 
 ## Regression Metrics
 
-**Module**: `puma.metrics.accuracy`  
+**Module**: `puma.metrics.accuracy`
 **Applies to**: `estimation_tawos`
 
 | Metric key | Formula | Notes |
@@ -42,7 +42,7 @@ All metric functions live in `src/puma/metrics/`. This document lists every metr
 
 ## Ranking Metrics
 
-**Module**: `puma.metrics.accuracy`  
+**Module**: `puma.metrics.accuracy`
 **Applies to**: `prioritization_jira` (future extension)
 
 | Metric key | Formula | Notes |
@@ -54,7 +54,7 @@ All metric functions live in `src/puma/metrics/`. This document lists every metr
 
 ## Calibration Metrics
 
-**Module**: `puma.metrics.calibration`  
+**Module**: `puma.metrics.calibration`
 **Requires**: `logprobs: true` in run-spec + Ollama ≥ 0.12.11
 
 | Metric key | Formula | Notes |
@@ -146,7 +146,7 @@ parse_ollama_timings(raw_response_dict) → {
 
 ## Stability Metrics
 
-**Module**: `puma.metrics.stability`  
+**Module**: `puma.metrics.stability`
 **Requires**: `repeat > 1` in run-spec
 
 | Metric key | Formula | Notes |
@@ -161,7 +161,7 @@ parse_ollama_timings(raw_response_dict) → {
 
 ## Sustainability Metrics
 
-**Module**: `puma.sustainability.codecarbon_wrapper`  
+**Module**: `puma.sustainability.codecarbon_wrapper`
 **Requires**: `sustainability.codecarbon: true` in run-spec
 
 | Metric key | Units | Notes |

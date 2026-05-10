@@ -14,13 +14,13 @@ Usage:
   python scripts/download_datasets.py
 """
 
+import csv
 import io
 import os
-import sys
 import re
-import csv
-import zipfile
 import subprocess
+import sys
+import zipfile
 from pathlib import Path
 
 # ── Paths ─────────────────────────────────────────────────────────────────────

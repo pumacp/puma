@@ -9,7 +9,7 @@ import pytest
 from puma.preflight.detect import SystemCapabilities, detect_capabilities
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestDetectCapabilities:
     def test_returns_system_capabilities(self):
         caps = detect_capabilities()
@@ -58,7 +58,7 @@ class TestDetectCapabilities:
         assert caps.gpu_backend == "none"
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestSystemCapabilitiesFields:
     def test_ollama_unreachable_defaults(self):
         with patch("subprocess.run", side_effect=FileNotFoundError):

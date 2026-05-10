@@ -35,11 +35,13 @@ def track_emissions(
     Guarantees tracker.stop() even if the wrapped function raises.
     Injects an `emissions_data` attribute onto the returned result if possible.
     """
+
     def decorator(fn: Callable) -> Callable:
         @functools.wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
                 from codecarbon import EmissionsTracker
+
                 tracker = EmissionsTracker(
                     project_name=project_name,
                     output_dir=str(output_dir),
@@ -64,6 +66,7 @@ def track_emissions(
             return result
 
         return wrapper
+
     return decorator
 
 

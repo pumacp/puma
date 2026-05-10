@@ -12,13 +12,19 @@ from puma.runtime.client import GenerationResult
 
 def _make_result(response="Critical") -> GenerationResult:
     return GenerationResult(
-        model="qwen2.5:3b", response=response, logprobs=[],
-        total_duration_ns=1_000_000, load_duration_ns=0,
-        prompt_eval_count=5, eval_count=1, eval_duration_ns=200_000, raw={},
+        model="qwen2.5:3b",
+        response=response,
+        logprobs=[],
+        total_duration_ns=1_000_000,
+        load_duration_ns=0,
+        prompt_eval_count=5,
+        eval_count=1,
+        eval_duration_ns=200_000,
+        raw={},
     )
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestInferenceCache:
     def test_miss_returns_none(self, tmp_path):
         cache = InferenceCache(db_path=tmp_path / "test.db")

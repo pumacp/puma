@@ -72,9 +72,19 @@ def _init_history_file() -> None:
     if not HISTORY_FILE.exists():
         RESULTS_DIR.mkdir(parents=True, exist_ok=True)
         headers = [
-            "timestamp", "task_type", "model_name", "model_size_gb",
-            "os_system", "os_release", "cpu_model", "cpu_cores_physical",
-            "ram_total_gb", "metric_name", "metric_value", "target_value", "status",
+            "timestamp",
+            "task_type",
+            "model_name",
+            "model_size_gb",
+            "os_system",
+            "os_release",
+            "cpu_model",
+            "cpu_cores_physical",
+            "ram_total_gb",
+            "metric_name",
+            "metric_value",
+            "target_value",
+            "status",
         ]
         HISTORY_FILE.write_text(",".join(headers) + "\n")
 

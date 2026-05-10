@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 class TestDataFiles:
     def test_jira_csv_exists(self):
         assert Path("data/jira_balanced_200.csv").exists()

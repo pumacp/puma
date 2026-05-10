@@ -11,7 +11,7 @@ from puma.datasets.tawos import sample as tawos_sample
 from puma.datasets.verify import DatasetReport, print_verify_report
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestJiraNormalise:
     def test_normalises_summary_to_title(self):
         df = pd.DataFrame({"Summary": ["Issue 1"], "Priority": ["major"], "Description": ["d"]})
@@ -20,7 +20,9 @@ class TestJiraNormalise:
         assert out["title"].iloc[0] == "Issue 1"
 
     def test_capitalises_priority(self):
-        df = pd.DataFrame({"issue_key": ["K-1"], "title": ["T"], "description": ["D"], "priority": ["major"]})
+        df = pd.DataFrame(
+            {"issue_key": ["K-1"], "title": ["T"], "description": ["D"], "priority": ["major"]}
+        )
         out = _normalise(df)
         assert out["priority"].iloc[0] == "Major"
 
@@ -30,15 +32,17 @@ class TestJiraNormalise:
         assert "issue_key" in out.columns
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestJiraSample:
     def _make_df(self):
-        return pd.DataFrame({
-            "issue_key": [f"K-{i}" for i in range(20)],
-            "priority": ["Critical"] * 5 + ["Major"] * 5 + ["Minor"] * 5 + ["Trivial"] * 5,
-            "title": ["t"] * 20,
-            "description": ["d"] * 20,
-        })
+        return pd.DataFrame(
+            {
+                "issue_key": [f"K-{i}" for i in range(20)],
+                "priority": ["Critical"] * 5 + ["Major"] * 5 + ["Minor"] * 5 + ["Trivial"] * 5,
+                "title": ["t"] * 20,
+                "description": ["d"] * 20,
+            }
+        )
 
     def test_sample_size(self):
         df = self._make_df()
@@ -57,16 +61,18 @@ class TestJiraSample:
         assert len(s) == len(df)
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestTawosSample:
     def _make_df(self):
-        return pd.DataFrame({
-            "story_id": [str(i) for i in range(30)],
-            "project_key": ["MESOS"] * 30,
-            "title": ["t"] * 30,
-            "description": ["d"] * 30,
-            "story_points": [1, 2, 3, 5, 8, 13] * 5,
-        })
+        return pd.DataFrame(
+            {
+                "story_id": [str(i) for i in range(30)],
+                "project_key": ["MESOS"] * 30,
+                "title": ["t"] * 30,
+                "description": ["d"] * 30,
+                "story_points": [1, 2, 3, 5, 8, 13] * 5,
+            }
+        )
 
     def test_sample_size(self):
         df = self._make_df()
@@ -80,7 +86,7 @@ class TestTawosSample:
         assert list(s1["story_id"]) == list(s2["story_id"])
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestVerifyReport:
     def test_all_ok_returns_true(self, capsys):
         reports = [

@@ -55,15 +55,11 @@ if runs_df.empty:
     model_options: list[str] = []
 else:
     all_run_ids = runs_df["run_id"].tolist()
-    selected_runs = st.sidebar.multiselect(
-        "Runs", all_run_ids, default=all_run_ids[:5]
-    )
+    selected_runs = st.sidebar.multiselect("Runs", all_run_ids, default=all_run_ids[:5])
 
     # Date filter
     if "started_at" in runs_df.columns:
-        runs_df["started_at"] = runs_df["started_at"].apply(
-            lambda x: str(x)[:10] if x else ""
-        )
+        runs_df["started_at"] = runs_df["started_at"].apply(lambda x: str(x)[:10] if x else "")
         dates = sorted(runs_df["started_at"].unique())
         if len(dates) > 1:
             selected_dates = st.sidebar.select_slider(
@@ -86,6 +82,7 @@ else:
 
 # ── View helpers ──────────────────────────────────────────────────────────────
 
+
 def _no_data() -> None:
     st.info("No run data found. Run `puma run <spec.yaml>` first to generate results.")
 
@@ -107,16 +104,25 @@ if view == "Overview":
                     metric_card("Status", s.get("status", "n/a"), fmt="{}")
                 with cols[1]:
                     f1 = s.get("f1_macro")
-                    metric_card("F1 macro", f1 if f1 is not None else "n/a",
-                                fmt="{:.4f}" if isinstance(f1, float) else "{}")
+                    metric_card(
+                        "F1 macro",
+                        f1 if f1 is not None else "n/a",
+                        fmt="{:.4f}" if isinstance(f1, float) else "{}",
+                    )
                 with cols[2]:
                     acc = s.get("accuracy")
-                    metric_card("Accuracy", acc if acc is not None else "n/a",
-                                fmt="{:.4f}" if isinstance(acc, float) else "{}")
+                    metric_card(
+                        "Accuracy",
+                        acc if acc is not None else "n/a",
+                        fmt="{:.4f}" if isinstance(acc, float) else "{}",
+                    )
                 with cols[3]:
                     pfr = s.get("parse_failure_rate")
-                    metric_card("Parse fail", pfr if pfr is not None else "n/a",
-                                fmt="{:.4f}" if isinstance(pfr, float) else "{}")
+                    metric_card(
+                        "Parse fail",
+                        pfr if pfr is not None else "n/a",
+                        fmt="{:.4f}" if isinstance(pfr, float) else "{}",
+                    )
 
 
 # ── View: Model Comparison ────────────────────────────────────────────────────
@@ -135,7 +141,9 @@ elif view == "Model Comparison":
         try:
             import matplotlib.pyplot as plt
 
-            fig, ax = plt.subplots(figsize=(max(8, len(pivot.columns) * 1.2), max(4, len(pivot) * 0.6)))
+            fig, ax = plt.subplots(
+                figsize=(max(8, len(pivot.columns) * 1.2), max(4, len(pivot) * 0.6))
+            )
             data = pivot.values.astype(float)
             im = ax.imshow(data, aspect="auto", cmap="RdYlGn")
             ax.set_xticks(range(len(pivot.columns)))
@@ -143,7 +151,7 @@ elif view == "Model Comparison":
             ax.set_yticks(range(len(pivot.index)))
             ax.set_yticklabels([r[:30] for r in pivot.index], fontsize=7)
             plt.colorbar(im, ax=ax)
-            ax.set_title("Run × Metric Heatmap")
+            ax.set_title("Run × Metric Heatmap")  # noqa: RUF001 -- intentional Unicode multiplication sign for UI typography
             plt.tight_layout()
             st.pyplot(fig)
             st.download_button("Download PNG", fig_to_bytes(fig), "heatmap.png", "image/png")
@@ -153,8 +161,14 @@ elif view == "Model Comparison":
 
         st.subheader("Raw metrics table")
         ct = comparison_table(
-            {rid: {c: pivot.loc[rid, c] for c in pivot.columns if not __import__("math").isnan(pivot.loc[rid, c])}
-             for rid in pivot.index}
+            {
+                rid: {
+                    c: pivot.loc[rid, c]
+                    for c in pivot.columns
+                    if not __import__("math").isnan(pivot.loc[rid, c])
+                }
+                for rid in pivot.index
+            }
         )
         st.dataframe(ct, use_container_width=True)
 
@@ -176,6 +190,7 @@ elif view == "Reliability":
     st.pyplot(fig)
     st.download_button("Download PNG", fig_to_bytes(fig), "reliability.png", "image/png")
     import matplotlib.pyplot as plt
+
     plt.close(fig)
 
 
@@ -209,8 +224,9 @@ elif view == "Robustness":
                             orig_sub = orig[orig["instance_id"].isin(grp["instance_id"])]
                             if not orig_sub.empty:
                                 match = (
-                                    grp.set_index("instance_id")["parsed_label"]
-                                    .reindex(orig_sub["instance_id"].values)
+                                    grp.set_index("instance_id")["parsed_label"].reindex(
+                                        orig_sub["instance_id"].values
+                                    )
                                     == orig_sub.set_index("instance_id")["parsed_label"]
                                 ).mean()
                                 names.append(name)
@@ -248,7 +264,11 @@ elif view == "Fairness":
     else:
         if selected_runs:
             preds = preds[preds["run_id"].isin(selected_runs)]
-        if "model" in preds.columns and "parsed_label" in preds.columns and "gold_label" in preds.columns:
+        if (
+            "model" in preds.columns
+            and "parsed_label" in preds.columns
+            and "gold_label" in preds.columns
+        ):
             preds = preds[preds["parsed_label"].notna()]
             preds["correct"] = preds["parsed_label"] == preds["gold_label"]
             acc_by_model = preds.groupby("model")["correct"].mean().reset_index()
@@ -257,7 +277,7 @@ elif view == "Fairness":
 
             if len(acc_by_model) > 1:
                 gap = acc_by_model["Accuracy"].max() - acc_by_model["Accuracy"].min()
-                st.metric("Fairness gap (max − min accuracy)", f"{gap:.4f}")
+                st.metric("Fairness gap (max − min accuracy)", f"{gap:.4f}")  # noqa: RUF001 -- intentional Unicode minus sign for UI typography
         else:
             st.warning("Predictions missing required columns.")
 
@@ -292,10 +312,9 @@ elif view == "Sustainability Frontier":
                     y_label="F1 macro",
                 )
                 st.pyplot(fig)
-                st.download_button(
-                    "Download PNG", fig_to_bytes(fig), "frontier.png", "image/png"
-                )
+                st.download_button("Download PNG", fig_to_bytes(fig), "frontier.png", "image/png")
                 import matplotlib.pyplot as plt
+
                 plt.close(fig)
         else:
             st.info("Need both `f1_macro` and latency metrics. Run a triage_jira benchmark first.")
@@ -341,9 +360,7 @@ elif view == "Instance Drill-down":
                             st.markdown("**Latency (ms)**")
                             st.code(str(pred.get("latency_ms", "n/a")))
                             st.markdown("**Tokens in / out**")
-                            st.code(
-                                f"{pred.get('tokens_in', '?')} / {pred.get('tokens_out', '?')}"
-                            )
+                            st.code(f"{pred.get('tokens_in', '?')} / {pred.get('tokens_out', '?')}")
 
                         st.markdown("**Raw LLM response**")
                         st.text_area(

@@ -39,8 +39,12 @@ def classification_metrics(
     }
 
     return {
-        "f1_macro": float(f1_score(y_true, y_pred, labels=labels, average="macro", zero_division=0)),
-        "f1_weighted": float(f1_score(y_true, y_pred, labels=labels, average="weighted", zero_division=0)),
+        "f1_macro": float(
+            f1_score(y_true, y_pred, labels=labels, average="macro", zero_division=0)
+        ),
+        "f1_weighted": float(
+            f1_score(y_true, y_pred, labels=labels, average="weighted", zero_division=0)
+        ),
         "accuracy": float(accuracy_score(y_true, y_pred)),
         "confusion_matrix": confusion_matrix(y_true, y_pred, labels=labels).tolist(),
         "labels": labels,
@@ -90,9 +94,7 @@ def ranking_metrics(
     for true_rank, pred_rank in zip(y_true_rankings, y_pred_rankings, strict=True):
         # NDCG@k
         dcg = sum(
-            (1.0 / math.log2(i + 2))
-            for i, item in enumerate(pred_rank[:k])
-            if item in true_rank
+            (1.0 / math.log2(i + 2)) for i, item in enumerate(pred_rank[:k]) if item in true_rank
         )
         idcg = sum(1.0 / math.log2(i + 2) for i in range(min(len(true_rank), k)))
         ndcg_scores.append(dcg / idcg if idcg > 0 else 0.0)

@@ -18,7 +18,9 @@ __all__ = [
 ]
 
 
-def run_preflight(profile_override: str | None = None) -> tuple[SystemCapabilities, Profile, list[ProvisioningIssue]]:
+def run_preflight(
+    profile_override: str | None = None,
+) -> tuple[SystemCapabilities, Profile, list[ProvisioningIssue]]:
     """Run full preflight sequence and return (caps, profile, issues)."""
     caps = detect_capabilities()
     profile = select_profile(caps, override=profile_override)

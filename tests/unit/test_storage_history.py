@@ -5,7 +5,7 @@ import pytest
 from puma.storage.history import get_system_info
 
 
-@pytest.mark.unit
+@pytest.mark.unit()
 class TestGetSystemInfo:
     def test_returns_dict(self):
         info = get_system_info()

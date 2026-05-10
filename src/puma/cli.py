@@ -125,8 +125,10 @@ def cache(
     c = InferenceCache()
     if action == "stats":
         stats = c.stats()
-        typer.echo(f"Inference cache: {stats['total_entries']} entries, "
-                   f"{stats['db_size_bytes'] / 1024:.1f} KB")
+        typer.echo(
+            f"Inference cache: {stats['total_entries']} entries, "
+            f"{stats['db_size_bytes'] / 1024:.1f} KB"
+        )
     elif action == "clear":
         c.clear()
         typer.echo("Inference cache cleared")
@@ -139,7 +141,9 @@ def cache(
 def run(
     spec: str = typer.Argument(..., help="Path to run-spec YAML"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Build prompts without calling Ollama"),
-    ollama_host: str = typer.Option("http://localhost:11434", "--ollama-host", envvar="OLLAMA_HOST"),
+    ollama_host: str = typer.Option(
+        "http://localhost:11434", "--ollama-host", envvar="OLLAMA_HOST"
+    ),
     db_path: str = typer.Option("data/puma.db", "--db"),
 ) -> None:
     """Execute a benchmark run-spec."""
@@ -158,7 +162,7 @@ def run(
         typer.echo(f"\nRun complete: {summary['run_id']}")
         typer.echo(f"Predictions: {summary['n_predictions']}")
         for k, v in summary.get("metrics", {}).items():
-            if isinstance(v, (int, float)):
+            if isinstance(v, int | float):
                 typer.echo(f"  {k}: {v:.4f}")
     except Exception as exc:
         typer.secho(f"[ERROR] Run failed: {exc}", fg=typer.colors.RED, err=True)
@@ -188,6 +192,7 @@ def compare(
     if output:
         import json
         from pathlib import Path
+
         Path(output).write_text(json.dumps(result, indent=2, default=str))
         typer.echo(f"\nSaved to {output}")
 
@@ -267,12 +272,19 @@ def dashboard(
     from pathlib import Path
 
     app_path = Path(__file__).parent / "dashboard" / "app.py"
-    result = subprocess.run([
-        "streamlit", "run", str(app_path),
-        "--server.port", str(port),
-        "--server.address", host,
-        "--server.headless", "true",
-    ])
+    result = subprocess.run(
+        [
+            "streamlit",
+            "run",
+            str(app_path),
+            "--server.port",
+            str(port),
+            "--server.address",
+            host,
+            "--server.headless",
+            "true",
+        ]
+    )
     raise typer.Exit(result.returncode)
 
 

@@ -57,7 +57,7 @@ Saved → results/benchmark_qwen2.5_3b_estimation_tawos.json
 --- Scenario: prioritization_jira ---
  Container puma_ollama  Running
 2026-04-18 20:35:25 [info     ] run.start                      run_id=benchmark_prioritization_jira_qwen2.5_3b__a20844d7913da444__20260418T203524 spec_hash=a20844d7913da444
-benchmark_prioritization_jira_qwen2.5_3b__a20844d7913da444__20260418T2035… 60/… 
+benchmark_prioritization_jira_qwen2.5_3b__a20844d7913da444__20260418T2035… 60/…
 2026-04-18 20:35:38 [info     ] run.end                        duration_s=13.4 n_predictions=60 run_id=benchmark_prioritization_jira_qwen2.5_3b__a20844d7913da444__20260418T203524
 
 Run complete: benchmark_prioritization_jira_qwen2.5_3b__a20844d7913da444__20260418T203524
@@ -117,7 +117,7 @@ Saved → results/benchmark_gemma3_4b_estimation_tawos.json
 --- Scenario: prioritization_jira ---
  Container puma_ollama  Running
 2026-04-18 20:37:21 [info     ] run.start                      run_id=benchmark_prioritization_jira_gemma3_4b__163a96b3e7a97784__20260418T203721 spec_hash=163a96b3e7a97784
-benchmark_prioritization_jira_gemma3_4b__163a96b3e7a97784__20260418T203721 60/… 
+benchmark_prioritization_jira_gemma3_4b__163a96b3e7a97784__20260418T203721 60/…
 2026-04-18 20:37:48 [info     ] run.end                        duration_s=26.7 n_predictions=60 run_id=benchmark_prioritization_jira_gemma3_4b__163a96b3e7a97784__20260418T203721
 
 Run complete: benchmark_prioritization_jira_gemma3_4b__163a96b3e7a97784__20260418T203721

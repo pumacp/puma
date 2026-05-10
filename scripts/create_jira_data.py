@@ -1,7 +1,8 @@
-import pandas as pd
-import numpy as np
-from pathlib import Path
 import logging
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -223,35 +224,35 @@ TRIVIAL_ISSUES = [
 
 def create_jira_sample_data():
     all_issues = []
-    
+
     for issue in CRITICAL_ISSUES[:50]:
         issue['priority'] = 'Critical'
         all_issues.append(issue)
-    
+
     for issue in MAJOR_ISSUES[:50]:
         issue['priority'] = 'Major'
         all_issues.append(issue)
-    
+
     for issue in MINOR_ISSUES[:50]:
         issue['priority'] = 'Minor'
         all_issues.append(issue)
-    
+
     for issue in TRIVIAL_ISSUES[:50]:
         issue['priority'] = 'Trivial'
         all_issues.append(issue)
-    
+
     return pd.DataFrame(all_issues)
 
 if __name__ == "__main__":
     DATA_DIR = Path("data")
     DATA_DIR.mkdir(exist_ok=True)
-    
+
     print("Creating Jira sample dataset...")
     df = create_jira_sample_data()
-    
+
     output_path = DATA_DIR / "jira_balanced_200.csv"
     df.to_csv(output_path, index=False)
-    
+
     print(f"Jira dataset saved to {output_path}")
     print(f"Total issues: {len(df)}")
     print(f"Priority distribution:\n{df['priority'].value_counts()}")

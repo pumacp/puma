@@ -27,9 +27,12 @@ def compare_runs(run_ids: list[str], db_path: Path | str = "data/puma.db") -> di
     table_lines = ["| Metric | " + " | ".join(run_ids) + " |"]
     table_lines.append("|--------|" + "--------|" * len(run_ids))
     for metric in all_metric_names:
-        vals = [f"{run_metrics[r].get(metric, 'n/a'):.4f}"
-                if isinstance(run_metrics[r].get(metric), float) else "n/a"
-                for r in run_ids]
+        vals = [
+            f"{run_metrics[r].get(metric, 'n/a'):.4f}"
+            if isinstance(run_metrics[r].get(metric), float)
+            else "n/a"
+            for r in run_ids
+        ]
         table_lines.append(f"| {metric} | " + " | ".join(vals) + " |")
 
     diffs: dict[str, float] = {}

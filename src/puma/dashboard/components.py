@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+from itertools import pairwise
 from typing import Any
 
 import pandas as pd
@@ -13,7 +14,11 @@ def metric_card(label: str, value: Any, delta: Any = None, fmt: str = "{:.4f}") 
     import streamlit as st
 
     display = fmt.format(value) if isinstance(value, float) else str(value)
-    delta_str = fmt.format(delta) if isinstance(delta, float) else (str(delta) if delta is not None else None)
+    delta_str = (
+        fmt.format(delta)
+        if isinstance(delta, float)
+        else (str(delta) if delta is not None else None)
+    )
     st.metric(label=label, value=display, delta=delta_str)
 
 
@@ -33,7 +38,7 @@ def reliability_plot(confs: list[float], corrects: list[bool], n_bins: int = 10)
 
     bins = np.linspace(0.0, 1.0, n_bins + 1)
     bin_accs, bin_confs, bin_counts = [], [], []
-    for lo, hi in zip(bins[:-1], bins[1:], strict=False):
+    for lo, hi in pairwise(bins):
         mask = [(lo <= c < hi) for c in confs]
         if sum(mask) == 0:
             continue

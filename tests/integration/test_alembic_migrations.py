@@ -32,7 +32,7 @@ def _alembic_cfg(db_path) -> Config:
     return cfg
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 def test_upgrade_from_empty_db(tmp_path):
     """AC-01: ``alembic upgrade head`` on an empty SQLite file populates
     exactly ``Base.metadata.tables.keys() ∪ {"alembic_version"}``."""
@@ -54,7 +54,7 @@ def test_upgrade_from_empty_db(tmp_path):
     )
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 def test_downgrade_base(tmp_path):
     """AC-02: ``alembic downgrade base`` removes all ORM tables.
 
@@ -75,20 +75,18 @@ def test_downgrade_base(tmp_path):
     tables = set(inspect(engine).get_table_names())
 
     for orm_table in Base.metadata.tables.keys():
-        assert orm_table not in tables, (
-            f"ORM table {orm_table!r} should be dropped after downgrade base"
-        )
+        assert (
+            orm_table not in tables
+        ), f"ORM table {orm_table!r} should be dropped after downgrade base"
 
     # Documented behavior: alembic_version persists with zero rows.
     if "alembic_version" in tables:
         with engine.connect() as conn:
             count = conn.execute(text("SELECT COUNT(*) FROM alembic_version")).scalar()
-        assert count == 0, (
-            f"alembic_version expected empty after downgrade base; got {count} rows"
-        )
+        assert count == 0, f"alembic_version expected empty after downgrade base; got {count} rows"
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 def test_downgrade_then_upgrade_idempotent(tmp_path):
     """AC-03: ``downgrade base`` + ``upgrade head`` leaves the schema
     bit-equivalent to the post-initial-upgrade state."""
@@ -112,7 +110,7 @@ def test_downgrade_then_upgrade_idempotent(tmp_path):
     assert before == after, "Schema after downgrade+upgrade cycle differs from initial"
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 def test_double_upgrade_head_is_noop(tmp_path):
     """AC-04: ``alembic upgrade head`` invoked twice is idempotent and
     non-destructive. Tables and ``alembic_version`` row identical."""
@@ -135,7 +133,7 @@ def test_double_upgrade_head_is_noop(tmp_path):
     assert before == after
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 def test_cli_db_migrate_delegates_to_alembic(tmp_path):
     """AC-05: ``puma db migrate`` delegates to Alembic. ``Base.metadata.create_all``
     must NOT be called (decision I3, no fallback)."""
@@ -150,9 +148,9 @@ def test_cli_db_migrate_delegates_to_alembic(tmp_path):
     with patch.object(Base.metadata, "create_all") as mock_create_all:
         result = runner.invoke(app, ["db", "migrate", "--db", str(db_path)])
 
-    assert result.exit_code == 0, (
-        f"`puma db migrate` failed: exit={result.exit_code} stdout={result.stdout!r}"
-    )
+    assert (
+        result.exit_code == 0
+    ), f"`puma db migrate` failed: exit={result.exit_code} stdout={result.stdout!r}"
     assert mock_create_all.call_count == 0, (
         f"Base.metadata.create_all called {mock_create_all.call_count} times during "
         "`puma db migrate`; decision I3 forbids fallback to create_all."
@@ -165,7 +163,7 @@ def test_cli_db_migrate_delegates_to_alembic(tmp_path):
     assert expected.issubset(actual), f"Missing tables after migrate: {expected - actual}"
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 def test_cli_db_status_preserved(tmp_path):
     """AC-06: ``puma db status`` preserved as a sub-Typer subcommand of
     ``db_app`` (decision S1).
@@ -185,9 +183,9 @@ def test_cli_db_status_preserved(tmp_path):
     assert isinstance(db_app, typer.Typer), "`db` must be a sub-Typer per decision S1"
     cmd_names = {ci.name for ci in db_app.registered_commands}
     for required in ("migrate", "downgrade", "history", "status"):
-        assert required in cmd_names, (
-            f"`{required}` missing from db_app.registered_commands: {cmd_names}"
-        )
+        assert (
+            required in cmd_names
+        ), f"`{required}` missing from db_app.registered_commands: {cmd_names}"
 
     # Behaviour: status against a non-existent DB shows guidance
     from typer.testing import CliRunner
@@ -197,12 +195,12 @@ def test_cli_db_status_preserved(tmp_path):
     result = runner.invoke(app, ["db", "status", "--db", str(db_path)])
     assert result.exit_code == 0, f"`puma db status` failed: {result.stdout!r}"
     assert "missing.db" in result.stdout
-    assert "not found" in result.stdout.lower(), (
-        f"`status` output should contain 'not found' guidance: {result.stdout!r}"
-    )
+    assert (
+        "not found" in result.stdout.lower()
+    ), f"`status` output should contain 'not found' guidance: {result.stdout!r}"
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 def test_init_db_invokes_alembic_and_callers_unaffected(tmp_path):
     """AC-07: ``init_db()`` runs ``alembic upgrade head`` and the schema is
     immediately usable from existing call sites (decision I3).
@@ -225,9 +223,9 @@ def test_init_db_invokes_alembic_and_callers_unaffected(tmp_path):
 
     cfg = _alembic_cfg(db_path)
     expected_head = ScriptDirectory.from_config(cfg).get_current_head()
-    assert row[0] == expected_head, (
-        f"alembic_version stores {row[0]!r} but ScriptDirectory head is {expected_head!r}"
-    )
+    assert (
+        row[0] == expected_head
+    ), f"alembic_version stores {row[0]!r} but ScriptDirectory head is {expected_head!r}"
 
     # Caller a (runner.py:48 mirror) — must not raise
     with engine.connect() as conn:
@@ -237,7 +235,7 @@ def test_init_db_invokes_alembic_and_callers_unaffected(tmp_path):
         conn.execute(text("SELECT COUNT(*) FROM metrics"))
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 def test_init_db_raises_on_missing_alembic_ini(tmp_path, monkeypatch):
     """AC-08: ``init_db()`` raises a clear error when ``alembic.ini`` is not
     reachable from the CWD; no silent fallback to ``Base.metadata.create_all``."""
@@ -254,19 +252,17 @@ def test_init_db_raises_on_missing_alembic_ini(tmp_path, monkeypatch):
             init_db(db_path)
 
     msg = str(exc_info.value).lower()
-    assert "alembic" in msg, (
-        f"Error message must mention alembic config: got {exc_info.value!r}"
-    )
-    assert any(token in msg for token in ("not found", "missing", "no such file")), (
-        f"Error message must indicate the file is missing: got {exc_info.value!r}"
-    )
+    assert "alembic" in msg, f"Error message must mention alembic config: got {exc_info.value!r}"
+    assert any(
+        token in msg for token in ("not found", "missing", "no such file")
+    ), f"Error message must indicate the file is missing: got {exc_info.value!r}"
     assert mock_create_all.call_count == 0, (
         "init_db() must NOT fall back to Base.metadata.create_all when "
         "alembic.ini is missing (decision I3)."
     )
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 def test_initial_migration_matches_orm_schema(tmp_path):
     """AC-09: per-column schema parity between migration result and ORM.
 
@@ -294,14 +290,12 @@ def test_initial_migration_matches_orm_schema(tmp_path):
             for local_col, ref_col in zip(
                 fk["constrained_columns"], fk["referred_columns"], strict=True
             ):
-                fk_map.setdefault(local_col, set()).add(
-                    (fk["referred_table"], ref_col)
-                )
+                fk_map.setdefault(local_col, set()).add((fk["referred_table"], ref_col))
 
         for orm_col in orm_table.columns:
-            assert orm_col.name in actual_cols, (
-                f"Column {table_name}.{orm_col.name} missing from migration"
-            )
+            assert (
+                orm_col.name in actual_cols
+            ), f"Column {table_name}.{orm_col.name} missing from migration"
             actual = actual_cols[orm_col.name]
 
             # (a) type family — accept dialectal concretions (e.g., SQLite
@@ -328,13 +322,10 @@ def test_initial_migration_matches_orm_schema(tmp_path):
             )
 
             # (d) foreign keys
-            orm_fks = {
-                (fk.column.table.name, fk.column.name) for fk in orm_col.foreign_keys
-            }
+            orm_fks = {(fk.column.table.name, fk.column.name) for fk in orm_col.foreign_keys}
             actual_fks = fk_map.get(orm_col.name, set())
             assert orm_fks == actual_fks, (
-                f"{table_name}.{orm_col.name} FK mismatch: "
-                f"actual={actual_fks}, orm={orm_fks}"
+                f"{table_name}.{orm_col.name} FK mismatch: " f"actual={actual_fks}, orm={orm_fks}"
             )
 
             # (e) parameterized type attrs — only when ORM declared them explicitly
@@ -360,7 +351,7 @@ def test_initial_migration_matches_orm_schema(tmp_path):
                     )
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 def test_initial_migration_has_no_pending_changes(tmp_path):
     """AC-10: ``0001_initial_schema`` is a complete capture of the ORM —
     autogenerate against the post-upgrade DB produces no diff."""
@@ -382,6 +373,6 @@ def test_initial_migration_has_no_pending_changes(tmp_path):
         )
         diff = produce_migrations(ctx, Base.metadata)
 
-    assert diff.upgrade_ops.is_empty(), (
-        f"0001_initial_schema has pending diffs: {diff.upgrade_ops.as_diffs()}"
-    )
+    assert (
+        diff.upgrade_ops.is_empty()
+    ), f"0001_initial_schema has pending diffs: {diff.upgrade_ops.as_diffs()}"

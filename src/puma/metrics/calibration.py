@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from itertools import pairwise
 from pathlib import Path
 
 import numpy as np
@@ -25,7 +26,7 @@ def expected_calibration_error(
 
     bins = np.linspace(0.0, 1.0, n_bins + 1)
     ece = 0.0
-    for lo, hi in zip(bins[:-1], bins[1:], strict=True):
+    for lo, hi in pairwise(bins):
         mask = (confs >= lo) & (confs < hi) if hi < 1.0 else (confs >= lo) & (confs <= hi)
         if mask.sum() == 0:
             continue
@@ -52,7 +53,7 @@ def maximum_calibration_error(
 
     bins = np.linspace(0.0, 1.0, n_bins + 1)
     mce = 0.0
-    for lo, hi in zip(bins[:-1], bins[1:], strict=True):
+    for lo, hi in pairwise(bins):
         mask = (confs >= lo) & (confs < hi) if hi < 1.0 else (confs >= lo) & (confs <= hi)
         if mask.sum() == 0:
             continue
@@ -114,7 +115,7 @@ def reliability_diagram(
     bins = np.linspace(0.0, 1.0, n_bins + 1)
 
     bin_confs, bin_accs, bin_counts = [], [], []
-    for lo, hi in zip(bins[:-1], bins[1:], strict=True):
+    for lo, hi in pairwise(bins):
         mask = (confs >= lo) & (confs <= hi)
         if mask.sum() > 0:
             bin_confs.append(float(confs[mask].mean()))

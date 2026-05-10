@@ -103,9 +103,7 @@ def _query_ollama_reachable() -> bool:
     try:
         import urllib.request
 
-        with urllib.request.urlopen(  # noqa: S310
-            "http://localhost:11434/api/version", timeout=3
-        ):
+        with urllib.request.urlopen("http://localhost:11434/api/version", timeout=3):
             return True
     except Exception:
         return False

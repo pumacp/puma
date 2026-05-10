@@ -5,9 +5,24 @@ from __future__ import annotations
 import random
 
 HOMOGLYPHS: dict[str, str] = {
-    "a": "4", "e": "3", "i": "1", "o": "0", "s": "5", "t": "7",
-    "b": "6", "g": "9", "l": "1", "z": "2", "A": "4", "E": "3",
-    "I": "1", "O": "0", "S": "5", "T": "7", "B": "8", "G": "6",
+    "a": "4",
+    "e": "3",
+    "i": "1",
+    "o": "0",
+    "s": "5",
+    "t": "7",
+    "b": "6",
+    "g": "9",
+    "l": "1",
+    "z": "2",
+    "A": "4",
+    "E": "3",
+    "I": "1",
+    "O": "0",
+    "S": "5",
+    "T": "7",
+    "B": "8",
+    "G": "6",
 }
 
 
@@ -52,7 +67,7 @@ def truncate(text: str, keep: float = 0.5, from_: str = "end") -> str:
         return text[:n]
     if from_ == "middle":
         half = n // 2
-        return text[:half] + text[len(text) - (n - half):]
+        return text[:half] + text[len(text) - (n - half) :]
     raise ValueError(f"Unknown from_ '{from_}'. Use 'end' or 'middle'.")
 
 
