@@ -1,0 +1,47 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: debug-statements
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.4
+    hooks:
+      - id: ruff
+        args: ["--fix", "--exit-non-zero-on-fix"]
+        exclude: |
+          (?x)^(
+              src/cleanup\.py|
+              src/data_prep\.py|
+              src/evaluate_estimation\.py|
+              src/evaluate_triage\.py|
+              src/history\.py|
+              src/rag_index\.py|
+              src/statistical_analysis\.py|
+              agents/.*
+          )$
+      - id: ruff-format
+        exclude: |
+          (?x)^(
+              src/cleanup\.py|
+              src/data_prep\.py|
+              src/evaluate_estimation\.py|
+              src/evaluate_triage\.py|
+              src/history\.py|
+              src/rag_index\.py|
+              src/statistical_analysis\.py|
+              agents/.*
+          )$
+
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile=black", "--line-length=100"]
