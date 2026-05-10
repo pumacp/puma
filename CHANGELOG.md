@@ -59,6 +59,19 @@ Versions follow [Semantic Versioning](https://semver.org/).
   B.3 sweep. Existing debt #D15 (CodeCarbon GPU detection), #D16
   (gemma4 sizes), and #D20 (laptop thermal) reinforced with empirical
   evidence from the sweep.
+- `docs/results/phase_b_analysis.md`: comparative analysis of the
+  Phase B sweep (9 models × 3 scenarios × 100 instances on `gpu-entry`
+  profile, 27 runs, 6 h 41 m wall clock, 11.75 g CO₂). Reports
+  per-scenario performance tables, cost-effectiveness ranking
+  (quality per g CO₂), sustainability efficiency aggregate, the
+  "60.5 % wasted compute" finding for `gemma4:e2b`, intra-family
+  non-monotonicity evidence, and per-task practical recommendations.
+- `scripts/generate_phase_b_plots.py`: reproducible figure generation
+  from `data/puma.db`; produces three PNGs in `docs/results/figures/`
+  embedded in the analysis document (performance bar chart per
+  scenario, quality-vs-CO₂ Pareto scatter, duration variability
+  boxplot).
+- `docs/results/figures/`: three PNGs supporting the Phase B analysis.
 
 ## [2.0.0] — 2026-05-10
 
