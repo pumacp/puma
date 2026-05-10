@@ -8,11 +8,11 @@ repos:
       - id: check-toml
       - id: check-merge-conflict
       - id: check-added-large-files
-        args: ["--maxkb=500"]
+        args: ["--maxkb=10000"]  # 10 MB; accommodates tracked dataset CSVs (max ~5.8 MB) while still catching SQL dumps and similar accidents
       - id: debug-statements
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.4
+    rev: v0.15.12
     hooks:
       - id: ruff
         args: ["--fix", "--exit-non-zero-on-fix"]

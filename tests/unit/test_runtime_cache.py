@@ -24,7 +24,7 @@ def _make_result(response="Critical") -> GenerationResult:
     )
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestInferenceCache:
     def test_miss_returns_none(self, tmp_path):
         cache = InferenceCache(db_path=tmp_path / "test.db")

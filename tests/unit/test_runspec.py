@@ -23,7 +23,7 @@ def _valid_spec(**overrides) -> dict:
     return base
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestRunSpecValidation:
     def test_valid_spec_parses(self):
         spec = RunSpec(**_valid_spec())
@@ -80,7 +80,7 @@ class TestRunSpecValidation:
         assert spec.inference.logprobs is False
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestAdaptationConfig:
     def test_strategy_list_accepted(self):
         cfg = AdaptationConfig(strategy=["zero-shot", "few-shot-3"])
@@ -91,7 +91,7 @@ class TestAdaptationConfig:
         assert cfg.cot == [False]
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestInferenceConfig:
     def test_temperature_range(self):
         with pytest.raises(ValidationError):

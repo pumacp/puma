@@ -10,7 +10,7 @@ from puma.scenarios.prioritization_jira import PrioritizationJiraScenario
 from puma.scenarios.triage_jira import TriageJiraScenario, parse_prediction
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestTriageJiraScenario:
     def test_is_scenario_subclass(self):
         assert issubclass(TriageJiraScenario, Scenario)
@@ -41,7 +41,7 @@ class TestTriageJiraScenario:
         assert s.gold_label({"priority": "Minor"}) == "Minor"
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestParsePrediction:
     def test_exact_match(self):
         assert parse_prediction("Critical") == "Critical"
@@ -53,7 +53,7 @@ class TestParsePrediction:
         assert parse_prediction("unknown label") is None
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestParseStoryPoints:
     def test_exact_fibonacci(self):
         assert parse_story_points("5") == 5.0
@@ -69,7 +69,7 @@ class TestParseStoryPoints:
         assert result == 8.0
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestPrioritizationJiraScenario:
     def test_task_type(self):
         s = PrioritizationJiraScenario()

@@ -15,7 +15,7 @@ from puma.metrics.calibration import (
 from puma.runtime.client import TokenLogprob
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestECE:
     def test_perfect_calibration(self):
         # 80 items at 0.8 confidence, exactly 80% correct → bin gap = 0
@@ -49,7 +49,7 @@ class TestECE:
             expected_calibration_error([0.5, 0.6], [True])
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestMCE:
     def test_output_ge_ece(self):
         confs = [0.9] * 50 + [0.1] * 50
@@ -65,7 +65,7 @@ class TestMCE:
         assert 0.0 <= mce <= 1.0
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestBrierScore:
     def test_perfect_score_is_zero(self):
         confs = [1.0, 1.0, 0.0, 0.0]
@@ -84,7 +84,7 @@ class TestBrierScore:
         assert 0.0 <= bs <= 1.0
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestClassConfidenceFromLogprobs:
     def _make_token_logprob(
         self, token: str, logprob: float, top: list[tuple[str, float]]

@@ -28,7 +28,7 @@ def _make_instance() -> dict:
     return {"title": "Login fails", "description": "Users cannot log in after update."}
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestStrategyRegistry:
     def test_all_strategies_registered(self):
         expected = {
@@ -60,7 +60,7 @@ class TestStrategyRegistry:
             get_strategy("does-not-exist")
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestZeroShotPrompt:
     def test_renders_instance_fields(self):
         strategy = ZeroShot()
@@ -86,7 +86,7 @@ class TestZeroShotPrompt:
         )
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestFewShotKPrompt:
     def test_limits_examples_to_k(self):
         strategy = get_strategy("few-shot-3")
@@ -108,7 +108,7 @@ class TestFewShotKPrompt:
         assert len(prompt) > 10
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestSelfConsistencyAggregate:
     def test_majority_vote(self):
         strategy = SelfConsistency()
@@ -126,7 +126,7 @@ class TestSelfConsistencyAggregate:
         assert result is None
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestSelectExamples:
     def test_returns_k_examples(self):
         import pandas as pd

@@ -9,7 +9,7 @@ import pytest
 from puma.runtime.client import GenerationResult, OllamaClient, TokenLogprob
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestTokenLogprob:
     def test_basic_fields(self):
         tl = TokenLogprob(token="Critical", logprob=-0.1, top_logprobs=[])
@@ -22,7 +22,7 @@ class TestTokenLogprob:
             tl.token = "B"  # type: ignore[misc]
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestGenerationResult:
     def test_fields_accessible(self):
         gr = GenerationResult(
@@ -55,7 +55,7 @@ class TestGenerationResult:
             gr.response = "hacked"  # type: ignore[misc]
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestOllamaClientSync:
     def _make_response_json(self, text="Critical"):
         return {

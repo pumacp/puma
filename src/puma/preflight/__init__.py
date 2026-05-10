@@ -6,14 +6,14 @@ from puma.preflight.provisioning import ProvisioningIssue, check_provisioning
 from puma.preflight.report import print_report, write_runtime_profile
 
 __all__ = [
-    "SystemCapabilities",
-    "detect_capabilities",
     "InsufficientHardwareError",
     "Profile",
-    "select_profile",
     "ProvisioningIssue",
+    "SystemCapabilities",
     "check_provisioning",
+    "detect_capabilities",
     "print_report",
+    "select_profile",
     "write_runtime_profile",
 ]
 

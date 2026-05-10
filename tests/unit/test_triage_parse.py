@@ -10,7 +10,7 @@ from puma.scenarios.triage_jira import (
 )
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestParsePredict:
     def test_exact_match(self):
         assert parse_prediction("Critical") == "Critical"
@@ -38,7 +38,7 @@ class TestParsePredict:
         assert parse_prediction("BLOCKER") is None
 
     def test_valid_priorities_constant(self):
-        assert ["Critical", "Major", "Minor", "Trivial"] == VALID_PRIORITIES
+        assert VALID_PRIORITIES == ["Critical", "Major", "Minor", "Trivial"]
 
     def test_deterministic_options(self):
         assert DETERMINISTIC_OPTIONS["temperature"] == 0.0
