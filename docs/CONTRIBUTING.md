@@ -55,3 +55,19 @@ TDD is encouraged for changes to the modules listed under
 puma.preflight). See `tests/integration/test_alembic_migrations.py`
 for an example of TDD-first integration tests with explicit
 acceptance criteria.
+
+## Commit message hygiene
+
+The repository's `core.hooksPath` is set to `.githooks/`. The
+`commit-msg` hook automatically strips `Co-authored-by:`,
+`Signed-off-by: Claude`, and `Generated-by:` trailers from commit
+messages. Commits are attributed exclusively to the git identity
+configured in `~/.gitconfig` (or the per-repository config).
+
+New contributors who clone the repository should ensure
+`core.hooksPath` is set:
+
+    git config core.hooksPath .githooks
+
+Without this, the hook does not run and commit messages may
+accumulate unwanted trailers.
