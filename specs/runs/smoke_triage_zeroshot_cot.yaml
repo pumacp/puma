@@ -1,0 +1,21 @@
+id: smoke_triage_zeroshot_cot_v1
+description: "Diagnostic: triage_jira × qwen2.5:3b × zero-shot-cot × no perturbations × 200 instances"
+scenario: triage_jira
+sample_size: 200
+models:
+  - qwen2.5:3b
+adaptation:
+  strategy: [zero-shot-cot]
+  cot: [false]
+inference:
+  temperature: 0.0
+  seed: 42
+  max_tokens: 256
+  logprobs: false
+perturbations: []
+metrics:
+  - f1_macro
+  - latency_p95
+sustainability:
+  codecarbon: false
+repeat: 1
