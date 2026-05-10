@@ -71,9 +71,11 @@ class TestSelectProfile:
         assert profile.name == "gpu-high"
 
     def test_profile_has_models(self):
+        from puma.preflight.catalog import models_for_profile
+
         caps = _make_caps(ram_gb=16.0)
         profile = select_profile(caps)
-        assert len(profile.models) > 0
+        assert len(models_for_profile(profile.name)) > 0
 
     def test_profile_has_scenarios(self):
         caps = _make_caps(ram_gb=16.0)

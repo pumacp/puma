@@ -43,7 +43,7 @@ class Runner:
     def run(self) -> dict[str, Any]:
         """Execute the full run. Returns a summary dict."""
         from puma.storage.db import init_db, session_scope
-        from puma.storage.models import Metric, Run
+        from puma.storage.models import Emission, Metric, Run
 
         init_db(self.db_path)
         results_dir = RESULTS_ROOT / self.run_id
@@ -64,6 +64,23 @@ class Runner:
             )
             db.add(run_record)
 
+        # Start CodeCarbon tracker if requested. Lazy import keeps the
+        # codecarbon dependency out of the hot path when sustainability
+        # tracking is disabled. tracking_mode='process' avoids cloud uploads;
+        # save_to_file=False because we persist directly to the DB below.
+        tracker = None
+        if self.spec.sustainability.codecarbon:
+            from codecarbon import EmissionsTracker
+
+            tracker = EmissionsTracker(
+                project_name=self.run_id,
+                tracking_mode="process",
+                save_to_file=False,
+                log_level="error",
+                allow_multiple_runs=True,
+            )
+            tracker.start()
+
         predictions: list[dict] = []
         start_wall = time.time()
 
@@ -76,7 +93,24 @@ class Runner:
                 if r:
                     r.status = "error"
                     r.finished_at = datetime.now(UTC)
+            if tracker is not None:
+                try:
+                    tracker.stop()
+                except Exception as stop_exc:
+                    logger.warning(
+                        "codecarbon.stop_failed", run_id=self.run_id, error=str(stop_exc)
+                    )
             raise
+
+        # Stop tracker on the happy path and capture emissions data for
+        # persistence in the same atomic session_scope as the metrics below.
+        emissions_data = None
+        if tracker is not None:
+            try:
+                tracker.stop()
+                emissions_data = tracker.final_emissions_data
+            except Exception as exc:
+                logger.warning("codecarbon.stop_failed", run_id=self.run_id, error=str(exc))
 
         duration_s = time.time() - start_wall
         metrics = self._compute_metrics(predictions)
@@ -95,6 +129,19 @@ class Runner:
                         scope="global",
                         metric_name=metric_name,
                         value=float(value),
+                    )
+                )
+            if emissions_data is not None:
+                db.add(
+                    Emission(
+                        run_id=self.run_id,
+                        kwh=float(emissions_data.energy_consumed),
+                        co2_kg=float(emissions_data.emissions),
+                        duration_s=float(emissions_data.duration),
+                        cpu_energy=float(emissions_data.cpu_energy),
+                        gpu_energy=float(emissions_data.gpu_energy),
+                        ram_energy=float(emissions_data.ram_energy),
+                        recorded_at=datetime.now(UTC),
                     )
                 )
             _add_profile_snapshot(db, self.run_id)

@@ -18,9 +18,15 @@ class InsufficientHardwareError(RuntimeError):
 
 @dataclass(frozen=True)
 class Profile:
+    """Hardware-resource thresholds and enabled scenarios for a profile.
+
+    The list of compatible models is derived dynamically from the catalog
+    via ``puma.preflight.catalog.models_for_profile(profile.name)`` since
+    B.1.3, replacing the previous ``models: list[str]`` field.
+    """
+
     name: str
     description: str
-    models: list[str]
     scenarios: list[str]
     min_ram_gb: float
     gpu_required: bool
@@ -37,7 +43,6 @@ def _load_profiles(path: Path = _PROFILES_PATH) -> dict[str, Profile]:
         profiles[name] = Profile(
             name=name,
             description=data.get("description", ""),
-            models=data.get("models", []),
             scenarios=data.get("scenarios", []),
             min_ram_gb=float(req.get("min_ram_gb", 0)),
             gpu_required=bool(req.get("gpu_required", False)),
