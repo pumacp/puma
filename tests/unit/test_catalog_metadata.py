@@ -77,3 +77,23 @@ def test_profile_has_at_least_one_compatible_model(profiles: dict) -> None:
         if not compatible:
             empty.append(profile_name)
     assert not empty, f"Profiles with zero catalog-compatible models: {empty}"
+
+
+@pytest.mark.unit
+def test_gemma4_family_excluded_from_gpu_entry() -> None:
+    """D18 resolution: gemma4 family is empirically incompatible with the
+    gpu-entry profile (6 GB VRAM forces CPU offload, which breaks Ollama's
+    detokenizer for MoE outputs on structured prompts; B.3 sweep recorded
+    parse_failure_rate 0.98-1.00 and S2.2 inspection confirmed
+    raw_response='' despite non-zero eval_count). The catalog must therefore
+    not advertise gpu-entry compatibility for any gemma4 tag."""
+    catalog = {entry.ollama_tag: entry for entry in load_catalog()}
+    for tag in ("gemma4:e2b", "gemma4:e4b", "gemma4:26b-a4b"):
+        entry = catalog.get(tag)
+        if entry is None:
+            # Catalog may evolve; skip if tag has been removed entirely.
+            continue
+        assert "gpu-entry" not in entry.profiles_compatible, (
+            f"{tag} must not advertise gpu-entry compatibility (D18): "
+            f"got {entry.profiles_compatible}"
+        )

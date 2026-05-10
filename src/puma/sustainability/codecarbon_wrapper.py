@@ -31,7 +31,9 @@ def track_emissions(
 ) -> Callable:
     """Decorator: wraps a function with CodeCarbon EmissionsTracker.
 
-    Uses tracking_mode='process' (offline, no cloud reporting).
+    Uses tracking_mode='machine' so GPU work performed by other processes
+    on the same host (notably the puma_ollama container under PUMA's
+    split-container architecture) is captured. Offline, no cloud reporting.
     Guarantees tracker.stop() even if the wrapped function raises.
     Injects an `emissions_data` attribute onto the returned result if possible.
     """
@@ -47,7 +49,7 @@ def track_emissions(
                     output_dir=str(output_dir),
                     log_level="error",
                     save_to_file=True,
-                    tracking_mode="process",
+                    tracking_mode="machine",
                 )
                 tracker.start()
             except Exception as exc:
