@@ -5,6 +5,9 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write   # required for softprops/action-gh-release@v2 to create releases
+
 jobs:
   release:
     runs-on: ubuntu-latest
