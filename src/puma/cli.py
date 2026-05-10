@@ -192,31 +192,69 @@ def compare(
         typer.echo(f"\nSaved to {output}")
 
 
-@app.command()
-def db(
-    action: str = typer.Argument("migrate", help="Action: migrate | status"),
+db_app = typer.Typer(
+    name="db",
+    help="Manage the PUMA database schema (Alembic-driven).",
+    no_args_is_help=True,
+)
+app.add_typer(db_app, name="db")
+
+
+@db_app.command("migrate")
+def db_migrate(
+    revision: str = typer.Argument("head", help="Target revision (default: head)"),
     db_path: str = typer.Option("data/puma.db", "--db"),
 ) -> None:
-    """Manage the PUMA database schema."""
-    from puma.storage.db import init_db
-    from puma.storage.models import Base
+    """Apply Alembic migrations up to the target revision."""
+    from alembic import command
 
-    if action == "migrate":
-        init_db(db_path)
-        typer.echo(f"Schema applied to {db_path}")
-        tables = Base.metadata.tables.keys()
-        for t in sorted(tables):
-            typer.echo(f"  table: {t}")
-    elif action == "status":
-        from pathlib import Path
-        p = Path(db_path)
-        if p.exists():
-            typer.echo(f"{db_path}: {p.stat().st_size / 1024:.1f} KB")
-        else:
-            typer.echo(f"{db_path}: not found (run 'puma db migrate' to create)")
+    from puma.storage.db import _alembic_config_for
+
+    cfg = _alembic_config_for(f"sqlite:///{db_path}")
+    command.upgrade(cfg, revision)
+    typer.echo(f"Database migrated to revision: {revision}")
+
+
+@db_app.command("downgrade")
+def db_downgrade(
+    revision: str = typer.Argument("-1", help="Target revision (default: -1)"),
+    db_path: str = typer.Option("data/puma.db", "--db"),
+) -> None:
+    """Reverse Alembic migrations down to the target revision."""
+    from alembic import command
+
+    from puma.storage.db import _alembic_config_for
+
+    cfg = _alembic_config_for(f"sqlite:///{db_path}")
+    command.downgrade(cfg, revision)
+    typer.echo(f"Database downgraded to revision: {revision}")
+
+
+@db_app.command("history")
+def db_history(
+    db_path: str = typer.Option("data/puma.db", "--db"),
+) -> None:
+    """Show the Alembic revision chain for the database."""
+    from alembic import command
+
+    from puma.storage.db import _alembic_config_for
+
+    cfg = _alembic_config_for(f"sqlite:///{db_path}")
+    command.history(cfg)
+
+
+@db_app.command("status")
+def db_status(
+    db_path: str = typer.Option("data/puma.db", "--db"),
+) -> None:
+    """Show the database file status: path and size, or not-found guidance."""
+    from pathlib import Path
+
+    p = Path(db_path)
+    if p.exists():
+        typer.echo(f"{db_path}: {p.stat().st_size / 1024:.1f} KB")
     else:
-        typer.echo(f"Unknown action: {action!r}")
-        raise typer.Exit(1)
+        typer.echo(f"{db_path}: not found (run 'puma db migrate' to create)")
 
 
 @app.command()

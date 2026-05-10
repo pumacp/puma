@@ -1,4 +1,13 @@
-"""Database session management and schema initialisation."""
+"""Database session management.
+
+Schema lifecycle is driven by Alembic migrations (see
+``specs/storage-migrations.spec.md``). ``init_db`` invokes
+``alembic upgrade head`` programmatically; there is no fallback to
+``Base.metadata.create_all`` (decision I3). If ``alembic.ini`` is not
+reachable from the working directory, ``init_db`` raises a clear
+``RuntimeError`` rather than silently bootstrapping the schema by other
+means.
+"""
 
 from __future__ import annotations
 
@@ -9,22 +18,51 @@ from pathlib import Path
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
 
-from puma.storage.models import Base
-
 _DEFAULT_DB = Path("data/puma.db")
+_ALEMBIC_INI = Path("alembic.ini")
 _engine = None
 _SessionLocal = None
 
 
+def _alembic_config_for(url: str):
+    """Build an Alembic ``Config`` bound to ``url``.
+
+    Loads ``alembic.ini`` from the current working directory and overrides
+    its ``sqlalchemy.url`` with the caller-provided one. Raises
+    ``RuntimeError`` if the config file is not found, so the failure mode
+    is explicit (decision I3 — no silent fallback).
+    """
+    from alembic.config import Config
+
+    if not _ALEMBIC_INI.exists():
+        raise RuntimeError(
+            f"Alembic configuration not found at {_ALEMBIC_INI.resolve()}. "
+            "init_db() requires alembic.ini reachable from the working "
+            "directory. Run from the project root or set CWD accordingly."
+        )
+    cfg = Config(str(_ALEMBIC_INI))
+    cfg.set_main_option("sqlalchemy.url", url)
+    return cfg
+
+
 def init_db(db_path: Path | str = _DEFAULT_DB) -> None:
-    """Create tables if they don't exist and initialise the session factory."""
+    """Apply Alembic migrations to ``db_path`` and bind the session factory.
+
+    Replaces the legacy ``Base.metadata.create_all`` bootstrap with a
+    programmatic ``alembic upgrade head``. Idempotent on warm databases.
+    """
+    from alembic import command
+
     global _engine, _SessionLocal
     path = Path(db_path)
     path.parent.mkdir(parents=True, exist_ok=True)
     url = f"sqlite:///{path}"
+
+    cfg = _alembic_config_for(url)
+    command.upgrade(cfg, "head")
+
     _engine = create_engine(url, connect_args={"check_same_thread": False})
     _engine.execute = lambda sql: _engine.connect().execute(text(sql))
-    Base.metadata.create_all(_engine)
     _SessionLocal = sessionmaker(bind=_engine, autoflush=False, autocommit=False)
 
 
