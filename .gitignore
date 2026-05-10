@@ -12,6 +12,7 @@
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.pyo
 *.pyd
 *.egg-info/
@@ -26,6 +27,7 @@ env/
 # pytest / coverage
 .pytest_cache/
 .coverage
+.coverage.*
 coverage.xml
 htmlcov/
 
@@ -33,17 +35,33 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 
-# Runtime data (gitignored — populated by Docker volumes / runs)
-data/
-logs/
-results/*.parquet
-results/*.db
+# Datasets (regenerable via scripts/download_datasets.py — do NOT commit)
+data/*.csv
+data/*.json
+data/*.parquet
+!data/.gitkeep
+!data/README.md
+
+# Run outputs
+results/*
+!results/.gitkeep
+
+# Legacy reports/ (superseded by src/puma/reporting/)
+reports/
+
+# Logs
+logs/*
+!logs/.gitkeep
+*.log
 
 # db/ folder is tracked (placeholder only) — large dumps must NOT be committed
 # (GitHub blocks files >100 MB). Use scripts/download_datasets.py to populate.
 db/*
 !db/.gitkeep
 !db/README.md
+
+# Streamlit cache
+.streamlit/cache/
 
 # Carbon tracking
 emissions.csv
