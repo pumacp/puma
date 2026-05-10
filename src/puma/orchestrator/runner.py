@@ -66,15 +66,16 @@ class Runner:
 
         # Start CodeCarbon tracker if requested. Lazy import keeps the
         # codecarbon dependency out of the hot path when sustainability
-        # tracking is disabled. tracking_mode='process' avoids cloud uploads;
-        # save_to_file=False because we persist directly to the DB below.
+        # tracking is disabled. tracking_mode='machine' captures whole-host
+        # energy; with PUMA's split-container architecture the GPU work
+        # happens in puma_ollama and would not show up under 'process'.
         tracker = None
         if self.spec.sustainability.codecarbon:
             from codecarbon import EmissionsTracker
 
             tracker = EmissionsTracker(
                 project_name=self.run_id,
-                tracking_mode="process",
+                tracking_mode="machine",
                 save_to_file=False,
                 log_level="error",
                 allow_multiple_runs=True,

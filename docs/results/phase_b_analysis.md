@@ -226,6 +226,16 @@ of the three PMO tasks.
 
 Aggregated per model across the 3 scenarios (sorted by total CO₂):
 
+> **Note on CO₂ accounting (pre-D15).** B.3 emissions were captured
+> with CodeCarbon `tracking_mode="process"`; GPU energy is not
+> included. The total CO₂ figures below reflect CPU+RAM energy only
+> and underestimate the true cost for GPU-bound runs (`gemma3:12b`,
+> `gemma4:e2b`). This was identified and fixed as debt D15 in
+> Sprint 2 (post-fix smoke confirms `gpu_energy > 0` in the
+> `emissions` table); future sweeps will include GPU energy and will
+> not be directly comparable to the pre-D15 totals on the
+> `gpu_energy` / `kwh` / `co2_kg` columns.
+
 | Model | n runs | Total runtime (min) | Total Wh | Total g CO₂ | Avg pfr |
 |-------|------:|--------------------:|---------:|------------:|--------:|
 | qwen2.5:1.5b | 3 |  6.3 |  1.08 | 0.187 | 0.000 |

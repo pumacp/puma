@@ -47,6 +47,14 @@ services:
         condition: service_healthy
     networks:
       - puma_network
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: cdi
+              capabilities: [gpu]
+              device_ids:
+                - nvidia.com/gpu=all
     command: tail -f /dev/null
 
   puma_dashboard:
