@@ -96,18 +96,20 @@ practical on this machine:
 
 ### CodeCarbon accuracy on this hardware
 
-CodeCarbon currently reports `gpu_energy = 0` when invoked from inside
-the `puma_runner` container, because the container does not have
-direct access to `nvidia-smi`. As a result, GPU energy contribution
-on this reference machine is not captured in the `emissions` table
-unless the container is reconfigured with `nvidia-runtime` and
-appropriate device passthrough. This is tracked as open debt
-(see `docs/known_debt.md`, item D15).
-
-Until that is resolved, `kwh` and `co2_kg` figures from CodeCarbon
-on this machine reflect CPU and RAM energy only. For CPU-bound runs
-(small models that don't engage the GPU significantly) this is close
-to total system energy. For GPU-bound runs it is an underestimate.
+CodeCarbon now reports GPU energy correctly (post-D15 fix). The runner
+container has CDI GPU passthrough mirroring `puma_ollama`
+(`driver: cdi`, `device_ids: [nvidia.com/gpu=all]`), and the
+orchestrator uses `tracking_mode="machine"`, which captures
+whole-machine consumption dominated by Ollama inference during runs.
+The 27 emissions rows from the B.3 sweep (pre-D15) were captured with
+`tracking_mode="process"` and consequently underreport total GPU
+consumption; for those rows, `kwh` and `co2_kg` reflect CPU+RAM energy
+only. Post-D15 rows include GPU and are not directly comparable to
+pre-D15 rows on the `gpu_energy` column. Smoke verification on
+2026-05-10 (`d15_smoke`, qwen2.5:3b × 10 instances, triage_jira)
+recorded `gpu_energy = 3.85e-05 kWh`, `cpu_energy = 8.42e-06 kWh`,
+`ram_energy = 3.71e-05 kWh` over a 7.2 s window — the first emissions
+row in the project's history with non-zero GPU energy.
 
 ## Reproducibility scope
 

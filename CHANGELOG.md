@@ -70,6 +70,41 @@ Versions follow [Semantic Versioning](https://semver.org/).
   `docs/baseline_inventory.md` (pre-Phase-0 snapshot). Closes debt D13.
 - `pyproject.toml` version bumped from `2.0.0-dev` to `2.1.0-dev` —
   development now targets the next minor release. Closes debt D18-cleanup.
+- CodeCarbon `tracking_mode` changed from `"process"` to `"machine"` in
+  `src/puma/orchestrator/runner.py` and
+  `src/puma/sustainability/codecarbon_wrapper.py`. Rationale: PUMA's
+  multi-container architecture splits orchestration (`puma_runner`) from
+  inference (`puma_ollama`); `tracking_mode="process"` measures only the
+  orchestrator's own energy, missing the GPU work that happens in the
+  inference container. `tracking_mode="machine"` captures whole-machine
+  consumption, which on the documented sweep convention (AC power, idle
+  host, no other GPU consumers) attributes correctly to PUMA. Pre-D15
+  emissions rows (including the 27 from the B.3 sweep) report only
+  CPU+RAM energy and underreport total consumption; post-D15 rows
+  include GPU. Closes debt D15.
+- `docker-compose.yml`: `puma_runner` now declares the same CDI GPU
+  passthrough block as `puma_ollama` (`driver: cdi`,
+  `device_ids: [nvidia.com/gpu=all]`), allowing pynvml / nvidia-smi
+  access from within the runner container so CodeCarbon can enumerate
+  GPU devices. Coupled with the `tracking_mode` change above to close
+  debt D15.
+- `gemma4` family (`gemma4:e2b`, `gemma4:e4b`, `gemma4:26b-a4b`)
+  removed from `gpu-entry` `profiles_compatible` in
+  `config/models_catalog.yaml`. Empirical evidence from the B.3 sweep
+  (parse_failure_rate 0.98–1.00 across 3 scenarios for `gemma4:e2b`,
+  60.5 % of total sweep CO₂ consumed for zero usable predictions)
+  plus targeted diagnostic in S2.2 (`raw_response=''` despite
+  non-zero `eval_count`; simple prompts decode correctly while
+  structured PUMA prompts produce empty responses) confirmed the
+  fault lies at Ollama's detokenizer under CPU offload, not at the
+  PUMA scenario parser. No MoE-aware parser would help since there
+  is no content returned to parse. The three gemma4 tags remain in
+  the catalog and remain available for `gpu-mid` / `gpu-high`
+  profiles where the model fits in VRAM. New unit test
+  `test_gemma4_family_excluded_from_gpu_entry` in
+  `tests/unit/test_catalog_metadata.py` guards the exclusion. Full
+  diagnostic preserved in `docs/known_debt.md` (Resolved technical
+  debt section, D18 entry). Closes debt D18.
 
 ### Fixed
 

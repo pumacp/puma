@@ -91,6 +91,7 @@ markers = [
     "slow: Tests that take longer to run",
     "ollama: Tests that require Ollama running",
     "smoke: End-to-end smoke tests",
+    "requires_gpu: Tests that require an NVIDIA GPU passthrough into the runner container",
 ]
 
 [tool.isort]
