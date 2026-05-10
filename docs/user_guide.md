@@ -189,7 +189,7 @@ PUMA Dataset Verification
 If datasets are missing, download them:
 
 ```bash
-docker compose run --rm puma_runner python scripts/download_datasets.py
+docker compose run --rm puma_runner python scripts/prepare_datasets.py
 ```
 
 ---

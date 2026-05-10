@@ -12,6 +12,8 @@ from typing import ClassVar
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
 
+from puma.scenarios._reasoning import strip_reasoning
+
 logger = logging.getLogger(__name__)
 
 DATA_DIR = Path("data")
@@ -97,6 +99,7 @@ def _save_cache(cache: dict) -> None:
 
 
 def parse_story_points(response: str) -> float | None:
+    response = strip_reasoning(response)
     numbers = re.findall(r"\d+\.?\d*", response.strip())
     if not numbers:
         return None

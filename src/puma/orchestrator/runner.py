@@ -164,7 +164,7 @@ class Runner:
 
         from puma.adaptation.strategies import get_strategy
         from puma.runtime.cache import InferenceCache
-        from puma.runtime.client import OllamaClient
+        from puma.runtime.client import client_for_model
         from puma.scenarios.estimation_tawos import EstimationTawosScenario
         from puma.scenarios.prioritization_jira import PrioritizationJiraScenario
         from puma.scenarios.triage_jira import TriageJiraScenario
@@ -182,10 +182,6 @@ class Runner:
             logger.warning("dataset.sample_failed", error=str(exc))
             df = _empty_dataframe()
 
-        client = OllamaClient(
-            base_url=self.ollama_host,
-            timeout_s=120.0,
-        )
         InferenceCache(db_path=Path("data/cache/inferences.db"))
 
         perturb_fns = _build_perturbation_fns(self.spec.perturbations, self.spec.inference.seed)
@@ -204,6 +200,7 @@ class Runner:
             task_id = progress.add_task(f"[cyan]{self.run_id}", total=total_tasks)
 
             for model in self.spec.models:
+                client = client_for_model(model, base_url=self.ollama_host)
                 for strategy_name in self.spec.adaptation.strategy:
                     strategy = get_strategy(strategy_name)
                     for row in rows:

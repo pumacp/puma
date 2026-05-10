@@ -352,6 +352,37 @@ def test_initial_migration_matches_orm_schema(tmp_path):
 
 
 @pytest.mark.integration
+def test_timestamps_have_server_default(tmp_path):
+    """AC-11 (Sprint 1, D6): the ORM-managed timestamp columns must have a
+    database-level default (``server_default``), not just a Python-side
+    ``default=_now``. Ensures consistency for concurrent inserts and raw SQL.
+
+    Real columns in this schema (predictions has no timestamp):
+        runs.started_at, metrics.computed_at, emissions.recorded_at.
+    """
+    db_path = tmp_path / "test.db"
+    cfg = _alembic_cfg(db_path)
+    command.upgrade(cfg, "head")
+
+    engine = create_engine(f"sqlite:///{db_path}")
+    insp = inspect(engine)
+
+    expected = {
+        "runs": ["started_at"],
+        "metrics": ["computed_at"],
+        "emissions": ["recorded_at"],
+    }
+    for table_name, cols_to_check in expected.items():
+        cols = {c["name"]: c for c in insp.get_columns(table_name)}
+        for col_name in cols_to_check:
+            assert col_name in cols, f"{table_name}.{col_name} missing from schema"
+            default = cols[col_name].get("default")
+            assert default is not None, (
+                f"{table_name}.{col_name} lacks server_default; got {default!r}"
+            )
+
+
+@pytest.mark.integration
 def test_initial_migration_has_no_pending_changes(tmp_path):
     """AC-10: ``0001_initial_schema`` is a complete capture of the ORM —
     autogenerate against the post-upgrade DB produces no diff."""
