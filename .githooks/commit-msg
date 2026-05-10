@@ -1,0 +1,10 @@
+#!/bin/sh
+# Strip Co-authored-by trailers automatically.
+# Commits are attributed exclusively to the configured git identity.
+sed -i.bak '/^Co-authored-by:/d' "$1"
+sed -i.bak '/^Signed-off-by:.*[Cc]laude/d' "$1"
+sed -i.bak '/^Generated-by:/d' "$1"
+rm -f "$1.bak"
+# Strip trailing blank lines that may remain
+sed -i.bak -e :a -e '/^\n*$/{$d;N;ba' -e '}' "$1" 2>/dev/null
+rm -f "$1.bak"
