@@ -14,6 +14,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    func,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
@@ -41,7 +42,9 @@ class Run(Base):
     spec_hash: Mapped[str] = mapped_column(String(16), nullable=False)
     spec_yaml: Mapped[str | None] = mapped_column(Text, nullable=True)
     profile: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, server_default=func.now()
+    )
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[str] = mapped_column(String(16), default="running")  # running|done|error
 
@@ -101,7 +104,9 @@ class Metric(Base):
     metric_name: Mapped[str] = mapped_column(String(64), nullable=False)
     value: Mapped[float] = mapped_column(Float, nullable=False)
     subgroup: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    computed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    computed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, server_default=func.now()
+    )
 
     run: Mapped[Run] = relationship(back_populates="metrics")
 
@@ -117,7 +122,9 @@ class Emission(Base):
     cpu_energy: Mapped[float | None] = mapped_column(Float, nullable=True)
     gpu_energy: Mapped[float | None] = mapped_column(Float, nullable=True)
     ram_energy: Mapped[float | None] = mapped_column(Float, nullable=True)
-    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=_now, server_default=func.now()
+    )
 
     run: Mapped[Run] = relationship(back_populates="emissions")
 

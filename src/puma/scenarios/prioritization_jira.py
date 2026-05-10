@@ -7,6 +7,7 @@ from typing import ClassVar
 
 import pandas as pd
 
+from puma.scenarios._reasoning import strip_reasoning
 from puma.scenarios.base import Scenario
 
 PRIORITY_ORDER = {"Blocker": 5, "Critical": 4, "Major": 3, "Minor": 2, "Trivial": 1}
@@ -52,6 +53,7 @@ class PrioritizationJiraScenario(Scenario):
         return pd.DataFrame(pairs[:n])
 
     def parse_response(self, raw: str) -> str | None:
+        raw = strip_reasoning(raw)
         m = _ANSWER_RE.search(raw)
         return m.group(0).upper() if m else None
 

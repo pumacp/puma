@@ -29,14 +29,12 @@ TAWOS regeneration requires the upstream SQL dump (~1.5 GB compressed,
 3. Run:
 
 ```bash
-python scripts/download_datasets.py
+python scripts/prepare_datasets.py
 ```
 
 ## Future work
 
 - Implement automated fetch of TAWOS dump from a stable mirror
-- Rename `download_datasets.py` to reflect actual behavior
-  (it processes local dumps, does not download)
 
 ## Sources
 

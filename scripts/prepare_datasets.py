@@ -1,5 +1,9 @@
 """
-Download and preprocess datasets for PUMA benchmark.
+Prepare and preprocess datasets for PUMA benchmark.
+
+Despite the historical name, this script does not download anything from
+the network. It processes a local TAWOS SQL dump (manually obtained, see
+data/README.md) and writes the preprocessed CSVs to data/.
 
 TAWOS (The Agile Work Of Stories):
   Official source : github.com/SOLAR-group/TAWOS
@@ -11,7 +15,7 @@ Jira:
   Generated locally by scripts/create_jira_data.py (200 balanced issues).
 
 Usage:
-  python scripts/download_datasets.py
+  python scripts/prepare_datasets.py
 """
 
 import csv

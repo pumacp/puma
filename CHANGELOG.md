@@ -8,6 +8,69 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- `puma validate-baseline` CLI command — runs the canonical baseline
+  spec (`specs/runs/baseline_triage.yaml`) and exits 0 when the resulting
+  `f1_macro` is within `--tolerance` of `--expected-f1`, non-zero
+  otherwise. Useful as a CI reproducibility guard before tagging a
+  release. TDD: 3 unit tests with monkeypatched runner. Closes debt D1.
+- Alembic migration `0002_server_default_timestamps` — adds
+  `server_default=func.now()` (CURRENT_TIMESTAMP under SQLite) to the
+  ORM-managed timestamp columns: `runs.started_at`, `metrics.computed_at`,
+  `emissions.recorded_at`. Ensures DB-side defaults for concurrent
+  inserts and raw-SQL paths, complementing the existing Python-side
+  `default=_now`. Implemented via `op.batch_alter_table(recreate="always")`
+  because SQLite does not support direct `ALTER COLUMN`. TDD: 1 new
+  integration test (`test_timestamps_have_server_default`); existing
+  `test_initial_migration_has_no_pending_changes` continues to pass with
+  `compare_server_default=True`. Closes debt D6.
+- `puma.scenarios._reasoning.strip_reasoning` helper — strips
+  `<think>...</think>` reasoning blocks (closed, unclosed, and stray-tag
+  variants) before scenario parsers run. Fixes false-positive matches
+  inside reasoning text for models like `deepseek-r1` (e.g. the literal
+  word "critical" appearing inside chain-of-thought). Wired into the
+  three scenario parsers (`triage_jira.parse_prediction`,
+  `estimation_tawos.parse_story_points`, `prioritization_jira.parse_response`).
+  TDD: 8 unit tests covering the helper and all three scenarios.
+  Closes debt D17.
+- `puma.runtime.client.client_for_model` factory — looks the model up in
+  the catalog and threads `ModelEntry.timeout_s` into `OllamaClient`.
+  Detected mid-sprint while smoke-testing the D17 fix: a 20-instance
+  `deepseek-r1:7b` run on triage_jira produced 3 consecutive
+  `500 | 2m0s` Ollama responses because the orchestrator instantiated
+  `OllamaClient(timeout_s=120.0)` regardless of the per-model value
+  declared in `config/models_catalog.yaml`. The factory now resolves
+  the catalog entry per model; the runner builds one client per model
+  inside the inference loop. Unknown tags fall back to 120 s.
+  `config/models_catalog.yaml`: `gemma3:12b` timeout bumped 180→1800s
+  (B.3 evidence: 631 s / 590 s on triage / estimation respectively);
+  `deepseek-r1:7b` timeout was already 300 s (no bump needed).
+  TDD: 5 unit tests in `tests/unit/test_client_timeout_propagation.py`.
+  Closes debt D21 (folded into this sprint as task S1.5.bis).
+  End-to-end smoke (post D17 + D21): a 20-instance `deepseek-r1:7b` run
+  on `triage_jira` with `contextual-anchoring` finished cleanly in
+  ~41 minutes; `parse_failure_rate` dropped from 0.80 (pre-Sprint
+  observation) to 0.15; F1-macro 0.6042; zero timeout errors at the
+  Ollama layer (per-request latencies 1m18s–3m2s, all under the new
+  300 s cap). Confirms the parser fix and timeout propagation work
+  together for reasoning models.
+- `docs/CONTRIBUTING.md` — host-only pre-commit setup instructions for
+  cross-container development workflow (pipx + manual run; CI as safety
+  net). Closes debt D10.
+
+### Changed
+
+- `scripts/download_datasets.py` renamed to `scripts/prepare_datasets.py`
+  to reflect actual behavior (it processes a local TAWOS SQL dump, does
+  not download). References updated across `src/puma/datasets/tawos.py`,
+  `data/README.md`, `docs/user_guide.md`, `docs/troubleshooting.md`, and
+  the future Phase D directives in `docs/internal/claude-code-prompts/PROMPT-D-tecnico.md`.
+  Historical mentions retained in `docs/known_debt.md` (F4) and
+  `docs/baseline_inventory.md` (pre-Phase-0 snapshot). Closes debt D13.
+- `pyproject.toml` version bumped from `2.0.0-dev` to `2.1.0-dev` —
+  development now targets the next minor release. Closes debt D18-cleanup.
+
 ### Fixed
 
 - CodeCarbon integration: v2.0.0 declared CodeCarbon as a first-class
