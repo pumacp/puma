@@ -76,21 +76,27 @@ models:
                        # file includes inactive experts.
     context_window: 262144
     logprobs_supported: true
-    profiles_compatible: [cpu-standard, gpu-entry, gpu-mid, gpu-high]
+    profiles_compatible: [cpu-standard, gpu-mid, gpu-high]
     timeout_s: 120
     notes: "Gemma4 MoE; effective params ~2B (active per forward), full GGUF includes
-            all experts (~7.2 GB); 256K context"
+            all experts (~7.2 GB); 256K context.
+            Excluded from gpu-entry (D18): requires VRAM headroom; CPU offload on
+            <12 GB VRAM produces tokens non-decodable by Ollama detokenizer for
+            structured prompts (evidence: B.3 sweep parse_failure_rate 0.98-1.00;
+            raw_response='' confirmed in S2.2 inspection)."
 
   - ollama_tag: "gemma4:e4b"
     params_b: 4.0
     gguf_size_gb: 4.0
     context_window: 262144
     logprobs_supported: true
-    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    profiles_compatible: [gpu-mid, gpu-high]
     timeout_s: 120
     notes: "Gemma4 MoE; effective params ~4B; gguf_size_gb is an unverified estimate
             (model not cached locally as of 2026-05-10). Actual GGUF likely larger than
-            effective-params would suggest (cf. gemma4:e2b: 2B effective → 7.2 GB GGUF)"
+            effective-params would suggest (cf. gemma4:e2b: 2B effective → 7.2 GB GGUF).
+            Excluded from gpu-entry (D18) by analogy with gemma4:e2b: same MoE family
+            exhibits Ollama-detokenizer breakage under CPU offload on structured prompts."
 
   - ollama_tag: "gemma4:26b-a4b"
     params_b: 26.0
@@ -100,7 +106,10 @@ models:
     profiles_compatible: [gpu-high]
     timeout_s: 300
     notes: "Gemma4 MoE; 26B total params, 4B active; gguf_size_gb is an unverified
-            estimate (model not cached locally). Verify via 'ollama list' after pull."
+            estimate (model not cached locally). Verify via 'ollama list' after pull.
+            Excluded from gpu-entry (D18) by analogy with gemma4:e2b: same MoE family
+            exhibits Ollama-detokenizer breakage under CPU offload on structured prompts;
+            16 GB GGUF also exceeds gpu-entry / gpu-mid VRAM budgets."
 
   - ollama_tag: "mistral:7b"
     params_b: 7.0
