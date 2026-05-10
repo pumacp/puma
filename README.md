@@ -4,11 +4,11 @@
 
 PUMA is an open-source, reproducible benchmarking framework for evaluating open large language models on project management tasks: issue triage, story-point estimation, and backlog prioritization. All inference runs locally via [Ollama](https://ollama.ai) — no external API calls, no data leaves your machine.
 
-![Tests](https://img.shields.io/badge/tests-209%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-276%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 ![Docker](https://img.shields.io/badge/runs%20on-Docker-2496ED)
-![Version](https://img.shields.io/badge/version-v2.0.0-orange)
+![Version](https://img.shields.io/badge/version-v2.1.0-blue)
 
 > **PUMA is an independent benchmarking framework, fully self-contained, designed specifically for evaluating local LLMs on Project Management Office (PMO) tasks. All evaluation methodology, scenarios, and metrics are developed and maintained independently as part of this work.**
 
@@ -35,6 +35,9 @@ PUMA is an open-source, reproducible benchmarking framework for evaluating open 
 git clone <repo-url> && cd puma
 ./start_puma.sh
 
+# Enable the project's commit-msg hook (strips Co-Authored-By trailers)
+git config core.hooksPath .githooks
+
 # Run a benchmark (dry-run — no Ollama needed)
 docker compose run --rm puma_runner puma run specs/runs/smoke_triage.yaml --dry-run
 
@@ -44,6 +47,11 @@ docker compose run --rm puma_runner puma run specs/runs/smoke_triage.yaml
 # Open the dashboard
 open http://localhost:8501
 ```
+
+For host-only pre-commit setup and the cross-container development
+workflow, see [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md). For the
+reference hardware specification (RTX 2060 Mobile, 6 GB VRAM) and
+reproducibility scope, see [docs/HARDWARE.md](docs/HARDWARE.md).
 
 ---
 
@@ -183,6 +191,23 @@ puma cache clear              # delete all cached responses
 
 ---
 
+### `puma validate-baseline`
+
+Reproducibility guard for CI: runs the canonical baseline spec and
+exits 0 only if F1-macro is within tolerance of the expected value.
+
+```bash
+puma validate-baseline                                        # uses defaults
+puma validate-baseline --expected-f1 0.5867 --tolerance 0.01
+puma validate-baseline --spec specs/runs/baseline_triage.yaml
+```
+
+Defaults: `--spec specs/runs/baseline_triage.yaml`,
+`--expected-f1 0.5867`, `--tolerance 0.01`. Exit code is non-zero on
+drift; useful as a release gate before tagging.
+
+---
+
 ## Run-Spec Format
 
 Every benchmark is fully described by a YAML run-spec. Example:
@@ -229,6 +254,57 @@ puma run my_benchmark_v1.yaml              # live run
 | `triage_jira` | Assign priority (Critical/Major/Minor/Trivial) to a Jira issue | Jira balanced (200 issues) | F1 macro |
 | `estimation_tawos` | Estimate story points (Fibonacci) for a user story | TAWOS (9 020 items) | MAE |
 | `prioritization_jira` | Given two issues A/B, which has higher priority? | Jira pairwise | Accuracy |
+
+---
+
+## Models
+
+The catalog (`config/models_catalog.yaml`) is the single source of
+truth for `(model → hardware profile)` compatibility. `puma models
+list` prints the live catalog; the table below summarises the v2.1.0
+state.
+
+| Model | Params (B) | GGUF (GB) | Compatible profiles | Notes |
+|-------|-----------:|----------:|---------------------|-------|
+| `qwen2.5:0.5b` | 0.5 | 0.4 | cpu-lite, cpu-standard, gpu-entry, gpu-mid, gpu-high | |
+| `qwen2.5:1.5b` | 1.5 | 1.0 | cpu-standard, gpu-entry, gpu-mid, gpu-high | |
+| `qwen2.5:3b` | 3.0 | 1.9 | gpu-entry, gpu-mid, gpu-high | **canonical baseline model** |
+| `qwen2.5:7b` | 7.0 | 4.7 | cpu-lite, cpu-standard, gpu-entry, gpu-mid, gpu-high | |
+| `qwen2.5:14b` | 14.0 | 9.0 | gpu-mid, gpu-high | |
+| `gemma3:1b` | 1.0 | 0.8 | cpu-standard, gpu-entry, gpu-mid, gpu-high | |
+| `gemma3:4b` | 4.0 | 3.3 | gpu-entry, gpu-mid, gpu-high | |
+| `gemma3:12b` | 12.0 | 8.1 | gpu-high | `timeout_s=1800` (B.3 evidence) |
+| `gemma4:e2b` | 2.0 effective / 7.2 full | 7.2 | cpu-standard, gpu-mid, gpu-high | MoE; **excluded from gpu-entry (D18)**: Ollama detokenizer breaks under CPU offload on structured prompts |
+| `gemma4:e4b` | 4.0 effective | 4.0 (est.) | gpu-mid, gpu-high | MoE; gpu-entry exclusion by analogy with e2b |
+| `gemma4:26b-a4b` | 26.0 total / 4.0 active | 16.0 (est.) | gpu-high | MoE |
+| `llama3.1:8b` | 8.0 | 4.9 | gpu-entry, gpu-mid, gpu-high | |
+| `mistral:7b` | 7.0 | 4.4 | gpu-entry, gpu-mid, gpu-high | |
+| `deepseek-r1:7b` | 7.0 | 4.7 | gpu-entry, gpu-mid, gpu-high | reasoning model (`<think>` blocks); `timeout_s=300` |
+| `deepseek-r1:14b` | 14.0 | 9.0 | gpu-mid, gpu-high | reasoning model |
+
+Profile detection runs automatically via `puma preflight`. Override
+with `--profile <name>`.
+
+---
+
+## Baseline & Results
+
+**Canonical baseline:** `qwen2.5:3b` + `contextual-anchoring` + `seed=42`
++ `temperature=0.0` on `triage_jira` with 200 instances yields
+**F1-macro = 0.5867 ± 0.01** on the reference hardware. Reproducible
+end-to-end via `puma validate-baseline`. The spec lives at
+`specs/runs/baseline_triage.yaml`; the tolerance is verified in CI.
+
+**Multi-model evaluation:** 9 models compatible with `gpu-entry`
+evaluated across the 3 PMO scenarios at N=100 instances per cell
+(2,700 inferences; ~67.5 Wh / 11.75 g CO₂ total compute budget). Best
+performers vary by task; small models (1B–3B) are competitive with
+larger ones on several PMO scenarios. Full comparative analysis,
+per-scenario tables, sustainability efficiency, and the
+"60.5 % wasted compute" finding (gemma4 family on `gpu-entry`,
+resolved as debt D18) in
+[docs/results/phase_b_analysis.md](docs/results/phase_b_analysis.md).
+Plots are reproducible via `scripts/generate_phase_b_plots.py`.
 
 ---
 
@@ -279,6 +355,39 @@ All dev tooling runs inside the container. See [CONTRIBUTING.md](CONTRIBUTING.md
 
 ---
 
+## Roadmap
+
+Trabajo identificado para releases posteriores a v2.1.0:
+
+- **Cross-strategy comparison** at scale — current sweeps use a
+  single adaptation strategy per run; pairwise comparisons across
+  zero-shot, few-shot-{3,5,8}, and CoT variants on the same model
+  cohort.
+- **Multi-seed validation** — replicate the canonical baseline across
+  multiple seeds and report mean ± confidence intervals; Wilcoxon
+  signed-rank tests on per-instance metric deltas.
+- **ECE / calibration metrics completion** — wire reliability
+  diagrams end-to-end through the dashboard; require
+  `logprobs=true` runs.
+- **Hardware tier extension** — re-run the B.3 sweep on `gpu-mid` to
+  empirically validate `gemma3:12b`, the `gemma4` family, and 14B
+  reasoning models with adequate VRAM (resolves D16 verification).
+- **Bias perturbation suite** — `gender_swap`, `dialect`, and other
+  fairness-relevant perturbations; new fairness metrics in
+  `puma.metrics.fairness`.
+- **Multi-backend GPU detection** — AMD ROCm and Apple Metal
+  detection alongside the existing NVIDIA path in
+  `puma.preflight.detect`.
+- **Phase C — Dashboard refactor** — comparative views (model × task
+  matrices, sustainability frontier curves) and structured exports;
+  scheduled to raise coverage of `puma.dashboard.*` and
+  `puma.reporting.*`.
+
+Detailed debt inventory in
+[docs/known_debt.md](docs/known_debt.md).
+
+---
+
 ## Documentation
 
 | Document | Contents |
@@ -290,5 +399,10 @@ All dev tooling runs inside the container. See [CONTRIBUTING.md](CONTRIBUTING.md
 | [docs/adding_models.md](docs/adding_models.md) | How to add a model to the catalog |
 | [docs/adding_scenarios.md](docs/adding_scenarios.md) | How to implement a new benchmark scenario |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Common problems and fixes |
+| [docs/HARDWARE.md](docs/HARDWARE.md) | Reference hardware spec, profile detection, thermal/VRAM observations, CodeCarbon accuracy, reproducibility scope |
+| [docs/results/phase_b_analysis.md](docs/results/phase_b_analysis.md) | Comparative analysis of the 9 models × 3 PMO scenarios sweep |
+| [docs/known_debt.md](docs/known_debt.md) | Open and resolved technical debt with diagnostic write-ups |
+| [docs/RELEASES/v2.1.0.md](docs/RELEASES/v2.1.0.md) | v2.1.0 release notes |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Code conventions, commit format, PR process |
+| [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | Host-only pre-commit setup, hooks |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
