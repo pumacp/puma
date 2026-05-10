@@ -14,12 +14,7 @@ from __future__ import annotations
 import pytest
 
 # Module under test — does not exist before B.1.3.b
-from puma.preflight.catalog import (
-    ModelEntry,
-    get_model_by_tag,
-    load_catalog,
-    models_for_profile,
-)
+from puma.preflight.catalog import ModelEntry, get_model_by_tag, load_catalog, models_for_profile
 
 
 @pytest.mark.unit
