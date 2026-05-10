@@ -59,7 +59,7 @@ models:
     context_window: 131072
     logprobs_supported: true
     profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
-    timeout_s: 180
+    timeout_s: 1800
 
   - ollama_tag: "gemma3:27b"
     params_b: 27.0

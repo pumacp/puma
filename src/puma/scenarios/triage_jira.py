@@ -11,6 +11,7 @@ from pathlib import Path
 import pandas as pd
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
 
+from puma.scenarios._reasoning import strip_reasoning
 from puma.scenarios.base import Scenario
 
 logger = logging.getLogger(__name__)
@@ -62,6 +63,7 @@ def _save_cache(cache: dict) -> None:
 
 
 def parse_prediction(response: str) -> str | None:
+    response = strip_reasoning(response)
     m = _PRIORITY_RE.search(response)
     if m:
         return m.group(0).capitalize()

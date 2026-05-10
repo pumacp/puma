@@ -169,6 +169,60 @@ def run(
         raise typer.Exit(1) from exc
 
 
+def _run_baseline_for_validation(spec: str, db_path: str, ollama_host: str) -> dict[str, float]:
+    """Execute a baseline spec and return its scalar metrics.
+
+    Extracted as a module-level helper so unit tests can monkeypatch it
+    without spinning up Ollama or the dataset pipeline.
+    """
+    from puma.orchestrator.runner import Runner
+    from puma.orchestrator.runspec import RunSpec
+
+    run_spec = RunSpec.from_yaml(spec)
+    summary = Runner(run_spec, db_path=db_path, ollama_host=ollama_host, dry_run=False).run()
+    return {k: v for k, v in summary.get("metrics", {}).items() if isinstance(v, int | float)}
+
+
+@app.command(name="validate-baseline")
+def validate_baseline(
+    spec: str = typer.Option(
+        "specs/runs/baseline_triage.yaml",
+        "--spec",
+        help="Path to the canonical baseline run-spec",
+    ),
+    expected_f1: float = typer.Option(0.5867, "--expected-f1", help="Expected F1-macro value"),
+    tolerance: float = typer.Option(
+        0.01, "--tolerance", help="Absolute tolerance window around expected_f1"
+    ),
+    db_path: str = typer.Option("data/puma.db", "--db"),
+    ollama_host: str = typer.Option(
+        "http://localhost:11434", "--ollama-host", envvar="OLLAMA_HOST"
+    ),
+) -> None:
+    """Validate the canonical baseline F1-macro against its reference value.
+
+    Runs the spec, reads ``f1_macro`` from the resulting metrics and exits 0
+    if ``|f1 - expected_f1| <= tolerance``, non-zero otherwise. Use as a CI
+    reproducibility check or before tagging a release.
+    """
+    metrics = _run_baseline_for_validation(spec, db_path, ollama_host)
+    f1 = metrics.get("f1_macro")
+    if f1 is None:
+        typer.secho(
+            "[ERROR] Baseline run produced no f1_macro metric.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(2)
+
+    delta = f1 - expected_f1
+    if abs(delta) <= tolerance:
+        typer.echo(f"PASS: f1_macro={f1:.4f} (delta={delta:+.4f}, tolerance=+/-{tolerance})")
+        raise typer.Exit(0)
+    typer.echo(f"FAIL: f1_macro={f1:.4f} (delta={delta:+.4f}, outside +/-{tolerance})")
+    raise typer.Exit(1)
+
+
 @app.command()
 def compare(
     run_ids: list[str] = typer.Argument(..., help="Two or more run IDs to compare"),  # noqa: B008

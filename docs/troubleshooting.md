@@ -114,7 +114,7 @@ Apple Silicon: GPU acceleration works automatically through the `metal` backend 
 Download the datasets:
 
 ```bash
-docker compose run --rm puma_runner python scripts/download_datasets.py
+docker compose run --rm puma_runner python scripts/prepare_datasets.py
 ```
 
 Or run the full verification which triggers download on failure:
@@ -129,7 +129,7 @@ The CSV file has been modified since download. Re-download:
 
 ```bash
 rm data/jira_balanced_200.csv
-docker compose run --rm puma_runner python scripts/download_datasets.py
+docker compose run --rm puma_runner python scripts/prepare_datasets.py
 ```
 
 ### TAWOS download blocked or extremely slow
@@ -285,7 +285,7 @@ Fixed in v2.0.0 — `detect.py` now catches `NotADirectoryError` in all subproce
 Integration tests require real datasets in `data/`. Download them first:
 
 ```bash
-docker compose run --rm puma_runner python scripts/download_datasets.py
+docker compose run --rm puma_runner python scripts/prepare_datasets.py
 ```
 
 ---

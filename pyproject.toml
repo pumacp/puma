@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "puma"
-version = "2.0.0-dev"
+version = "2.1.0-dev"
 description = "Local, reproducible benchmarking of open LLMs on project management tasks"
 requires-python = ">=3.11"
 license = { text = "MIT" }

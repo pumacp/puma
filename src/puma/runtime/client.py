@@ -10,6 +10,8 @@ from typing import Any
 
 import httpx
 
+from puma.preflight.catalog import get_model_by_tag
+
 logger = logging.getLogger(__name__)
 
 _RETRY_STATUSES = {500, 502, 503, 504}
@@ -220,3 +222,26 @@ class OllamaClient:
         raise RuntimeError(
             f"Ollama async request failed after {self.retries} retries"
         ) from last_exc
+
+
+_DEFAULT_TIMEOUT_S = 120.0
+
+
+def client_for_model(
+    model_tag: str,
+    *,
+    base_url: str = "http://localhost:11434",
+    default_timeout_s: float = _DEFAULT_TIMEOUT_S,
+) -> OllamaClient:
+    """Build an :class:`OllamaClient` whose timeout matches the catalog entry.
+
+    Reasoning models (e.g. ``deepseek-r1:7b``) need a longer per-request
+    timeout than the conservative default. The catalog
+    (``config/models_catalog.yaml``) declares ``timeout_s`` per model;
+    this factory looks the entry up and threads the value into the client.
+    Unknown tags fall back to ``default_timeout_s`` so ad-hoc model names
+    keep working.
+    """
+    entry = get_model_by_tag(model_tag)
+    timeout_s = float(entry.timeout_s) if entry is not None else default_timeout_s
+    return OllamaClient(base_url=base_url, timeout_s=timeout_s)
