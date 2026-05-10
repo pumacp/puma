@@ -8,7 +8,7 @@ import yaml
 from puma.preflight import detect_capabilities, select_profile, write_runtime_profile
 
 
-@pytest.mark.integration()
+@pytest.mark.integration
 class TestPreflightIntegration:
     def test_detect_runs_without_error(self):
         caps = detect_capabilities()

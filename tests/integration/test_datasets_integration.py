@@ -9,7 +9,7 @@ from puma.datasets.tawos import load as load_tawos
 from puma.datasets.verify import verify_jira, verify_tawos
 
 
-@pytest.mark.integration()
+@pytest.mark.integration
 class TestTawosLoad:
     def test_load_returns_dataframe(self):
         df = load_tawos()
@@ -33,7 +33,7 @@ class TestTawosLoad:
         assert df["project_key"].nunique() >= 2
 
 
-@pytest.mark.integration()
+@pytest.mark.integration
 class TestJiraLoad:
     def test_load_returns_dataframe(self):
         df = load_jira()
@@ -50,7 +50,7 @@ class TestJiraLoad:
         assert set(df["priority"].unique()).issubset(valid)
 
 
-@pytest.mark.integration()
+@pytest.mark.integration
 class TestVerifyDatasets:
     def test_verify_jira_passes(self):
         report = verify_jira()

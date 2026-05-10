@@ -7,7 +7,7 @@ import pytest
 from puma.perturbations.text import case_change, reorder_fields, tech_noise, truncate, typos
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestTypos:
     TEXT = "Hello World, this is a test string for typos."
 
@@ -37,7 +37,7 @@ class TestTypos:
         assert result != original
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestCaseChange:
     TEXT = "Hello World"
 
@@ -61,7 +61,7 @@ class TestCaseChange:
             case_change(self.TEXT, mode="title")
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestTruncate:
     TEXT = "abcdefghij"  # 10 chars
 
@@ -88,7 +88,7 @@ class TestTruncate:
         assert len(result) < len(self.TEXT)
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestReorderFields:
     def test_order_respected(self):
         instance = {"title": "T", "description": "D", "priority": "P"}
@@ -114,7 +114,7 @@ class TestReorderFields:
         assert result["b"] == 2
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestTechNoise:
     TEXT = "Fix the login button that does not work correctly."
 

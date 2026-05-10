@@ -117,7 +117,7 @@ def _seed_db(db_path: Path) -> str:
     return run_id
 
 
-@pytest.mark.smoke()
+@pytest.mark.smoke
 class TestDashboardSmoke:
     """Smoke-level tests: app loads and all views render without exceptions."""
 

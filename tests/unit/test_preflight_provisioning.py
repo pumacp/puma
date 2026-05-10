@@ -44,7 +44,7 @@ def _make_caps(disk_free_gb=50.0, gpu_backend="none"):
     )
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestCheckProvisioning:
     def test_no_issues_when_all_ok(self):
         caps = _make_caps(disk_free_gb=100.0)

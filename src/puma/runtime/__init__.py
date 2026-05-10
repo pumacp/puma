@@ -3,4 +3,4 @@
 from puma.runtime.cache import InferenceCache
 from puma.runtime.client import GenerationResult, OllamaClient, TokenLogprob
 
-__all__ = ["OllamaClient", "GenerationResult", "TokenLogprob", "InferenceCache"]
+__all__ = ["GenerationResult", "InferenceCache", "OllamaClient", "TokenLogprob"]

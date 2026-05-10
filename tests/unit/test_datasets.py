@@ -11,7 +11,7 @@ from puma.datasets.tawos import sample as tawos_sample
 from puma.datasets.verify import DatasetReport, print_verify_report
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestJiraNormalise:
     def test_normalises_summary_to_title(self):
         df = pd.DataFrame({"Summary": ["Issue 1"], "Priority": ["major"], "Description": ["d"]})
@@ -32,7 +32,7 @@ class TestJiraNormalise:
         assert "issue_key" in out.columns
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestJiraSample:
     def _make_df(self):
         return pd.DataFrame(
@@ -61,7 +61,7 @@ class TestJiraSample:
         assert len(s) == len(df)
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestTawosSample:
     def _make_df(self):
         return pd.DataFrame(
@@ -86,7 +86,7 @@ class TestTawosSample:
         assert list(s1["story_id"]) == list(s2["story_id"])
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestVerifyReport:
     def test_all_ok_returns_true(self, capsys):
         reports = [

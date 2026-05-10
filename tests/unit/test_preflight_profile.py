@@ -28,7 +28,7 @@ def _make_caps(ram_gb: float = 16.0, gpu_vram_gb: float | None = None, gpu_backe
     )
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestSelectProfile:
     def test_cpu_standard_16gb_no_gpu(self):
         caps = _make_caps(ram_gb=16.0)

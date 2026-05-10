@@ -17,17 +17,17 @@ from puma.adaptation.strategies import (
 )
 
 __all__ = [
+    "EGI",
+    "RCOIF",
+    "STRATEGY_REGISTRY",
+    "CoTFewShot",
+    "ContextualAnchoring",
+    "FewShotK",
+    "OneShot",
+    "SelfConsistency",
     "Strategy",
     "ZeroShot",
     "ZeroShotCoT",
-    "OneShot",
-    "FewShotK",
-    "CoTFewShot",
-    "RCOIF",
-    "ContextualAnchoring",
-    "SelfConsistency",
-    "EGI",
-    "STRATEGY_REGISTRY",
     "get_strategy",
     "select_examples",
 ]

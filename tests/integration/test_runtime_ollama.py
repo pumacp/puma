@@ -10,8 +10,8 @@ from puma.runtime.cache import InferenceCache
 from puma.runtime.client import GenerationResult, OllamaClient
 
 
-@pytest.mark.integration()
-@pytest.mark.ollama()
+@pytest.mark.integration
+@pytest.mark.ollama
 class TestOllamaClientReal:
     """Requires Ollama running with qwen2.5:1.5b or qwen2.5:3b available."""
 

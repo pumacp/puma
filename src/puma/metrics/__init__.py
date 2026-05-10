@@ -13,19 +13,19 @@ from puma.metrics.robustness import consistency_rate, robustness_score
 from puma.metrics.stability import stability_report, stability_score
 
 __all__ = [
-    "classification_metrics",
-    "regression_metrics",
-    "ranking_metrics",
-    "expected_calibration_error",
-    "maximum_calibration_error",
     "brier_score",
     "class_confidence_from_logprobs",
-    "robustness_score",
+    "classification_metrics",
     "consistency_rate",
+    "expected_calibration_error",
     "fairness_report",
-    "percentiles",
-    "throughput",
+    "maximum_calibration_error",
     "parse_ollama_timings",
-    "stability_score",
+    "percentiles",
+    "ranking_metrics",
+    "regression_metrics",
+    "robustness_score",
     "stability_report",
+    "stability_score",
+    "throughput",
 ]

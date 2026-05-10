@@ -11,7 +11,7 @@ from puma.metrics.stability import stability_score
 from puma.sustainability.codecarbon_wrapper import gco2_per_f1_point, gco2_per_mae_unit
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestRobustness:
     def test_score_perfect(self):
         assert robustness_score(0.80, 0.80) == pytest.approx(1.0)
@@ -39,7 +39,7 @@ class TestRobustness:
             consistency_rate([], [])
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestFairness:
     PREDS = ["A", "A", "B", "B", "A", "B"]
     TRUTHS = ["A", "A", "B", "A", "A", "B"]
@@ -63,7 +63,7 @@ class TestFairness:
         assert result["fairness_gap"] == pytest.approx(0.0)
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestEfficiency:
     def test_percentiles_p50_p95_p99(self):
         latencies = list(range(1, 101))
@@ -86,7 +86,7 @@ class TestEfficiency:
             percentiles([])
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestStability:
     def test_perfect_stability(self):
         scores = [0.8, 0.8, 0.8, 0.8]
@@ -108,7 +108,7 @@ class TestStability:
             stability_score([])
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestSustainabilityMetrics:
     def test_gco2_per_f1_nonzero_f1(self):
         result = gco2_per_f1_point(emissions_g=100.0, f1=0.5)

@@ -8,8 +8,8 @@ from puma.sustainability.codecarbon_wrapper import (
 )
 
 __all__ = [
-    "track_emissions",
+    "emissions_summary",
     "gco2_per_f1_point",
     "gco2_per_mae_unit",
-    "emissions_summary",
+    "track_emissions",
 ]

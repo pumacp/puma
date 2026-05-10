@@ -8,7 +8,7 @@ from sklearn.metrics import f1_score, mean_absolute_error
 from puma.metrics.accuracy import classification_metrics, regression_metrics
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestClassificationMetrics:
     Y_TRUE = ["Critical", "Major", "Minor", "Trivial", "Critical", "Major"]
     Y_PRED = ["Critical", "Major", "Minor", "Major", "Critical", "Trivial"]
@@ -47,7 +47,7 @@ class TestClassificationMetrics:
         assert abs(result["f1_macro"] - 1.0) < 1e-9
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestRegressionMetrics:
     Y_TRUE = [1.0, 3.0, 5.0, 8.0, 13.0]
     Y_PRED = [2.0, 3.0, 5.0, 8.0, 13.0]

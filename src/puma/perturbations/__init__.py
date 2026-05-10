@@ -2,4 +2,4 @@
 
 from puma.perturbations.text import case_change, reorder_fields, tech_noise, truncate, typos
 
-__all__ = ["typos", "case_change", "truncate", "reorder_fields", "tech_noise"]
+__all__ = ["case_change", "reorder_fields", "tech_noise", "truncate", "typos"]

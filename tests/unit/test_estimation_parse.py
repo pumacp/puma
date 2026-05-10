@@ -10,7 +10,7 @@ from puma.scenarios.estimation_tawos import (
 )
 
 
-@pytest.mark.unit()
+@pytest.mark.unit
 class TestParseStoryPoints:
     def test_exact_fibonacci(self):
         for sp in FIBONACCI_SERIES:
@@ -31,7 +31,7 @@ class TestParseStoryPoints:
         assert parse_story_points("") is None
 
     def test_fibonacci_series_constant(self):
-        assert [1, 2, 3, 5, 8, 13, 21] == FIBONACCI_SERIES
+        assert FIBONACCI_SERIES == [1, 2, 3, 5, 8, 13, 21]
 
     def test_few_shot_count(self):
         assert len(FEW_SHOT_EXAMPLES) == 3

@@ -35,10 +35,11 @@ htmlcov/
 .mypy_cache/
 .ruff_cache/
 
-# Datasets (regenerable via scripts/download_datasets.py — do NOT commit)
-data/*.csv
-data/*.json
-data/*.parquet
+# Datasets — CSVs are tracked (small, see data/README.md). Only the
+# raw SQL dumps and generated parquet/json artifacts stay ignored.
+# data/*.csv          ← commented: CSVs are tracked (see data/README.md)
+# data/*.json         ← commented: same rationale
+# data/*.parquet      ← commented: same rationale
 !data/.gitkeep
 !data/README.md
 
