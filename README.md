@@ -10,6 +10,8 @@ PUMA is an open-source, reproducible benchmarking framework for evaluating open 
 ![Docker](https://img.shields.io/badge/runs%20on-Docker-2496ED)
 ![Version](https://img.shields.io/badge/version-v2.0.0-orange)
 
+> **PUMA is an independent benchmarking framework, fully self-contained, designed specifically for evaluating local LLMs on Project Management Office (PMO) tasks. All evaluation methodology, scenarios, and metrics are developed and maintained independently as part of this work.**
+
 ---
 
 ## Requirements
