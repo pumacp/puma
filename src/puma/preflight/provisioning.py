@@ -8,12 +8,9 @@ from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
 
-import yaml
-
+from puma.preflight.catalog import _CATALOG_PATH, load_catalog
 from puma.preflight.detect import SystemCapabilities
 from puma.preflight.profile import Profile
-
-_CATALOG_PATH = Path(__file__).parent.parent.parent.parent / "config" / "models_catalog.yaml"
 
 
 class IssueSeverity(StrEnum):
@@ -27,19 +24,12 @@ class ProvisioningIssue:
     message: str
 
 
-def _model_sizes(models: list[str], catalog_path: Path = _CATALOG_PATH) -> dict[str, float]:
-    if not catalog_path.exists():
-        return {}
-    with open(catalog_path, encoding="utf-8") as fh:
-        raw = yaml.safe_load(fh)
-    return {m["ollama_tag"]: float(m.get("gguf_size_gb", 0)) for m in raw.get("models", [])}
-
-
 def _check_disk(
     caps: SystemCapabilities, profile: Profile, catalog_path: Path
 ) -> list[ProvisioningIssue]:
-    sizes = _model_sizes(profile.models, catalog_path)
-    required = sum(sizes.get(m, 2.0) for m in profile.models) + 5.0
+    catalog = load_catalog(catalog_path)
+    profile_models = [m for m in catalog if profile.name in m.profiles_compatible]
+    required = sum(m.gguf_size_gb for m in profile_models) + 5.0
     if caps.disk_free_gb < required:
         return [
             ProvisioningIssue(

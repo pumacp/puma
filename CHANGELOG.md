@@ -8,6 +8,71 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- CodeCarbon integration: v2.0.0 declared CodeCarbon as a first-class
+  sustainability metric, but the orchestrator never invoked the
+  `EmissionsTracker`. The infrastructure (`puma.sustainability` module,
+  `Emission` ORM, `emissions` table) was complete but the runner never
+  consulted the `spec.sustainability.codecarbon` flag. Now wired: runs
+  with the flag enabled persist an emissions row per run with `kwh`,
+  `co2_kg`, `duration_s`, and `cpu_energy` / `gpu_energy` / `ram_energy`
+  breakdowns. Lazy import of `codecarbon` keeps it out of the hot path
+  when tracking is disabled. Closes empirical finding #6 from v2.0.0
+  release validation.
+- Model catalog size: corrected `gguf_size_gb` for `gemma4:e2b` from
+  2.0 GB (effective parameters) to 7.2 GB (actual GGUF size on disk;
+  includes all MoE experts, not just active ones). The previous value
+  caused `check_provisioning` to underestimate disk requirements by
+  ~5.2 GB per profile that includes this model. Added explanatory notes
+  to `gemma4:e4b` and `gemma4:26b-a4b` indicating their `gguf_size_gb`
+  values are unverified estimates pending local pull.
+
+### Changed
+
+- `config/profiles.yaml` no longer carries a manually-curated `models[]`
+  list per profile. The new `puma.preflight.catalog.models_for_profile()`
+  derives the dispatch list dynamically from
+  `config/models_catalog.yaml.profiles_compatible[]`. This eliminates the
+  17 `(profile, tag)` drift pairs that had silently accumulated between
+  the two sources. `Profile` dataclass loses its `models` field; callers
+  in `provisioning.py` and `report.py` are updated.
+
+### Added
+
+- `puma.preflight.catalog` module exposing `ModelEntry`,
+  `load_catalog()`, `models_for_profile(profile_name)`, and
+  `get_model_by_tag(tag)` as the single-source-of-truth API for model
+  metadata.
+- `docs/HARDWARE.md`: hardware specification of the reference development
+  machine (MSI GS66 Stealth 10SE: i7-10750H, 32 GB DDR4 2667 MHz, RTX
+  2060 Mobile 6 GB GDDR6, NVMe 1 TB) with sections on profile detection,
+  sustained-load thermal behavior, memory bandwidth, VRAM constraints,
+  CodeCarbon accuracy on this hardware, and reproducibility scope.
+  Includes empirical observations from Phase B sweep (mistral:7b 10–18×
+  duration variance) and CPU-offload behavior of large models.
+- `docs/known_debt.md`: consolidated tracker of methodological findings
+  detected during v2.0.0 release validation (8 closed) and open
+  technical debt classified by severity (15 open: 3 critical, 7 medium,
+  5 low; one decided-no-action). New critical debt #D18 added
+  documenting gemma4 family parser incompatibility detected during
+  B.3 sweep. Existing debt #D15 (CodeCarbon GPU detection), #D16
+  (gemma4 sizes), and #D20 (laptop thermal) reinforced with empirical
+  evidence from the sweep.
+- `docs/results/phase_b_analysis.md`: comparative analysis of the
+  Phase B sweep (9 models × 3 scenarios × 100 instances on `gpu-entry`
+  profile, 27 runs, 6 h 41 m wall clock, 11.75 g CO₂). Reports
+  per-scenario performance tables, cost-effectiveness ranking
+  (quality per g CO₂), sustainability efficiency aggregate, the
+  "60.5 % wasted compute" finding for `gemma4:e2b`, intra-family
+  non-monotonicity evidence, and per-task practical recommendations.
+- `scripts/generate_phase_b_plots.py`: reproducible figure generation
+  from `data/puma.db`; produces three PNGs in `docs/results/figures/`
+  embedded in the analysis document (performance bar chart per
+  scenario, quality-vs-CO₂ Pareto scatter, duration variability
+  boxplot).
+- `docs/results/figures/`: three PNGs supporting the Phase B analysis.
+
 ## [2.0.0] — 2026-05-10
 
 ### Added
