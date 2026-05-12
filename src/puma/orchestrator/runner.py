@@ -220,6 +220,7 @@ class Runner:
                                 raw_response = "[dry-run]"
                                 latency_ms = 0.0
                                 tokens_in = tokens_out = 0
+                                logprobs_raw: list = []
                             else:
                                 t0 = time.time()
                                 try:
@@ -236,13 +237,33 @@ class Runner:
                                     latency_ms = (time.time() - t0) * 1000
                                     tokens_in = result.prompt_eval_count
                                     tokens_out = result.eval_count
+                                    logprobs_raw = result.logprobs
                                 except Exception as exc:
                                     logger.warning("inference.error", model=model, error=str(exc))
                                     raw_response = ""
                                     latency_ms = (time.time() - t0) * 1000
                                     tokens_in = tokens_out = 0
+                                    logprobs_raw = []
 
                             parsed = scenario.parse_response(raw_response)
+                            parsed_label = str(parsed) if parsed is not None else None
+
+                            confidence: float | None = None
+                            logprobs_json: str | None = None
+                            if logprobs_raw and parsed_label is not None:
+                                label_tokens = _scenario_label_tokens(self.spec.scenario)
+                                if label_tokens is not None:
+                                    from puma.metrics.calibration import (
+                                        class_confidence_from_logprobs,
+                                    )
+
+                                    probs = class_confidence_from_logprobs(
+                                        logprobs_raw, label_tokens
+                                    )
+                                    if parsed_label in probs:
+                                        confidence = float(probs[parsed_label])
+                                logprobs_json = json.dumps(_logprobs_to_jsonable(logprobs_raw))
+
                             all_predictions.append(
                                 {
                                     "run_id": self.run_id,
@@ -255,8 +276,10 @@ class Runner:
                                     "strategy": strategy_name,
                                     "prompt_hash": prompt_hash,
                                     "raw_response": raw_response,
-                                    "parsed_label": str(parsed) if parsed is not None else None,
+                                    "parsed_label": parsed_label,
                                     "gold_label": gold,
+                                    "confidence": confidence,
+                                    "logprobs_json": logprobs_json,
                                     "latency_ms": latency_ms,
                                     "tokens_in": tokens_in,
                                     "tokens_out": tokens_out,
@@ -314,6 +337,20 @@ class Runner:
         result["parse_failure_rate"] = parse_failures / len(orig) if orig else 0.0
         result["n_predictions"] = len(orig)
 
+        # ECE — only when logprobs were captured and confidence was extracted
+        # for the predicted class. Skips regression scenarios (no class probs).
+        confs = [p["confidence"] for p in orig if p.get("confidence") is not None]
+        if confs:
+            from puma.metrics.calibration import expected_calibration_error
+
+            correct = [
+                int(p["parsed_label"] == p["gold_label"])
+                for p in orig
+                if p.get("confidence") is not None
+            ]
+            result["ece"] = expected_calibration_error(confs, correct, n_bins=15)
+            result["n_with_confidence"] = len(confs)
+
         return result
 
     def _persist_predictions(self, predictions: list[dict]) -> None:
@@ -344,6 +381,8 @@ class Runner:
                         prompt_hash=p["prompt_hash"],
                         raw_response=p["raw_response"],
                         parsed_label=p["parsed_label"],
+                        confidence=p.get("confidence"),
+                        logprobs_json=p.get("logprobs_json"),
                         latency_ms=p["latency_ms"],
                         tokens_in=p["tokens_in"],
                         tokens_out=p["tokens_out"],
@@ -383,6 +422,40 @@ def _empty_dataframe():
     import pandas as pd
 
     return pd.DataFrame()
+
+
+_TRIAGE_LABELS = ["Critical", "Major", "Minor", "Trivial"]
+_PRIORITIZATION_LABELS = ["A", "B"]
+
+
+def _scenario_label_tokens(scenario: str) -> dict[str, list[str]] | None:
+    """Return ``{label: [variant tokens]}`` for ECE on classification scenarios.
+
+    Returns ``None`` for scenarios where ECE over class probabilities is
+    not meaningful (currently: ``estimation_tawos``, which is regression).
+    """
+    if scenario == "triage_jira":
+        return {
+            label: [label, label.lower(), label.upper(), label[0], label[0].lower()]
+            for label in _TRIAGE_LABELS
+        }
+    if scenario == "prioritization_jira":
+        return {label: [label, label.lower()] for label in _PRIORITIZATION_LABELS}
+    return None
+
+
+def _logprobs_to_jsonable(lps: list) -> list[dict]:
+    """Serialize ``list[TokenLogprob]`` to plain dicts for JSON storage."""
+    out = []
+    for tl in lps:
+        out.append(
+            {
+                "token": tl.token,
+                "logprob": tl.logprob,
+                "top_logprobs": [{"token": t.token, "logprob": t.logprob} for t in tl.top_logprobs],
+            }
+        )
+    return out
 
 
 def _build_perturbation_fns(perturbations: list[str], seed: int) -> dict:

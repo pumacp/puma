@@ -1,0 +1,23 @@
+id: baseline_triage_with_logprobs_v1
+description: "Canonical baseline + logprobs capture for ECE. triage_jira × qwen2.5:3b × contextual-anchoring × N=200. Used to validate Gate D criterion 1 (ECE) end-to-end."
+scenario: triage_jira
+sample_size: 200
+models:
+  - qwen2.5:3b
+adaptation:
+  strategy: [contextual-anchoring]
+  cot: [false]
+inference:
+  temperature: 0.0
+  seed: 42
+  max_tokens: 256
+  logprobs: true
+  top_logprobs: 5
+perturbations: []
+metrics:
+  - f1_macro
+  - latency_p95
+  - ece
+sustainability:
+  codecarbon: false
+repeat: 1
