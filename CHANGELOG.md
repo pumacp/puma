@@ -10,6 +10,62 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- ECE (Expected Calibration Error) end-to-end pipeline (Sprint 3,
+  Gate D criterion 1):
+  - `puma.metrics.calibration.expected_calibration_error` already
+    existed in v2.0.0 (Guo et al. 2017 implementation, equal-width
+    bins). 6 new canonical analytical tests added under
+    `TestECECanonical` with strict 1e-6 tolerance against hand-
+    computable cases (single-sample perfect, maximum miscalibration,
+    one-bin known gap, two-bins known value, empty-bins handling,
+    binary outcomes in isolated bins).
+  - Runner now captures `result.logprobs` from the Ollama client when
+    `spec.inference.logprobs=true`, computes per-prediction
+    confidence via `class_confidence_from_logprobs` against the
+    scenario's label-token map (triage_jira and prioritization_jira;
+    regression scenario `estimation_tawos` correctly skipped), and
+    persists both `predictions.logprobs_json` and `predictions.confidence`.
+    `_compute_metrics` aggregates the per-prediction confidences into
+    an `ece` metric persisted under `metrics.metric_name='ece'`.
+  - New spec `specs/runs/baseline_triage_with_logprobs.yaml`
+    (canonical baseline + `logprobs=true, top_logprobs=5`). Empirical
+    smoke on qwen2.5:3b × N=200: F1=0.5831 (within tolerance),
+    **ECE=0.3895**, n_with_confidence=200/200. This is the first
+    empirically calibrated ECE measurement persisted by PUMA.
+  - 3 new integration tests in `tests/integration/test_runner_ece.py`
+    (ollama-gated): ECE persisted when logprobs=true, logprobs_json
+    + confidence per prediction, ECE absent + columns NULL when
+    logprobs=false (regression guard for the v2.0.0 default).
+- Multi-seed baseline validation (Sprint 3):
+  - Canonical baseline re-run with seeds {42, 123, 456} on
+    qwen2.5:3b × triage_jira × N=200. **Zero variance in task metrics
+    (F1=0.5831 in all three runs)** — the documented and expected
+    result under temperature=0.0 (greedy decoding does not consume
+    the RNG). Runtime jitter ~4 % across runs.
+  - `docs/results/multi_seed_baseline.md`: full write-up including
+    the methodological clarification that the canonical baseline's
+    ±0.01 tolerance absorbs warm-vs-cold and version-drift sources,
+    *not* seed variance.
+- Wilcoxon signed-rank pairwise model comparison (Sprint 3):
+  - `puma.metrics.statistical_tests.wilcoxon_signed_rank_models`:
+    paired-correctness signed-rank test on two models' predictions
+    over the same instance set. Returns `statistic`, `p_value`,
+    `n_pairs` (non-tied), `mean_diff`. 4 TDD tests covering
+    identical-model null, clearly-different-model alternative,
+    required-fields contract, p_value range.
+  - `scripts/wilcoxon_topmodels.py`: parameterised driver script
+    (`--run-prefix`, `--scenarios`, `--top-k`) that ranks models in
+    the DB and runs pairwise Wilcoxon comparisons.
+  - `docs/results/wilcoxon_demo.md`: empirical demonstration on a
+    mini-comparison (qwen2.5:1.5b vs gemma3:1b on triage_jira × N=50)
+    showing that a 0.19-point F1 gap is NOT statistically significant
+    at α=0.05 (p=0.1083, n_pairs=19/50). Documents why aggregate
+    metric gaps and significance tests can disagree. The B.3 sweep
+    predictions are not preserved at per-prediction granularity in
+    the local DB at v2.1.0; re-running with persistence to enable
+    Wilcoxon-at-scale is left as future work and the driver script
+    needs no changes to absorb it.
+
 ### Changed
 
 ### Fixed
