@@ -52,9 +52,7 @@ def test_ece_persisted_in_metrics_when_logprobs_enabled(tmp_path) -> None:
     """End-to-end with logprobs=True: ECE in [0,1] persisted in metrics."""
     spec = _spec(logprobs=True)
     db = tmp_path / "test.db"
-    summary = Runner(
-        spec, db_path=db, ollama_host="http://puma_ollama:11434"
-    ).run()
+    summary = Runner(spec, db_path=db, ollama_host="http://puma_ollama:11434").run()
 
     conn = sqlite3.connect(db)
     cur = conn.cursor()
@@ -66,8 +64,7 @@ def test_ece_persisted_in_metrics_when_logprobs_enabled(tmp_path) -> None:
     assert rows, "no metric rows persisted"
 
     assert "ece" in rows, (
-        f"ECE missing from metrics when logprobs=True; "
-        f"got metric names: {sorted(rows.keys())}"
+        f"ECE missing from metrics when logprobs=True; got metric names: {sorted(rows.keys())}"
     )
     ece = rows["ece"]
     assert 0.0 <= ece <= 1.0, f"ECE out of [0,1]: {ece}"
@@ -80,9 +77,7 @@ def test_logprobs_json_persisted_per_prediction(tmp_path) -> None:
     """At least one prediction row must carry logprobs_json + confidence."""
     spec = _spec(logprobs=True)
     db = tmp_path / "test.db"
-    summary = Runner(
-        spec, db_path=db, ollama_host="http://puma_ollama:11434"
-    ).run()
+    summary = Runner(spec, db_path=db, ollama_host="http://puma_ollama:11434").run()
 
     conn = sqlite3.connect(db)
     cur = conn.cursor()
@@ -95,9 +90,7 @@ def test_logprobs_json_persisted_per_prediction(tmp_path) -> None:
     assert rows, "no prediction rows persisted"
 
     with_logprobs = [r for r in rows if r[0] is not None]
-    assert with_logprobs, (
-        "no prediction row carries logprobs_json when logprobs=True"
-    )
+    assert with_logprobs, "no prediction row carries logprobs_json when logprobs=True"
     # Each populated row must have parseable JSON and a confidence in [0,1].
     for logprobs_json, confidence, parsed_label in with_logprobs:
         data = json.loads(logprobs_json)
@@ -118,9 +111,7 @@ def test_ece_absent_and_logprobs_null_when_disabled(tmp_path) -> None:
     predictions.logprobs_json / .confidence remain NULL. Regression guard."""
     spec = _spec(logprobs=False)
     db = tmp_path / "test.db"
-    summary = Runner(
-        spec, db_path=db, ollama_host="http://puma_ollama:11434"
-    ).run()
+    summary = Runner(spec, db_path=db, ollama_host="http://puma_ollama:11434").run()
 
     conn = sqlite3.connect(db)
     cur = conn.cursor()
@@ -131,8 +122,7 @@ def test_ece_absent_and_logprobs_null_when_disabled(tmp_path) -> None:
     )
     names = {r[0] for r in cur.fetchall()}
     assert "ece" not in names, (
-        f"ECE must not be persisted when logprobs=False; "
-        f"got metric names: {sorted(names)}"
+        f"ECE must not be persisted when logprobs=False; got metric names: {sorted(names)}"
     )
 
     cur.execute(

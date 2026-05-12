@@ -53,10 +53,7 @@ def wilcoxon_signed_rank_models(
     g = np.asarray(gold)
 
     if not (a.shape == b.shape == g.shape):
-        raise ValueError(
-            f"Shape mismatch: preds_a {a.shape}, preds_b {b.shape}, "
-            f"gold {g.shape}"
-        )
+        raise ValueError(f"Shape mismatch: preds_a {a.shape}, preds_b {b.shape}, gold {g.shape}")
     if a.size == 0:
         return {"statistic": 0.0, "p_value": 1.0, "n_pairs": 0, "mean_diff": 0.0}
 
