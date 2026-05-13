@@ -1,0 +1,18 @@
+[theme]
+# PUMA palette
+primaryColor = "#2E7D6A"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F4F2"
+textColor = "#1A2E2A"
+font = "sans serif"
+
+[server]
+headless = true
+port = 8501
+enableCORS = false
+
+[browser]
+gatherUsageStats = false
+
+[client]
+showErrorDetails = true

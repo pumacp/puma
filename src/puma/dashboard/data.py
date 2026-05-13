@@ -55,6 +55,60 @@ def load_predictions(db_path: Path = _DEFAULT_DB, run_id: str | None = None) -> 
     return df
 
 
+def load_predictions_with_gold(
+    db_path: Path = _DEFAULT_DB,
+    run_id: str | None = None,
+    model: str | None = None,
+    dataset: str | None = None,
+) -> pd.DataFrame:
+    """Predictions LEFT JOIN instances — exposes gold_label + input_text.
+
+    `gold_label` and `input_text` live in `instances`, not `predictions`.
+    Views that need either column must go through this loader.
+    """
+    if not db_path.exists():
+        return pd.DataFrame()
+
+    sql = """
+        SELECT
+            p.run_id,
+            p.instance_id,
+            p.model,
+            p.strategy,
+            p.parsed_label,
+            p.confidence,
+            p.logprobs_json,
+            p.latency_ms,
+            p.tokens_in,
+            p.tokens_out,
+            p.perturbation,
+            p.seed,
+            p.prompt_hash,
+            p.raw_response,
+            i.gold_label,
+            i.input_text,
+            i.dataset,
+            i.source_id
+        FROM predictions p
+        LEFT JOIN instances i ON p.instance_id = i.instance_id
+        WHERE 1=1
+    """
+    params: dict[str, str] = {}
+    if run_id:
+        sql += " AND p.run_id = :run_id"
+        params["run_id"] = run_id
+    if model:
+        sql += " AND p.model = :model"
+        params["model"] = model
+    if dataset:
+        sql += " AND i.dataset = :dataset"
+        params["dataset"] = dataset
+
+    engine = _engine(db_path)
+    with engine.connect() as conn:
+        return pd.read_sql(sql, conn, params=params)
+
+
 def load_profile_snapshots(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
     if not db_path.exists():
         return pd.DataFrame()
@@ -69,6 +123,58 @@ def metrics_pivot(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame()
     return df.pivot_table(index="run_id", columns="metric_name", values="value", aggfunc="first")
+
+
+def load_emissions(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
+    """Return CodeCarbon emissions per run (kWh, CO2 kg, energy breakdowns)."""
+    if not db_path.exists():
+        return pd.DataFrame()
+    engine = _engine(db_path)
+    with engine.connect() as conn:
+        return pd.read_sql("SELECT * FROM emissions", conn)
+
+
+def load_sustainability(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
+    """Per-run quality × cost view: model + f1_macro + ece + co2 + kwh + duration.
+
+    Joins runs, emissions, metrics (pivoted), and the first model seen in
+    predictions per run (puma runs are single-model in v2.1).
+    """  # noqa: RUF002 -- intentional Unicode multiplication sign in formula docstring
+    if not db_path.exists():
+        return pd.DataFrame()
+
+    engine = _engine(db_path)
+    with engine.connect() as conn:
+        runs = pd.read_sql("SELECT run_id, started_at, profile FROM runs", conn)
+        emissions = pd.read_sql(
+            "SELECT run_id, kwh, co2_kg, duration_s, gpu_energy, cpu_energy FROM emissions",
+            conn,
+        )
+        metrics = pd.read_sql(
+            "SELECT run_id, metric_name, value FROM metrics "
+            "WHERE metric_name IN ('f1_macro', 'accuracy', 'ece', 'parse_failure_rate', 'latency.p95')",
+            conn,
+        )
+        models = pd.read_sql(
+            "SELECT run_id, MIN(model) AS model FROM predictions GROUP BY run_id",
+            conn,
+        )
+
+    if runs.empty:
+        return pd.DataFrame()
+
+    metrics_pivot = metrics.pivot_table(
+        index="run_id", columns="metric_name", values="value", aggfunc="first"
+    ).reset_index()
+
+    out = (
+        runs.merge(models, on="run_id", how="left")
+        .merge(metrics_pivot, on="run_id", how="left")
+        .merge(emissions, on="run_id", how="left")
+    )
+    if "co2_kg" in out.columns:
+        out["co2_g"] = out["co2_kg"] * 1000.0
+    return out
 
 
 def run_summary(db_path: Path = _DEFAULT_DB) -> list[dict[str, Any]]:
