@@ -41,9 +41,7 @@ def render() -> None:
         st.info("No runs with an associated model found.")
     else:
         agg_cols = [
-            c
-            for c in ["f1_macro", "accuracy", "ece", "parse_failure_rate"]
-            if c in sus_m.columns
+            c for c in ["f1_macro", "accuracy", "ece", "parse_failure_rate"] if c in sus_m.columns
         ]
         agg = sus_m.groupby("model")[agg_cols].agg(["mean", "std", "count"])
         agg.columns = [f"{m}_{stat}" for m, stat in agg.columns]
