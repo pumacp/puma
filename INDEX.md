@@ -14,20 +14,21 @@ results, and releases.
 
 ## Project status
 
-**Current version**: v2.2.0 (released 2026-05-13)
+**Current version**: v2.3.0 (released 2026-05-13)
 
 | Phase | Description | Status |
 |-------|-------------|--------|
 | A | Initial cleanup and v2.0.0 release | ✓ COMPLETE |
 | B | Multi-model evaluation + comparative analysis | ✓ COMPLETE |
-| C | Professional dashboard (Streamlit) | 🟡 Core done; polish pending |
+| C | Professional dashboard (Streamlit) | ✓ COMPLETE (Sprint 4 core + Sprint 6 polish) |
 | D | Technical depth (calibration, statistics, bias) | ✓ ~95% (Sprints 1, 2, 3, 5 closed; ROCm/Metal n/a) |
-| E | Documentation and release consolidation | ✓ COMPLETE (v2.0.0, v2.1.0, v2.2.0) |
+| E | Documentation and release consolidation | ✓ COMPLETE (v2.0.0, v2.1.0, v2.2.0, v2.3.0) |
 
 ## Releases
 
 | Tag | Date | Highlights |
 |-----|------|------------|
+| [v2.3.0](https://github.com/pumacp/puma/releases/tag/v2.3.0) | 2026-05-13 | Dashboard polish (`app.py` 803→168 LOC, 10 improvements, guided tour) + documentation structure |
 | [v2.2.0](https://github.com/pumacp/puma/releases/tag/v2.2.0) | 2026-05-13 | Statistical pipeline (ECE, multi-seed, Wilcoxon) + dashboard core + empirical bias evaluation |
 | [v2.1.0](https://github.com/pumacp/puma/releases/tag/v2.1.0) | 2026-05-10 | Multi-model evaluation (9 models × 3 scenarios) + critical debt cleanup |
 | [v2.0.0](https://github.com/pumacp/puma/releases/tag/v2.0.0) | 2026-05-09 | Initial published release with reproducible baseline |
@@ -77,10 +78,10 @@ PUMA is organized in modular layers under `src/puma/`:
 
 ## Quality
 
-- Tests: 313 passing
+- Tests: 318 passing
 - Pre-commit: 10/10 hooks green
 - CI: green on main and develop
-- Coverage: 55% (intentional release-quality target; UI/reporting modules scheduled for Sprint 6)
+- Coverage: 58%
 
 ## Debt tracking
 
