@@ -79,9 +79,7 @@ def test_bias_analysis_writes_output(tmp_path: Path) -> None:
     _make_perturbed_db(db)
     out = tmp_path / "bias.md"
     runner = CliRunner()
-    result = runner.invoke(
-        app, ["bias-analysis", "--db", str(db), "--output", str(out)]
-    )
+    result = runner.invoke(app, ["bias-analysis", "--db", str(db), "--output", str(out)])
     assert result.exit_code == 0
     assert out.exists()
     body = out.read_text(encoding="utf-8")
