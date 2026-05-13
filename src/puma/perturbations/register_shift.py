@@ -42,7 +42,7 @@ FORMAL_TO_INFORMAL: dict[str, str] = {
 }
 
 
-def apply(text: str, seed: int = 0) -> str:  # noqa: ARG001 -- seed kept for runner signature uniformity
+def apply(text: str, seed: int = 0) -> str:
     """Apply formal → informal substitutions in declaration order."""
     if not text:
         return text

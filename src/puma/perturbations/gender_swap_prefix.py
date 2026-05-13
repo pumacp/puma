@@ -37,7 +37,7 @@ def _stable_index(text: str, seed: int, modulus: int) -> int:
     so it cannot be used here without breaking determinism across
     invocations. SHA-256 is content-stable.
     """
-    digest = hashlib.sha256(f"{seed}:{text}".encode("utf-8")).digest()
+    digest = hashlib.sha256(f"{seed}:{text}".encode()).digest()
     return int.from_bytes(digest[:4], "big") % modulus
 
 
