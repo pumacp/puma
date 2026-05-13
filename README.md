@@ -8,11 +8,11 @@
 
 PUMA is a research-driven platform that benchmarks autonomous AI agents on practical project management tasks. This repository contains the **evaluation platform**: orchestrator, scenarios, metrics, sustainability tracking, dashboard, and reproducible specifications. All inference runs locally via [Ollama](https://ollama.ai) — no external API calls, no data leaves your machine.
 
-![Tests](https://img.shields.io/badge/tests-313%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-318%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 ![Docker](https://img.shields.io/badge/runs%20on-Docker-2496ED)
-![Version](https://img.shields.io/badge/version-v2.2.0-blue)
+![Version](https://img.shields.io/badge/version-v2.3.0-blue)
 
 ## Related resources
 
@@ -26,12 +26,11 @@ PUMA is a research-driven platform that benchmarks autonomous AI agents on pract
 
 | Item | Value |
 |------|-------|
-| Current release | [v2.2.0](https://github.com/pumacp/puma/releases/tag/v2.2.0) |
-| Tests | 313 passing |
-| Coverage | 55% |
+| Current release | [v2.3.0](https://github.com/pumacp/puma/releases/tag/v2.3.0) |
+| Tests | 318 passing |
+| Coverage | 58% |
 | CI | ✓ green on main + develop |
-| Phases A, B, D, E | ✓ Complete |
-| Phase C | 🟡 Core done; polish pending |
+| Phases A, B, C, D, E | ✓ All complete |
 | Debt | 15 resolved; 7 open (0 critical, 5 medium, 2 low) |
 
 > **PUMA is an independent benchmarking framework, fully self-contained, designed specifically for evaluating local LLMs on Project Management Office (PMO) tasks. All evaluation methodology, scenarios, and metrics are developed and maintained independently as part of this work.**
@@ -403,12 +402,8 @@ All dev tooling runs inside the container. See [CONTRIBUTING.md](CONTRIBUTING.md
 
 ## Roadmap
 
-Trabajo identificado para releases posteriores a v2.2.0:
+Trabajo identificado para releases posteriores a v2.3.0:
 
-- **Phase C polish (Sprint 6)** — dashboard refactor of `app.py`
-  (640 LOC monolithic) to a `views/` module per view; animations,
-  guided tour, deeper exports. Coverage uplift for
-  `puma.dashboard.*` and `puma.reporting.*`.
 - **Cross-strategy comparison at scale** — pairwise comparisons
   across `zero-shot`, `few-shot-{3,5,8}`, and CoT variants on the
   same model cohort, with the new Wilcoxon driver applied.
@@ -426,7 +421,12 @@ Trabajo identificado para releases posteriores a v2.2.0:
   show the original ticket description rather than the empty-text
   placeholder.
 
-Closed in v2.2.0 (no longer in roadmap):
+Closed in v2.3.0 (no longer in roadmap):
+
+- ✓ Phase C polish (Sprint 6 → `app.py` 803→168 LOC refactor +
+  10 polish improvements + guided tour, all five Gate-C criteria met)
+
+Closed in v2.2.0:
 
 - ✓ ECE / calibration metrics completion (Sprint 3 → Reliability view)
 - ✓ Multi-seed validation (Sprint 3 → bit-exact under T=0.0)
@@ -456,6 +456,7 @@ Detailed debt inventory in
 | [docs/results/wilcoxon_demo.md](docs/results/wilcoxon_demo.md) | Wilcoxon signed-rank pairwise comparison empirical demo (Sprint 3) |
 | [docs/results/bias_evaluation.md](docs/results/bias_evaluation.md) | Bias evaluation empirical findings (Sprint 5) |
 | [docs/known_debt.md](docs/known_debt.md) | Open and resolved technical debt with diagnostic write-ups |
+| [docs/RELEASES/v2.3.0.md](docs/RELEASES/v2.3.0.md) | v2.3.0 release notes |
 | [docs/RELEASES/v2.2.0.md](docs/RELEASES/v2.2.0.md) | v2.2.0 release notes |
 | [docs/RELEASES/v2.1.0.md](docs/RELEASES/v2.1.0.md) | v2.1.0 release notes |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Code conventions, commit format, PR process |

@@ -16,6 +16,105 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
+## [2.3.0] — 2026-05-13
+
+### Added
+
+Sprint 6 (dashboard polish, Phase C close):
+- `src/puma/dashboard/views/`: 7 modular view modules — one per
+  dashboard view — each exposing a `render()` entry point. Modules
+  are independently importable and testable; the router consumes
+  them via a `VIEWS` dict.
+- `src/puma/dashboard/views/_base.py`: shared helpers for view
+  modules (`DB_PATH`, `no_data`, session-state filter accessors).
+- First-visit guided tour: expander listing the 7 views and tips
+  (download CSV, dark mode, tooltips). Persistent dismiss via
+  `st.session_state["tour_dismissed"]`; "📖 Show tour" button in
+  sidebar to re-open.
+- CSV download buttons on 4 data tables (Model Comparison aggregate,
+  Robustness, Fairness baseline + directional, Instance Drill-down).
+- Tooltips (`help=`) on ≈ 12 metric cards (ECE, CO₂, kWh, latency p95,
+  F1, parse failure, etc.).
+- `components.empty_filtered_state`: unified message component for
+  views with no data after filtering, with separate copy for empty-DB
+  vs. empty-after-filter cases.
+- `components.download_csv_button`: small helper that wraps
+  `df.to_csv` + `st.download_button` with a default 📥 label.
+- 5 new dashboard smoke tests (view module imports, router structure,
+  polish helpers, cache decorator presence). Suite grew from 6 → 11
+  dashboard tests; project total 313 → 318.
+
+Phase E.bis / E.ter (documentation structure):
+- `INDEX.md` (root, uppercase): project status, phases, releases,
+  debt tracking, architecture entry points.
+- `docs/overview.md` (new location): preserves the 256 LOC of
+  architectural content from the legacy lowercase `index.md`.
+- `docs/RELEASES/v2.3.0.md`: this release's notes.
+
+### Changed
+
+Sprint 6:
+- `src/puma/dashboard/app.py`: refactored from 803 LOC monolithic to
+  168 LOC router (-79 %). View logic delegated to `views/` modules;
+  filters published to `st.session_state` by the router and read by
+  each view's `render()` (which now takes no args).
+- `@st.cache_data(ttl=60, show_spinner=False)` applied to 7
+  frequently-called data loaders (`load_runs`, `load_metrics`,
+  `load_predictions`, `load_predictions_with_gold`, `load_emissions`,
+  `load_sustainability`, `load_profile_snapshots`, `metrics_pivot`).
+  Reduces redundant DB queries during reruns. Distinct `db_path`
+  arguments produce distinct cache entries, preserving test isolation.
+- `st.spinner` wrapped around slow `load_*` and matplotlib renders
+  across all 7 views.
+- Module-level imports of `matplotlib.pyplot` and
+  `puma.metrics.fairness.perturbation_disparity` (removed N×inline
+  duplications previously needed by the monolithic file).
+- Emoji prefixes applied consistently across the 7 view titles
+  (matches the tour table).
+- `page_icon` changed from `:bar_chart:` to `🐾` for consistency
+  with the PUMA logo in the sidebar.
+- Friendly expander titles in Overview (`model · YYYY-MM-DD · F1=…`)
+  instead of raw 60-char `run_id` strings (still shown as a caption
+  inside the expander).
+- README.md: branded header with PUMA logo, descriptive blockquote,
+  and Related-Resources section linking to puma-vault, INDEX.md, and
+  `docs/overview.md`. Sidebar caption expanded to the full PUMA
+  acronym.
+
+### Fixed
+
+Sprint 6:
+- Dark-mode dataframe text colour: previous CSS rule left text at
+  `#1A2E2A` over the `#1A1A2E` dark background, making tables nearly
+  unreadable. New rule forces `#E5E7EB` text and `#16213E` cell
+  background when dark mode is on.
+- Hidden N+1 access in Overview: `load_predictions(DB_PATH)` was
+  invoked twice inside a single metric_card call to compute "unique
+  instances". Extracted to a single local variable; with the new
+  cache decorator this is a no-op on the second call anyway.
+- Empty selectbox in Instance Drill-down when filters yielded no
+  runs: now shows the unified informative message and returns early.
+- `.github/workflows/release.yml` no longer creates duplicate draft
+  releases on tag push (E.bis fix; retroactively documented here).
+
+### Highlights
+
+- **Dashboard production-quality.** `app.py` shrank 79 % (803 → 168
+  LOC) and gained 10 polish improvements (caching, spinners, CSV
+  export, tooltips, friendly titles, empty-state unification, dark-
+  mode bug fix). Phase C of the master plan is now fully complete
+  — all five Gate-C criteria met.
+- **Documentation structured.** `INDEX.md` (project state) and
+  `docs/overview.md` (architecture) replace the legacy `index.md`
+  with clearer separation of concerns. `README.md` adopts the
+  visual identity of the PUMA Research Vault.
+- **318 tests passing.** +5 over v2.2.0 covering view module
+  integrity, polish helpers, cache decorator presence, and the
+  end-to-end AppTest render with the live database.
+- **CI hygiene.** GitHub release workflow corrected to prevent
+  duplicate drafts on tag push; the v2.3.0 release verifies the fix
+  is effective.
+
 ## [2.2.0] — 2026-05-13
 
 ### Added
