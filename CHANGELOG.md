@@ -10,6 +10,16 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+### Changed
+
+### Fixed
+
+### Removed
+
+## [2.2.0] — 2026-05-13
+
+### Added
+
 - ECE (Expected Calibration Error) end-to-end pipeline (Sprint 3,
   Gate D criterion 1):
   - `puma.metrics.calibration.expected_calibration_error` already
@@ -65,12 +75,119 @@ Versions follow [Semantic Versioning](https://semver.org/).
     the local DB at v2.1.0; re-running with persistence to enable
     Wilcoxon-at-scale is left as future work and the driver script
     needs no changes to absorb it.
+- Dashboard core (Sprint 4, Phase C):
+  - `.streamlit/config.toml`: PUMA visual identity (emerald palette
+    `#2E7D6A`, sans-serif typography, telemetry disabled).
+  - `src/puma/dashboard/data.py`: new `load_predictions_with_gold`
+    LEFT-JOINs `predictions ⋈ instances` to expose `gold_label` and
+    `input_text` correctly. Fixes a silent bug in two views that read
+    `gold_label` from `predictions` (where it does not exist). Also
+    new `load_emissions` and `load_sustainability` for the
+    quality-vs-cost views.
+  - 5 fully functional dashboard views: Overview (cohort cards plus
+    per-run expanders, sidebar filters applied), Model Comparison
+    (mean±std aggregation over seeds plus run×metric heatmap and
+    Wilcoxon artefact rendering), Reliability (real ECE plus
+    reliability diagram from logprobs), Sustainability Frontier (F1
+    vs CO₂ Pareto consuming the emissions table from Sprint 2 D15),
+    Instance Drill-down (gold_label correct via JOIN, top-K logprobs
+    rendered, outcome filters).
+  - 2 informed placeholders: Fairness and Robustness (made functional
+    by Sprint 5).
+  - PUMA logo integrated in sidebar (160 px wide).
+  - Dark-mode toggle via runtime CSS override.
+  - `tests/unit/test_dashboard_smoke.py`: 6 smoke tests (module
+    parse, components callable, all 9 loaders exposed, loaders handle
+    missing DB, JOIN exposes `gold_label` against an in-memory DB,
+    end-to-end render via `streamlit.testing.v1.AppTest`).
+- Empirical bias evaluation suite (Sprint 5, Gate D criterion 4):
+  - `src/puma/perturbations/gender_swap_prefix.py`: identity prefix
+    injection (`John Smith reported: …` vs `Mary Smith reported: …`).
+    Deterministic across processes via SHA-256 over `(seed, text)` —
+    Python's builtin `hash()` is process-randomised and would have
+    silently broken seed-to-seed reproducibility. Methodology per
+    Caliskan et al. (2017) and Bolukbasi et al. (2016). 10 TDD tests.
+  - `src/puma/perturbations/register_shift.py`: 19-entry
+    formal→informal substitution table with a cascade-prevention
+    invariant verified by test (no value is also a key). Acts as a
+    register-variation proxy for the dialect axis on a monolingual
+    technical corpus per Tatman (2017). 7 TDD tests.
+  - `src/puma/metrics/fairness.py`: extended with
+    `perturbation_disparity` returning `acc_baseline`, `acc_perturbed`,
+    `disparity`, `flip_rate`, `flip_to_correct`, `flip_to_incorrect`.
+    Preserves the existing `fairness_report` used elsewhere. 8 TDD
+    tests.
+  - `src/puma/orchestrator/runner.py`: `_build_perturbation_fns`
+    mapping extended with three entries; the runner's existing
+    `("original", None)`-plus-perturbations loop persists baseline
+    and perturbed predictions in one pass.
+  - `specs/runs/sweep_bias_perturbations.yaml`: 2 models × (baseline
+    + 3 perturbations) × 100 instances = 800 inferences.
+  - `scripts/bias_analysis.py`: per-(model, perturbation) disparity
+    vs un-perturbed baseline plus paired male-vs-female directional
+    comparison; writes `docs/results/bias_evaluation.md`.
+  - Dashboard Fairness and Robustness views now functional with real
+    perturbed data; fall back to placeholder text when no perturbed
+    runs are in the selected cohort.
 
 ### Changed
 
+- CHANGELOG.md: `[Unreleased]` section consolidated into `[2.2.0]`.
+- README.md and `docs/RELEASES/`: refreshed for v2.2.0 (see commit
+  `docs(release): consolidate v2.2.0`).
+
 ### Fixed
 
+- Silent JOIN-on-the-wrong-table bug in two dashboard views (Fairness
+  and Instance Drill-down read `gold_label` from `predictions`, where
+  it did not exist; correct source is `instances`). Fix lives in the
+  new `load_predictions_with_gold` data-layer helper.
+
 ### Removed
+
+### Methodological findings
+
+- D19 (fairness scaffolding only) is now closed empirically. See
+  `docs/known_debt.md` "Resolved technical debt" section.
+- D22 (synthetic `triage_jira` dataset persists only `instance_id`
+  and `gold_label`; `instances.input_text` is empty) added under Low
+  in this release. Affects Dashboard Instance Drill-down render but
+  not evaluation metrics. Surfaced during Sprint 4 S4.3.0 when
+  JOIN-ing `predictions ⋈ instances` to fix the silent `gold_label`
+  bug.
+
+### Highlights
+
+- **Bias evaluation empirically completed.** Adapted methodology to
+  technical corpus (signal injection instead of substitution,
+  following Caliskan et al. and Bolukbasi et al.). Key empirical
+  findings on triage_jira × N=100 per condition: qwen2.5:1.5b shows
+  ~25 % prediction flip rate with a gender signal added
+  (-11 to -12 pp accuracy, 15 % directional bias male vs female);
+  qwen2.5:3b shows the same flip rate but only -3 to -4 pp accuracy
+  and 5 % directional bias — the model 3× larger exhibits ~3× less
+  directional bias. `register_shift` (formal↔informal) shows ~0 %
+  effect: both models robust to register variation but sensitive
+  to sociodemographic signal.
+- **Multi-seed validation confirms bit-exact reproducibility under
+  T=0.0.** Three seeds {42, 123, 456} on the canonical baseline yield
+  zero variance, validating the deterministic guarantee documented
+  in v2.0.0.
+- **ECE pipeline end-to-end.** Baseline qwen2.5:3b shows
+  ECE=0.39 — significant miscalibration, expected for out-of-the-box
+  LLMs without post-hoc calibration. Now visible in the Dashboard
+  Reliability view (real logprobs, no synthetic data).
+- **Dashboard with 5 functional views and 2 informed placeholders.**
+  Visual identity applied; dark mode functional; emissions data from
+  Sprint 2 surfaced in the Sustainability Frontier view. Polish
+  (animations, guided tour, refactor to `views/` modules) deferred
+  to a future Sprint 6.
+- **15 of 23 known debt items now resolved (65 %).** Remaining 8 are
+  0 critical, 5 medium, 2 low (1 decided-no-action).
+- **Methodological note:** four independent findings (D15, D18, D21,
+  D22) share a meta-pattern documented in `docs/known_debt.md`:
+  "symptom appears in layer N, root cause in layer M ≠ N". This
+  pattern is preserved for academic traceability.
 
 ## [2.1.0] — 2026-05-10
 
