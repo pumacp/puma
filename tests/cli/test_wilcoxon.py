@@ -60,9 +60,7 @@ def test_wilcoxon_help_exit_zero() -> None:
 @pytest.mark.unit
 def test_wilcoxon_missing_db_exit_one(tmp_path: Path) -> None:
     runner = CliRunner()
-    result = runner.invoke(
-        app, ["wilcoxon", "r1", "r2", "--db", str(tmp_path / "nope.db")]
-    )
+    result = runner.invoke(app, ["wilcoxon", "r1", "r2", "--db", str(tmp_path / "nope.db")])
     assert result.exit_code == 1
 
 
@@ -71,9 +69,7 @@ def test_wilcoxon_unknown_run_exit_one(tmp_path: Path) -> None:
     db = tmp_path / "tiny.db"
     _make_paired_db(db, n=30)
     runner = CliRunner()
-    result = runner.invoke(
-        app, ["wilcoxon", "does_not_exist", "run_b_gemma", "--db", str(db)]
-    )
+    result = runner.invoke(app, ["wilcoxon", "does_not_exist", "run_b_gemma", "--db", str(db)])
     assert result.exit_code == 1
 
 
@@ -83,9 +79,7 @@ def test_wilcoxon_too_few_pairs_exit_two(tmp_path: Path) -> None:
     db = tmp_path / "tiny.db"
     _make_paired_db(db, n=5)
     runner = CliRunner()
-    result = runner.invoke(
-        app, ["wilcoxon", "run_a_qwen", "run_b_gemma", "--db", str(db)]
-    )
+    result = runner.invoke(app, ["wilcoxon", "run_a_qwen", "run_b_gemma", "--db", str(db)])
     assert result.exit_code == 2
 
 
@@ -106,9 +100,7 @@ def test_wilcoxon_writes_output_file(tmp_path: Path) -> None:
     run_a, run_b = _make_paired_db(db, n=30)
     out = tmp_path / "result.md"
     runner = CliRunner()
-    result = runner.invoke(
-        app, ["wilcoxon", run_a, run_b, "--db", str(db), "--output", str(out)]
-    )
+    result = runner.invoke(app, ["wilcoxon", run_a, run_b, "--db", str(db), "--output", str(out)])
     assert result.exit_code == 0
     assert out.exists()
     body = out.read_text(encoding="utf-8")
