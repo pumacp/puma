@@ -131,3 +131,92 @@ def test_app_renders_without_exception() -> None:
     at = AppTest.from_file(str(APP_PATH), default_timeout=30)
     at.run()
     assert not at.exception, f"Dashboard raised: {at.exception}"
+
+
+# ── Sprint 6 additions: refactor, polish, and tour ────────────────────────────
+
+
+@pytest.mark.unit
+def test_each_view_module_exposes_render() -> None:
+    """Each of the 7 view modules must define a callable ``render()``."""
+    from puma.dashboard.views import (
+        fairness,
+        instance_drilldown,
+        model_comparison,
+        overview,
+        reliability,
+        robustness,
+        sustainability,
+    )
+
+    for module in (
+        overview,
+        model_comparison,
+        reliability,
+        robustness,
+        fairness,
+        sustainability,
+        instance_drilldown,
+    ):
+        assert callable(getattr(module, "render", None)), f"{module.__name__} missing render()"
+
+
+@pytest.mark.unit
+def test_app_router_exposes_views_dict() -> None:
+    """The router registers exactly 7 views, one per module."""
+    src = APP_PATH.read_text(encoding="utf-8")
+    # Quick textual check: 7 emoji-prefixed view labels
+    expected = [
+        "📊 Overview",
+        "🆚 Model Comparison",
+        "🎯 Reliability",
+        "🛡️ Robustness",
+        "⚖️ Fairness",
+        "🌱 Sustainability Frontier",
+        "🔍 Instance Drill-down",
+    ]
+    for label in expected:
+        assert label in src, f"View label {label!r} not registered in router"
+
+
+@pytest.mark.unit
+def test_components_metric_card_accepts_help_kwarg() -> None:
+    """``metric_card`` must expose ``help=`` (Sprint 6 mejora #4)."""
+    import inspect
+
+    from puma.dashboard.components import metric_card
+
+    sig = inspect.signature(metric_card)
+    assert "help" in sig.parameters
+
+
+@pytest.mark.unit
+def test_components_expose_polish_helpers() -> None:
+    """The polish helpers added in Sprint 6 must be importable."""
+    from puma.dashboard.components import download_csv_button, empty_filtered_state
+
+    assert callable(empty_filtered_state)
+    assert callable(download_csv_button)
+
+
+@pytest.mark.unit
+def test_data_loaders_have_cache_decorator() -> None:
+    """Loaders must be wrapped by ``st.cache_data`` (Sprint 6 mejora #1).
+
+    Streamlit's cache decorator attaches a ``clear`` method to the wrapped
+    function; absence of that attribute means the loader was not cached.
+    """
+    from puma.dashboard import data
+
+    for name in (
+        "load_runs",
+        "load_metrics",
+        "load_predictions",
+        "load_predictions_with_gold",
+        "load_emissions",
+        "load_sustainability",
+        "load_profile_snapshots",
+        "metrics_pivot",
+    ):
+        fn = getattr(data, name)
+        assert hasattr(fn, "clear"), f"data.{name} is not decorated with @st.cache_data"

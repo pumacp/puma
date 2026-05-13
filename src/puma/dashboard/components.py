@@ -9,8 +9,18 @@ from typing import Any
 import pandas as pd
 
 
-def metric_card(label: str, value: Any, delta: Any = None, fmt: str = "{:.4f}") -> None:
-    """Render a single st.metric card, formatting floats."""
+def metric_card(
+    label: str,
+    value: Any,
+    delta: Any = None,
+    fmt: str = "{:.4f}",
+    help: str | None = None,
+) -> None:
+    """Render a single st.metric card, formatting floats.
+
+    Args:
+        help: optional tooltip shown on hover (Streamlit's ``help=`` arg).
+    """
     import streamlit as st
 
     display = fmt.format(value) if isinstance(value, float) else str(value)
@@ -19,7 +29,52 @@ def metric_card(label: str, value: Any, delta: Any = None, fmt: str = "{:.4f}") 
         if isinstance(delta, float)
         else (str(delta) if delta is not None else None)
     )
-    st.metric(label=label, value=display, delta=delta_str)
+    st.metric(label=label, value=display, delta=delta_str, help=help)
+
+
+def empty_filtered_state(view_name: str, has_data_in_db: bool = True) -> None:
+    """Render a consistent message when filters or DB yield no data.
+
+    Args:
+        view_name: human-readable view name, e.g. "Reliability".
+        has_data_in_db: True if the database has rows but filters exclude
+            them; False if the DB itself is empty.
+    """
+    import streamlit as st
+
+    if has_data_in_db:
+        st.info(
+            f"ℹ️ No data matches the current filters in **{view_name}**.\n\n"  # noqa: RUF001 -- intentional Unicode glyph for UI typography
+            "Try:\n"
+            "- Expanding the date range\n"
+            "- Selecting more runs/models in the sidebar\n"
+            "- Clearing filters to see all data"
+        )
+    else:
+        st.info(
+            f"ℹ️ No data available for **{view_name}** in the database.\n\n"  # noqa: RUF001 -- intentional Unicode glyph for UI typography
+            "Populate the DB first, e.g.:\n"
+            "```\npuma run specs/runs/baseline_triage_with_logprobs.yaml\n```"
+        )
+
+
+def download_csv_button(
+    df: pd.DataFrame,
+    file_name: str,
+    label: str = "📥 Download CSV",
+    key: str | None = None,
+) -> None:
+    """Render a download button for ``df`` serialised to CSV."""
+    import streamlit as st
+
+    csv_bytes = df.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label=label,
+        data=csv_bytes,
+        file_name=file_name,
+        mime="text/csv",
+        key=key,
+    )
 
 
 def comparison_table(run_metrics: dict[str, dict[str, float]]) -> pd.DataFrame:

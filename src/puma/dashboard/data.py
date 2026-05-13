@@ -1,4 +1,9 @@
-"""Read-only data access helpers for the PUMA dashboard."""
+"""Read-only data access helpers for the PUMA dashboard.
+
+All loaders are cached via ``st.cache_data`` (TTL 60 s). Distinct
+``db_path`` arguments produce distinct cache entries, so test fixtures
+using ``tmp_path`` are not affected by cached production data.
+"""
 
 from __future__ import annotations
 
@@ -6,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 import pandas as pd
+import streamlit as st
 
 _DEFAULT_DB = Path("data/puma.db")
 
@@ -16,6 +22,7 @@ def _engine(db_path: Path):
     return create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
 
 
+@st.cache_data(ttl=60, show_spinner=False)
 def load_runs(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
     """Return all runs as a DataFrame, newest first."""
     if not db_path.exists():
@@ -28,6 +35,7 @@ def load_runs(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
     return df
 
 
+@st.cache_data(ttl=60, show_spinner=False)
 def load_metrics(db_path: Path = _DEFAULT_DB, run_ids: list[str] | None = None) -> pd.DataFrame:
     """Return metrics, optionally filtered to specific run_ids."""
     if not db_path.exists():
@@ -42,6 +50,7 @@ def load_metrics(db_path: Path = _DEFAULT_DB, run_ids: list[str] | None = None) 
     return df
 
 
+@st.cache_data(ttl=60, show_spinner=False)
 def load_predictions(db_path: Path = _DEFAULT_DB, run_id: str | None = None) -> pd.DataFrame:
     """Return predictions for a run, or all predictions."""
     if not db_path.exists():
@@ -55,6 +64,7 @@ def load_predictions(db_path: Path = _DEFAULT_DB, run_id: str | None = None) -> 
     return df
 
 
+@st.cache_data(ttl=60, show_spinner=False)
 def load_predictions_with_gold(
     db_path: Path = _DEFAULT_DB,
     run_id: str | None = None,
@@ -109,6 +119,7 @@ def load_predictions_with_gold(
         return pd.read_sql(sql, conn, params=params)
 
 
+@st.cache_data(ttl=60, show_spinner=False)
 def load_profile_snapshots(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
     if not db_path.exists():
         return pd.DataFrame()
@@ -117,6 +128,7 @@ def load_profile_snapshots(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
         return pd.read_sql("SELECT * FROM profile_snapshots", conn)
 
 
+@st.cache_data(ttl=60, show_spinner=False)
 def metrics_pivot(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
     """Return a run × metric pivot table (useful for heatmaps)."""  # noqa: RUF002 -- intentional Unicode multiplication sign in formula docstring
     df = load_metrics(db_path)
@@ -125,6 +137,7 @@ def metrics_pivot(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
     return df.pivot_table(index="run_id", columns="metric_name", values="value", aggfunc="first")
 
 
+@st.cache_data(ttl=60, show_spinner=False)
 def load_emissions(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
     """Return CodeCarbon emissions per run (kWh, CO2 kg, energy breakdowns)."""
     if not db_path.exists():
@@ -134,6 +147,7 @@ def load_emissions(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
         return pd.read_sql("SELECT * FROM emissions", conn)
 
 
+@st.cache_data(ttl=60, show_spinner=False)
 def load_sustainability(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
     """Per-run quality × cost view: model + f1_macro + ece + co2 + kwh + duration.
 
