@@ -359,5 +359,602 @@ def report(
         raise typer.Exit(1) from exc
 
 
+# ── Sprint 7 — CLI completeness (Anexo F § A.2) ───────────────────────────────
+
+
+@app.command(name="list-runs")
+def list_runs(
+    db_path: str = typer.Option("data/puma.db", "--db", help="Path to puma.db"),
+    scenario: str | None = typer.Option(None, "--scenario", help="Filter by scenario"),
+    model: str | None = typer.Option(None, "--model", help="Filter by model tag"),
+    last_n: int | None = typer.Option(None, "--last-n", help="Show only the last N runs"),
+    since: str | None = typer.Option(
+        None,
+        "--since",
+        help="ISO date or relative offset (e.g. '24h', '7d')",
+    ),
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON instead of a table"),
+) -> None:
+    """List runs registered in the database with their headline metrics (Anexo F § A.2.5)."""
+    import json as _json
+    import re
+    import sqlite3
+    from datetime import datetime, timedelta
+    from pathlib import Path as _Path
+
+    from rich.console import Console
+    from rich.table import Table
+
+    db = _Path(db_path)
+    if not db.exists():
+        typer.secho(f"[ERROR] DB not found: {db}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
+
+    since_iso: str | None = None
+    if since:
+        m = re.fullmatch(r"(\d+)([hd])", since.strip())
+        if m:
+            n, unit = int(m.group(1)), m.group(2)
+            delta = timedelta(hours=n) if unit == "h" else timedelta(days=n)
+            since_iso = (datetime.utcnow() - delta).isoformat()
+        else:
+            since_iso = since  # assume ISO
+
+    sql = (
+        "SELECT r.run_id, r.profile, r.started_at, r.finished_at, r.status, "
+        "MAX(CASE WHEN m.metric_name='f1_macro' THEN m.value END) AS f1_macro, "
+        "MAX(CASE WHEN m.metric_name='mae_sp' THEN m.value END) AS mae_sp, "
+        "MAX(CASE WHEN m.metric_name='parse_failure_rate' THEN m.value END) AS pfr "
+        "FROM runs r LEFT JOIN metrics m ON r.run_id = m.run_id WHERE 1=1"
+    )
+    params: list = []
+    if scenario:
+        sql += " AND r.run_id LIKE ?"
+        params.append(f"%{scenario}%")
+    if since_iso:
+        sql += " AND r.started_at >= ?"
+        params.append(since_iso)
+    sql += " GROUP BY r.run_id ORDER BY r.started_at DESC"
+    if last_n is not None:
+        sql += " LIMIT ?"
+        params.append(last_n)
+
+    con = sqlite3.connect(str(db))
+    try:
+        rows = con.execute(sql, params).fetchall()
+    finally:
+        con.close()
+
+    if model:
+        # Filter by model after the fact via predictions table
+        con = sqlite3.connect(str(db))
+        try:
+            models_by_run = dict(
+                con.execute("SELECT run_id, MIN(model) FROM predictions GROUP BY run_id").fetchall()
+            )
+        finally:
+            con.close()
+        rows = [r for r in rows if models_by_run.get(r[0]) == model]
+
+    if not rows:
+        typer.secho("No runs match the current filters.", fg=typer.colors.YELLOW)
+        raise typer.Exit(2)
+
+    records = [
+        {
+            "run_id": r[0],
+            "profile": r[1],
+            "started_at": r[2],
+            "finished_at": r[3],
+            "status": r[4],
+            "f1_macro": r[5],
+            "mae_sp": r[6],
+            "parse_failure_rate": r[7],
+        }
+        for r in rows
+    ]
+
+    if json_output:
+        typer.echo(_json.dumps(records, indent=2, default=str))
+        return
+
+    table = Table(title=f"PUMA runs ({len(records)})")
+    table.add_column("run_id", overflow="fold")
+    table.add_column("profile")
+    table.add_column("status")
+    table.add_column("F1 macro", justify="right")
+    table.add_column("MAE SP", justify="right")
+    table.add_column("Parse fail", justify="right")
+    table.add_column("started_at")
+    for rec in records:
+
+        def _fmt(v: object) -> str:
+            return f"{v:.4f}" if isinstance(v, float) else ("—" if v is None else str(v))
+
+        table.add_row(
+            rec["run_id"],
+            rec["profile"] or "—",
+            rec["status"] or "—",
+            _fmt(rec["f1_macro"]),
+            _fmt(rec["mae_sp"]),
+            _fmt(rec["parse_failure_rate"]),
+            str(rec["started_at"])[:19] if rec["started_at"] else "—",
+        )
+    Console().print(table)
+
+
+@app.command(name="list-ollama-models")
+def list_ollama_models(
+    json_output: bool = typer.Option(False, "--json", help="Emit JSON instead of a table"),
+) -> None:
+    """List models effectively present in the Ollama volume (Anexo F § A.2.6)."""
+    import json as _json
+    import re
+    import subprocess
+
+    from rich.console import Console
+    from rich.table import Table
+
+    result = subprocess.run(
+        ["docker", "exec", "puma_ollama", "ollama", "list"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        typer.secho(
+            f"[ERROR] Ollama did not respond (exit {result.returncode}): "
+            f"{result.stderr.strip() or 'no stderr'}",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    lines = [ln for ln in result.stdout.splitlines() if ln.strip()]
+    if not lines or not lines[0].lower().startswith("name"):
+        typer.secho(
+            "[ERROR] Unexpected `ollama list` output (no header found)",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    records: list[dict] = []
+    for ln in lines[1:]:
+        # Ollama list uses variable whitespace; collapse to single splits
+        parts = re.split(r"\s{2,}", ln.strip())
+        if len(parts) < 4:
+            continue
+        records.append(
+            {
+                "model_tag": parts[0],
+                "id": parts[1],
+                "size": parts[2],
+                "modified": parts[3],
+            }
+        )
+
+    if json_output:
+        typer.echo(_json.dumps(records, indent=2))
+        return
+
+    table = Table(title=f"Ollama models present in volume ({len(records)})")
+    table.add_column("model_tag")
+    table.add_column("ID")
+    table.add_column("size", justify="right")
+    table.add_column("modified")
+    for r in records:
+        table.add_row(r["model_tag"], r["id"], r["size"], r["modified"])
+    Console().print(table)
+
+
+@app.command(name="prepare-datasets")
+def prepare_datasets(
+    dataset: str | None = typer.Option(
+        None, "--dataset", help="Prepare a single dataset by ID (default: all)"
+    ),
+    force_redownload: bool = typer.Option(
+        False,
+        "--force-redownload",
+        help="Delete existing CSVs before invoking the prepare script so it re-generates",
+    ),
+    verify: bool = typer.Option(
+        False, "--verify", help="Print SHA-256 of resulting CSVs for manual verification"
+    ),
+) -> None:
+    """Prepare canonical datasets (jira_balanced_200, tawos, prioritization) — Anexo F § A.2.1.
+
+    Thin wrapper over ``scripts/prepare_datasets.py``. ``--force-redownload``
+    removes the existing CSVs first so the script regenerates them.
+    ``--verify`` emits SHA-256 hashes (full manifest comparison is documented
+    but not implemented in v2.4.0).
+    """
+    import hashlib
+    import subprocess
+    import sys
+    from pathlib import Path as _Path
+
+    repo_root = _Path(__file__).resolve().parents[2]
+    script = repo_root / "scripts" / "prepare_datasets.py"
+    data_dir = repo_root / "data"
+
+    targets = {
+        "jira_balanced_200": data_dir / "jira_balanced_200.csv",
+        "tawos_estimation": data_dir / "tawos_clean.csv",
+    }
+
+    if force_redownload:
+        for name, p in targets.items():
+            if dataset and name != dataset:
+                continue
+            if p.exists():
+                typer.echo(f"  removing {p.relative_to(repo_root)} (--force-redownload)")
+                p.unlink()
+
+    result = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
+    typer.echo(result.stdout)
+    if result.returncode != 0:
+        typer.secho(
+            f"[ERROR] prepare_datasets.py exited {result.returncode}:\n{result.stderr}",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    if verify:
+        typer.echo("\nSHA-256 of generated CSVs:")
+        any_mismatch = False
+        for name, p in sorted(targets.items()):
+            if dataset and name != dataset:
+                continue
+            if not p.exists():
+                typer.secho(f"  {name}: MISSING ({p})", fg=typer.colors.YELLOW)
+                any_mismatch = True
+                continue
+            h = hashlib.sha256(p.read_bytes()).hexdigest()[:16]
+            typer.echo(f"  {name}: {h}…  ({p.stat().st_size:,} bytes)")
+        if any_mismatch:
+            raise typer.Exit(2)
+
+
+@app.command(name="wilcoxon")
+def wilcoxon_cmd(
+    run_id_a: str = typer.Argument(..., help="First run_id"),
+    run_id_b: str = typer.Argument(..., help="Second run_id"),
+    metric: str = typer.Option(
+        "f1_macro", "--metric", help="Metric for headline accuracy: f1_macro|accuracy|ece"
+    ),
+    alpha: float = typer.Option(0.05, "--alpha", help="Significance threshold"),
+    db_path: str = typer.Option("data/puma.db", "--db"),
+    output: str | None = typer.Option(
+        None, "--output", help="Write Markdown report to this path (default: stdout only)"
+    ),
+) -> None:
+    """Wilcoxon signed-rank pairwise comparison of two runs (Anexo F § A.2.2)."""
+    import math
+    import sqlite3
+    from pathlib import Path as _Path
+
+    import numpy as np
+
+    db = _Path(db_path)
+    if not db.exists():
+        typer.secho(f"[ERROR] DB not found: {db}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
+
+    sql = """
+        SELECT p.run_id, p.instance_id, p.parsed_label, i.gold_label
+        FROM predictions p
+        LEFT JOIN instances i ON p.instance_id = i.instance_id
+        WHERE p.run_id IN (?, ?)
+    """
+    con = sqlite3.connect(str(db))
+    try:
+        rows = con.execute(sql, (run_id_a, run_id_b)).fetchall()
+    finally:
+        con.close()
+
+    if not rows:
+        typer.secho(
+            f"[ERROR] No predictions found for runs {run_id_a!r}, {run_id_b!r}",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    by_run: dict[str, dict[str, tuple[str, str]]] = {run_id_a: {}, run_id_b: {}}
+    for run_id, inst, parsed, gold in rows:
+        if run_id in by_run:
+            by_run[run_id][inst] = (parsed, gold)
+
+    if not by_run[run_id_a] or not by_run[run_id_b]:
+        missing = [r for r in (run_id_a, run_id_b) if not by_run[r]]
+        typer.secho(
+            f"[ERROR] No predictions for run(s): {', '.join(missing)}",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    shared = sorted(set(by_run[run_id_a]) & set(by_run[run_id_b]))
+    if len(shared) < 10:
+        typer.secho(
+            f"[ERROR] Only {len(shared)} paired instances; need ≥ 10 for the test.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(2)
+
+    preds_a = np.array([by_run[run_id_a][i][0] for i in shared])
+    preds_b = np.array([by_run[run_id_b][i][0] for i in shared])
+    gold = np.array([by_run[run_id_a][i][1] for i in shared])
+
+    from puma.metrics.statistical_tests import wilcoxon_signed_rank_models
+
+    result = wilcoxon_signed_rank_models(preds_a, preds_b, gold)
+    p_value = float(result["p_value"])
+    n_pairs = int(result["n_pairs"])
+    mean_diff = float(result["mean_diff"])
+    statistic = float(result["statistic"])
+
+    if p_value < 0.001:
+        marker = "***"
+    elif p_value < 0.01:
+        marker = "**"
+    elif p_value < alpha:
+        marker = "*"
+    else:
+        marker = "n.s."
+
+    # Effect size r = |Z| / sqrt(N). Approximate Z from p_value (two-sided).
+    try:
+        from scipy.stats import norm
+
+        z_abs = abs(norm.isf(p_value / 2)) if p_value > 0 else float("inf")
+        r_effect = z_abs / math.sqrt(n_pairs) if n_pairs > 0 else float("nan")
+    except ImportError:
+        r_effect = float("nan")
+
+    acc_a = float((preds_a == gold).mean())
+    acc_b = float((preds_b == gold).mean())
+
+    report = (
+        f"# Wilcoxon signed-rank — {run_id_a} vs {run_id_b}\n\n"
+        f"- Metric (headline): {metric}\n"
+        f"- α: {alpha}\n"  # noqa: RUF001 -- intentional Greek alpha for statistical notation
+        f"- Paired instances (non-tied): {n_pairs} / {len(shared)} total\n\n"
+        "| Run | Accuracy |\n"
+        "|---|---:|\n"
+        f"| `{run_id_a}` | {acc_a:.4f} |\n"
+        f"| `{run_id_b}` | {acc_b:.4f} |\n\n"
+        "| Statistic | Value |\n"
+        "|---|---:|\n"
+        f"| W | {statistic:.4f} |\n"
+        f"| p-value (two-sided) | {p_value:.4f} {marker} |\n"
+        f"| mean Δ (a − b) | {mean_diff:+.4f} |\n"  # noqa: RUF001 -- intentional Unicode minus for math notation
+        f"| effect size r | {r_effect:.4f} |\n\n"
+        f"Significance: **{marker}** (α = {alpha}).\n"  # noqa: RUF001 -- intentional Greek alpha for statistical notation
+    )
+    typer.echo(report)
+    if output:
+        from pathlib import Path as _P
+
+        _P(output).write_text(report, encoding="utf-8")
+        typer.echo(f"\nReport written to {output}")
+
+
+@app.command(name="bias-analysis")
+def bias_analysis_cmd(
+    db_path: str = typer.Option("data/puma.db", "--db"),
+    models: str | None = typer.Option(
+        None, "--models", help="Comma-separated subset of model tags to include"
+    ),
+    perturbations: str | None = typer.Option(
+        None,
+        "--perturbations",
+        help="Comma-separated subset of perturbation names to analyse",
+    ),
+    output: str = typer.Option(
+        "docs/results/bias_evaluation.md", "--output", help="Output Markdown path"
+    ),
+) -> None:
+    """Bias analysis from perturbed runs already in DB (Anexo F § A.2.3)."""
+    from pathlib import Path as _Path
+
+    from puma.dashboard.data import load_predictions_with_gold
+    from puma.metrics.fairness import perturbation_disparity
+
+    db = _Path(db_path)
+    if not db.exists():
+        typer.secho(f"[ERROR] DB not found: {db}", fg=typer.colors.RED, err=True)
+        raise typer.Exit(1)
+
+    preds = load_predictions_with_gold(db_path=db)
+    pert_rows = preds[preds["perturbation"].notna()] if not preds.empty else preds
+    if preds.empty or pert_rows.empty:
+        typer.secho(
+            "[ERROR] No perturbed predictions found in the database.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    model_filter = {m.strip() for m in models.split(",")} if models else None
+    pert_filter = {p.strip() for p in perturbations.split(",")} if perturbations else None
+
+    if model_filter:
+        preds = preds[preds["model"].isin(model_filter) | preds["model"].isna()]
+        pert_rows = pert_rows[pert_rows["model"].isin(model_filter)]
+    if pert_filter:
+        kept = preds["perturbation"].isin(pert_filter) | preds["perturbation"].isna()
+        preds = preds[kept]
+        pert_rows = pert_rows[pert_rows["perturbation"].isin(pert_filter)]
+        if pert_rows.empty:
+            typer.secho(
+                f"[ERROR] No predictions match the requested perturbations: {pert_filter}",
+                fg=typer.colors.RED,
+                err=True,
+            )
+            raise typer.Exit(2)
+
+    disparity_rows: list[dict] = []
+    directional_rows: list[dict] = []
+    for model in sorted(preds["model"].dropna().unique()):
+        base = preds[(preds["model"] == model) & preds["perturbation"].isna()]
+        base_lookup = dict(zip(base["instance_id"], base["parsed_label"], strict=False))
+        gold_lookup = dict(zip(base["instance_id"], base["gold_label"], strict=False))
+
+        sub_by_pert: dict[str, dict[str, str]] = {}
+        model_perts = sorted(pert_rows[pert_rows["model"] == model]["perturbation"].unique())
+        for pert in model_perts:
+            sub = pert_rows[(pert_rows["model"] == model) & (pert_rows["perturbation"] == pert)]
+            sub_lookup = dict(zip(sub["instance_id"], sub["parsed_label"], strict=False))
+            sub_by_pert[pert] = sub_lookup
+            shared = sorted(set(sub_lookup) & set(base_lookup))
+            if not shared:
+                continue
+            metrics = perturbation_disparity(
+                [base_lookup[i] for i in shared],
+                [sub_lookup[i] for i in shared],
+                [gold_lookup[i] for i in shared],
+            )
+            disparity_rows.append(
+                {"model": model, "perturbation": pert, "n": len(shared), **metrics}
+            )
+
+        male_lookup = sub_by_pert.get("gender_swap_prefix_male")
+        female_lookup = sub_by_pert.get("gender_swap_prefix_female")
+        if male_lookup and female_lookup:
+            shared = sorted(set(male_lookup) & set(female_lookup) & set(gold_lookup))
+            if shared:
+                metrics = perturbation_disparity(
+                    [male_lookup[i] for i in shared],
+                    [female_lookup[i] for i in shared],
+                    [gold_lookup[i] for i in shared],
+                )
+                directional_rows.append(
+                    {
+                        "model": model,
+                        "comparison": "male vs female",
+                        "n": len(shared),
+                        **metrics,
+                    }
+                )
+
+    if not disparity_rows:
+        typer.secho(
+            "[ERROR] No baseline/perturbation pairs to compare after filters.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(1)
+
+    def _fmt_table(rows: list[dict], headers: list[str]) -> str:
+        out = ["| " + " | ".join(headers) + " |", "|" + "|".join(["---"] * len(headers)) + "|"]
+        for r in rows:
+            cells = [
+                f"{r[h]:.4f}" if isinstance(r.get(h), float) else str(r.get(h, "")) for h in headers
+            ]
+            out.append("| " + " | ".join(cells) + " |")
+        return "\n".join(out)
+
+    parts = [
+        "# Bias evaluation (CLI)",
+        "",
+        "## Disparity vs un-perturbed baseline",
+        "",
+        _fmt_table(
+            disparity_rows,
+            [
+                "model",
+                "perturbation",
+                "n",
+                "acc_baseline",
+                "acc_perturbed",
+                "disparity",
+                "flip_rate",
+                "flip_to_correct",
+                "flip_to_incorrect",
+            ],
+        ),
+        "",
+    ]
+    if directional_rows:
+        parts += [
+            "## Directional (male vs female)",
+            "",
+            _fmt_table(
+                directional_rows,
+                [
+                    "model",
+                    "comparison",
+                    "n",
+                    "acc_baseline",
+                    "acc_perturbed",
+                    "disparity",
+                    "flip_rate",
+                    "flip_to_correct",
+                    "flip_to_incorrect",
+                ],
+            ),
+            "",
+        ]
+
+    out_path = _Path(output)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text("\n".join(parts), encoding="utf-8")
+    typer.echo(f"Wrote {out_path}")
+
+
+@app.command(name="generate-plots")
+def generate_plots_cmd(
+    source: str = typer.Option(
+        "phase_b",
+        "--source",
+        help="Data source: phase_b | bias_eval | multi_seed",
+    ),
+    output_dir: str = typer.Option(
+        "docs/results/figures/", "--output", help="Output directory for figures"
+    ),
+    fmt: str = typer.Option("png", "--format", help="Output format: png | pdf | svg | all"),
+) -> None:
+    """Generate consolidated plots from runs in the DB (Anexo F § A.2.4)."""
+    import subprocess
+    import sys
+    from pathlib import Path as _Path
+
+    if source not in {"phase_b", "bias_eval", "multi_seed"}:
+        typer.secho(
+            f"[ERROR] Unknown source {source!r}. Valid: phase_b, bias_eval, multi_seed",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(2)
+
+    if source != "phase_b":
+        typer.secho(
+            f"Source {source!r} is documented but not yet implemented in v2.4.0. "
+            "Only phase_b plotting is available.",
+            fg=typer.colors.YELLOW,
+        )
+        raise typer.Exit(2)
+
+    repo_root = _Path(__file__).resolve().parents[2]
+    script = repo_root / "scripts" / "generate_phase_b_plots.py"
+
+    typer.echo(
+        f"Generating phase_b plots into {output_dir} (format={fmt}, "
+        "additional formats may require post-processing)…"
+    )
+    result = subprocess.run([sys.executable, str(script)], capture_output=True, text=True)
+    typer.echo(result.stdout)
+    if result.returncode != 0:
+        typer.secho(
+            f"[ERROR] generate_phase_b_plots.py exited {result.returncode}:\n{result.stderr}",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(1)
+
+
 if __name__ == "__main__":
     app()
