@@ -14,7 +14,7 @@ results, and releases.
 
 ## Project status
 
-**Current version**: v2.3.0 (released 2026-05-13)
+**Current version**: v2.4.0 (released 2026-05-13)
 
 | Phase | Description | Status |
 |-------|-------------|--------|
@@ -22,12 +22,13 @@ results, and releases.
 | B | Multi-model evaluation + comparative analysis | ✓ COMPLETE |
 | C | Professional dashboard (Streamlit) | ✓ COMPLETE (Sprint 4 core + Sprint 6 polish) |
 | D | Technical depth (calibration, statistics, bias) | ✓ ~95% (Sprints 1, 2, 3, 5 closed; ROCm/Metal n/a) |
-| E | Documentation and release consolidation | ✓ COMPLETE (v2.0.0, v2.1.0, v2.2.0, v2.3.0) |
+| E | Documentation and release consolidation | ✓ COMPLETE (v2.0.0, v2.1.0, v2.2.0, v2.3.0, v2.4.0) |
 
 ## Releases
 
 | Tag | Date | Highlights |
 |-----|------|------------|
+| [v2.4.0](https://github.com/pumacp/puma/releases/tag/v2.4.0) | 2026-05-13 | CLI completeness (Sprint 7) — Anexo F § A.2 implemented; 6 new commands, 348 tests |
 | [v2.3.0](https://github.com/pumacp/puma/releases/tag/v2.3.0) | 2026-05-13 | Dashboard polish (`app.py` 803→168 LOC, 10 improvements, guided tour) + documentation structure |
 | [v2.2.0](https://github.com/pumacp/puma/releases/tag/v2.2.0) | 2026-05-13 | Statistical pipeline (ECE, multi-seed, Wilcoxon) + dashboard core + empirical bias evaluation |
 | [v2.1.0](https://github.com/pumacp/puma/releases/tag/v2.1.0) | 2026-05-10 | Multi-model evaluation (9 models × 3 scenarios) + critical debt cleanup |
@@ -61,6 +62,7 @@ PUMA is organized in modular layers under `src/puma/`:
 |------|---------|
 | [README.md](README.md) | Entry point, quickstart, model catalog |
 | [docs/overview.md](docs/overview.md) | Project overview: architecture, scenarios, model catalog, hardware profiles, storage schema, success criteria |
+| [docs/anexo_F_cli_reference.md](docs/anexo_F_cli_reference.md) | Anexo F: CLI command catalog (implemented + proposed extensions) |
 | [CHANGELOG.md](CHANGELOG.md) | Version history (Keep-a-Changelog format) |
 | [docs/HARDWARE.md](docs/HARDWARE.md) | Reference hardware specification |
 | [docs/known_debt.md](docs/known_debt.md) | Methodological findings + technical debt tracker |
@@ -78,7 +80,7 @@ PUMA is organized in modular layers under `src/puma/`:
 
 ## Quality
 
-- Tests: 318 passing
+- Tests: 348 passing
 - Pre-commit: 10/10 hooks green
 - CI: green on main and develop
 - Coverage: 58%
