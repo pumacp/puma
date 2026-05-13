@@ -16,6 +16,73 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
+## [2.4.0] — 2026-05-13
+
+### Added
+
+Sprint 7 (CLI completeness for Anexo F):
+- `docs/anexo_F_cli_reference.md`: source-of-truth document defining
+  Section A (implemented commands) and Section B (proposed extensions).
+  Resolves the gap between the academic Anexo F and the actual
+  repository state by making the implementation status of each command
+  explicit and verifiable via `puma <comando> --help`.
+- Six new CLI commands implementing Section A.2 of the Anexo F:
+  - `puma prepare-datasets` (A.2.1): subprocess wrapper of
+    `scripts/prepare_datasets.py` with `--dataset`, `--force-redownload`,
+    `--verify` flags. `--force-redownload` removes existing CSVs so
+    the script regenerates; `--verify` emits SHA-256 hashes.
+  - `puma wilcoxon` (A.2.2): Wilcoxon signed-rank pairwise comparison
+    between two named `run_id`s. NEW analysis using
+    `puma.metrics.statistical_tests.wilcoxon_signed_rank_models` from
+    Sprint 3; the existing `scripts/wilcoxon_topmodels.py` keeps its
+    top-K workflow. Outputs Markdown with statistic, p-value,
+    significance marker (`***`/`**`/`*`/`n.s.`), effect size `r`
+    approximated from `|Z| / √N`.
+  - `puma bias-analysis` (A.2.3): bias evaluation report from perturbed
+    runs already in the DB. NEW analysis using
+    `puma.dashboard.data.load_predictions_with_gold` and
+    `puma.metrics.fairness.perturbation_disparity`; `--models` /
+    `--perturbations` filters; writes Markdown to `--output`.
+  - `puma generate-plots` (A.2.4): subprocess wrapper of
+    `scripts/generate_phase_b_plots.py` for `--source phase_b`.
+    `--source bias_eval` and `multi_seed` documented but exit 2 with
+    deferred-implementation message.
+  - `puma list-runs` (A.2.5): SQL pivot of `runs ⋈ metrics` with
+    `--scenario`, `--model`, `--last-n`, `--since` (ISO or `24h`/`7d`
+    relative) filters, `--json` output, exit 2 on no-rows-match.
+  - `puma list-ollama-models` (A.2.6): parses `docker exec puma_ollama
+    ollama list` subprocess output. `--json` output.
+- `tests/cli/`: 27 new TDD tests covering the six new commands (4-7
+  tests per command: `--help`, happy path, error paths, JSON output).
+
+### Changed
+
+- `src/puma/cli.py`: 363 → 777 LOC. New commands implemented inline
+  following the existing monolithic pattern. Refactor to a
+  `src/puma/cli/commands/` package was considered and deferred —
+  with six commands the monolith remains the cleaner option; the
+  refactor would be justified if/when Section B extensions land.
+
+### Highlights
+
+- **Anexo F implementation gap resolved.** Section A (implemented) and
+  Section B (proposed extensions) are now explicitly distinguished in
+  `docs/anexo_F_cli_reference.md`. Section A is operationally verified
+  via `puma <comando> --help` and the `tests/cli/` suite.
+- **Six high-value CLI commands.** Wrappers of existing scripts
+  (`prepare-datasets`, `wilcoxon`, `bias-analysis`, `generate-plots`)
+  and inspection commands (`list-runs`, `list-ollama-models`) cover
+  the workflows that demand most frequent operator access.
+- **Tests: 348 passing.** +30 over v2.3.0; baseline reproducibility
+  preserved (`validate-baseline` PASS `f1=0.5831, delta=-0.0036`).
+- **17 Section B extensions documented as design space** without
+  implementation: 5 Bash auxiliary scripts (`stop_puma.sh`,
+  `restart_puma.sh`, `clean_puma.sh`, `status_puma.sh`, `logs_puma.sh`)
+  and 12 further CLI commands (Ollama management, sweep wrappers,
+  DB tooling, code-quality wrappers). Decision rationale recorded in
+  `docs/anexo_F_cli_reference.md` § B: priority for high-value /
+  low-cost commands over cosmetic wrappers of standard tooling.
+
 ## [2.3.0] — 2026-05-13
 
 ### Added
