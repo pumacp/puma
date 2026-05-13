@@ -4,11 +4,11 @@
 
 PUMA is an open-source, reproducible benchmarking framework for evaluating open large language models on project management tasks: issue triage, story-point estimation, and backlog prioritization. All inference runs locally via [Ollama](https://ollama.ai) — no external API calls, no data leaves your machine.
 
-![Tests](https://img.shields.io/badge/tests-276%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-313%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 ![Docker](https://img.shields.io/badge/runs%20on-Docker-2496ED)
-![Version](https://img.shields.io/badge/version-v2.1.0-blue)
+![Version](https://img.shields.io/badge/version-v2.2.0-blue)
 
 > **PUMA is an independent benchmarking framework, fully self-contained, designed specifically for evaluating local LLMs on Project Management Office (PMO) tasks. All evaluation methodology, scenarios, and metrics are developed and maintained independently as part of this work.**
 
@@ -306,6 +306,27 @@ resolved as debt D18) in
 [docs/results/phase_b_analysis.md](docs/results/phase_b_analysis.md).
 Plots are reproducible via `scripts/generate_phase_b_plots.py`.
 
+**Statistical analysis (v2.2.0):** calibration via Expected Calibration
+Error (Guo et al. 2017) — the canonical baseline shows ECE=0.39 against
+its 200 logprob-enabled predictions, surfacing significant
+miscalibration typical of out-of-the-box LLMs. Pairwise model
+comparison via the Wilcoxon signed-rank test (Demšar 2006); see
+[docs/results/wilcoxon_demo.md](docs/results/wilcoxon_demo.md). Three
+seeds {42, 123, 456} confirm bit-exact reproducibility under
+temperature=0.0
+([docs/results/multi_seed_baseline.md](docs/results/multi_seed_baseline.md)).
+
+**Bias evaluation (v2.2.0):** the `triage_jira` corpus contains 0 %
+gendered terms, so a textbook gender_swap would be a no-op. Sprint 5
+adopts the **signal-injection** methodology of Caliskan et al. (2017)
+and Bolukbasi et al. (2016): identity prefixes (`John Smith reported:`
+vs `Mary Smith reported:`) are prepended to instances and the
+prediction flips counted. qwen2.5:3b exhibits ~3× less directional
+gender bias than qwen2.5:1.5b at the same prediction-flip rate; both
+models are robust to register variation (`register_shift_informal`).
+Full report in
+[docs/results/bias_evaluation.md](docs/results/bias_evaluation.md).
+
 ---
 
 ## Prompting Strategies
@@ -329,16 +350,17 @@ Plots are reproducible via `scripts/generate_phase_b_plots.py`.
 ## Dashboard Views
 
 Open `http://localhost:8501` after `docker compose up -d puma_dashboard`.
+PUMA-themed sidebar with logo and a runtime dark-mode toggle.
 
 | View | Description |
 |------|-------------|
-| **Overview** | Cards for each run: status, F1, accuracy, parse failure rate |
-| **Model Comparison** | Interactive heatmap of all metrics across runs |
-| **Reliability** | Reliability diagrams (calibration curves) |
-| **Robustness** | Bar chart: prediction consistency under each perturbation |
-| **Fairness** | Per-model accuracy breakdown and fairness gap |
-| **Sustainability Frontier** | Pareto scatter: F1 vs latency across runs |
-| **Instance Drill-down** | Raw LLM response, parsed label, gold label, token counts, prompt hash |
+| **Overview** | Cohort cards (total runs, total CO₂, kWh, avg ECE, avg F1, avg latency.p95) plus per-run expanders with model / F1 / ECE / CO₂ / parse-fail. Sidebar filters applied. |
+| **Model Comparison** | Mean±std aggregation over seeds, run × metric heatmap, and inline Wilcoxon signed-rank results when `docs/results/wilcoxon_demo.md` is present. |
+| **Reliability** | Per-model ECE and reliability diagram computed from real logprob-derived confidences (Guo et al. 2017). Falls back to a message when no logprob runs exist. |
+| **Robustness** | Disparity / flip-rate table and bar chart for every perturbation in the cohort. |
+| **Fairness** | Gender-prefix injection bias (Caliskan et al. 2017) — disparity vs baseline plus directional male-vs-female comparison. |
+| **Sustainability Frontier** | Pareto scatter: F1 vs CO₂ (g) using the `emissions` table populated by CodeCarbon (Sprint 2 D15). |
+| **Instance Drill-down** | Per-prediction inspection: gold/parsed labels, outcome filter (correct / incorrect / parse failure), confidence, top-K logprobs, raw response, prompt hash. |
 
 ---
 
@@ -357,31 +379,36 @@ All dev tooling runs inside the container. See [CONTRIBUTING.md](CONTRIBUTING.md
 
 ## Roadmap
 
-Trabajo identificado para releases posteriores a v2.1.0:
+Trabajo identificado para releases posteriores a v2.2.0:
 
-- **Cross-strategy comparison** at scale — current sweeps use a
-  single adaptation strategy per run; pairwise comparisons across
-  zero-shot, few-shot-{3,5,8}, and CoT variants on the same model
-  cohort.
-- **Multi-seed validation** — replicate the canonical baseline across
-  multiple seeds and report mean ± confidence intervals; Wilcoxon
-  signed-rank tests on per-instance metric deltas.
-- **ECE / calibration metrics completion** — wire reliability
-  diagrams end-to-end through the dashboard; require
-  `logprobs=true` runs.
+- **Phase C polish (Sprint 6)** — dashboard refactor of `app.py`
+  (640 LOC monolithic) to a `views/` module per view; animations,
+  guided tour, deeper exports. Coverage uplift for
+  `puma.dashboard.*` and `puma.reporting.*`.
+- **Cross-strategy comparison at scale** — pairwise comparisons
+  across `zero-shot`, `few-shot-{3,5,8}`, and CoT variants on the
+  same model cohort, with the new Wilcoxon driver applied.
 - **Hardware tier extension** — re-run the B.3 sweep on `gpu-mid` to
   empirically validate `gemma3:12b`, the `gemma4` family, and 14B
   reasoning models with adequate VRAM (resolves D16 verification).
-- **Bias perturbation suite** — `gender_swap`, `dialect`, and other
-  fairness-relevant perturbations; new fairness metrics in
-  `puma.metrics.fairness`.
+- **TAWOS SHA-256 end-to-end** — checksum-verified fetch path for the
+  upstream TAWOS dump (D14) and the bash regeneration test (Gate D
+  criterion 3).
 - **Multi-backend GPU detection** — AMD ROCm and Apple Metal
   detection alongside the existing NVIDIA path in
   `puma.preflight.detect`.
-- **Phase C — Dashboard refactor** — comparative views (model × task
-  matrices, sustainability frontier curves) and structured exports;
-  scheduled to raise coverage of `puma.dashboard.*` and
-  `puma.reporting.*`.
+- **`triage_jira` ticket-text persistence (D22)** — populate
+  `instances.input_text` so the Dashboard Instance Drill-down can
+  show the original ticket description rather than the empty-text
+  placeholder.
+
+Closed in v2.2.0 (no longer in roadmap):
+
+- ✓ ECE / calibration metrics completion (Sprint 3 → Reliability view)
+- ✓ Multi-seed validation (Sprint 3 → bit-exact under T=0.0)
+- ✓ Bias perturbation suite (Sprint 5 → `gender_swap_prefix`,
+  `register_shift`, `fairness.perturbation_disparity`)
+- ✓ Phase C — Dashboard core (Sprint 4 → 5 functional views)
 
 Detailed debt inventory in
 [docs/known_debt.md](docs/known_debt.md).
@@ -401,7 +428,11 @@ Detailed debt inventory in
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Common problems and fixes |
 | [docs/HARDWARE.md](docs/HARDWARE.md) | Reference hardware spec, profile detection, thermal/VRAM observations, CodeCarbon accuracy, reproducibility scope |
 | [docs/results/phase_b_analysis.md](docs/results/phase_b_analysis.md) | Comparative analysis of the 9 models × 3 PMO scenarios sweep |
+| [docs/results/multi_seed_baseline.md](docs/results/multi_seed_baseline.md) | Bit-exact reproducibility across seeds {42, 123, 456} (Sprint 3) |
+| [docs/results/wilcoxon_demo.md](docs/results/wilcoxon_demo.md) | Wilcoxon signed-rank pairwise comparison empirical demo (Sprint 3) |
+| [docs/results/bias_evaluation.md](docs/results/bias_evaluation.md) | Bias evaluation empirical findings (Sprint 5) |
 | [docs/known_debt.md](docs/known_debt.md) | Open and resolved technical debt with diagnostic write-ups |
+| [docs/RELEASES/v2.2.0.md](docs/RELEASES/v2.2.0.md) | v2.2.0 release notes |
 | [docs/RELEASES/v2.1.0.md](docs/RELEASES/v2.1.0.md) | v2.1.0 release notes |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Code conventions, commit format, PR process |
 | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | Host-only pre-commit setup, hooks |
