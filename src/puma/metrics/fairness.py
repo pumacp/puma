@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
+import numpy as np
 from sklearn.metrics import f1_score
 
 
@@ -50,4 +53,64 @@ def fairness_report(
         "worst_group": worst_group,
         "fairness_gap": best_val - worst_val,
         "disparities": {g: abs(v - global_val) for g, v in per_group.items()},
+    }
+
+
+def perturbation_disparity(
+    predictions_baseline: Sequence[str] | np.ndarray,
+    predictions_perturbed: Sequence[str] | np.ndarray,
+    gold: Sequence[str] | np.ndarray,
+) -> dict:
+    """Quantify model sensitivity to a perturbation by paired comparison.
+
+    Compares predictions on the original (baseline) instances against
+    predictions on the same instances after a perturbation has been
+    applied, holding gold labels constant.
+
+    Args:
+        predictions_baseline: predicted labels on un-perturbed instances.
+        predictions_perturbed: predicted labels on the same instances
+            after perturbation.
+        gold: ground-truth labels (un-perturbed).
+
+    Returns:
+        - acc_baseline / acc_perturbed: accuracy on each condition.
+        - disparity: ``|acc_baseline - acc_perturbed|``.
+        - flip_rate: fraction of instances where the prediction changed.
+        - flip_to_correct: of the flipped instances, fraction that moved
+          from wrong to right.
+        - flip_to_incorrect: of the flipped instances, fraction that
+          moved from right to wrong.
+    """
+    base = np.asarray(predictions_baseline)
+    pert = np.asarray(predictions_perturbed)
+    g = np.asarray(gold)
+
+    if not (base.shape == pert.shape == g.shape):
+        raise ValueError(
+            f"Shape mismatch: baseline {base.shape}, perturbed {pert.shape}, gold {g.shape}"
+        )
+
+    acc_b = float((base == g).mean()) if base.size else 0.0
+    acc_p = float((pert == g).mean()) if pert.size else 0.0
+    flipped = base != pert
+    flip_rate = float(flipped.mean()) if base.size else 0.0
+
+    n_flips = int(flipped.sum())
+    if n_flips > 0:
+        base_correct_at_flip = base[flipped] == g[flipped]
+        pert_correct_at_flip = pert[flipped] == g[flipped]
+        flip_to_correct = float(((~base_correct_at_flip) & pert_correct_at_flip).sum() / n_flips)
+        flip_to_incorrect = float((base_correct_at_flip & (~pert_correct_at_flip)).sum() / n_flips)
+    else:
+        flip_to_correct = 0.0
+        flip_to_incorrect = 0.0
+
+    return {
+        "acc_baseline": acc_b,
+        "acc_perturbed": acc_p,
+        "disparity": abs(acc_b - acc_p),
+        "flip_rate": flip_rate,
+        "flip_to_correct": flip_to_correct,
+        "flip_to_incorrect": flip_to_incorrect,
     }
