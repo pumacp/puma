@@ -48,7 +48,7 @@ Key differentiators:
 └─────────────────────────────────────────────────────────┘
 ```
 
-Full data-flow and package map → [docs/architecture.md](docs/architecture.md)
+Full data-flow and package map → [architecture.md](architecture.md)
 
 ---
 
@@ -75,7 +75,7 @@ Full data-flow and package map → [docs/architecture.md](docs/architecture.md)
 **Dataset**: Pairwise samples from Jira SR dataset
 **Primary metric**: Accuracy
 
-Full scenario specs → [docs/scenarios_reference.md](docs/scenarios_reference.md)
+Full scenario specs → [scenarios_reference.md](scenarios_reference.md)
 
 ---
 
@@ -135,7 +135,7 @@ Text perturbations: `typos_5pct`, `case_upper`, `case_lower`, `truncate_50pct`, 
 - **Energy consumed (kWh)**
 - **gCO₂ per F1 point** — quality-adjusted cost
 
-Full formulas → [docs/metrics_reference.md](docs/metrics_reference.md)
+Full formulas → [metrics_reference.md](metrics_reference.md)
 
 ---
 
@@ -153,7 +153,7 @@ Models are registered in `config/models_catalog.yaml`. Current catalog:
 | mistral:7b | 7B | ~4.1 GB | — | ✓ | ✓ |
 | deepseek-r1:7b | 7B | ~4.7 GB | — | — | ✓ |
 
-Add a new model → [docs/adding_models.md](docs/adding_models.md)
+Add a new model → [adding_models.md](adding_models.md)
 
 ---
 
@@ -244,12 +244,12 @@ All of the above: 100% local, fully traceable, with carbon emissions recorded.
 
 | Resource | Path |
 |----------|------|
-| User guide | [docs/user_guide.md](docs/user_guide.md) |
-| Architecture | [docs/architecture.md](docs/architecture.md) |
-| Metrics reference | [docs/metrics_reference.md](docs/metrics_reference.md) |
-| Scenarios reference | [docs/scenarios_reference.md](docs/scenarios_reference.md) |
-| Adding models | [docs/adding_models.md](docs/adding_models.md) |
-| Adding scenarios | [docs/adding_scenarios.md](docs/adding_scenarios.md) |
-| Troubleshooting | [docs/troubleshooting.md](docs/troubleshooting.md) |
-| Contributing | [CONTRIBUTING.md](CONTRIBUTING.md) |
-| Changelog | [CHANGELOG.md](CHANGELOG.md) |
+| User guide | [user_guide.md](user_guide.md) |
+| Architecture | [architecture.md](architecture.md) |
+| Metrics reference | [metrics_reference.md](metrics_reference.md) |
+| Scenarios reference | [scenarios_reference.md](scenarios_reference.md) |
+| Adding models | [adding_models.md](adding_models.md) |
+| Adding scenarios | [adding_scenarios.md](adding_scenarios.md) |
+| Troubleshooting | [troubleshooting.md](troubleshooting.md) |
+| Contributing | [../CONTRIBUTING.md](../CONTRIBUTING.md) |
+| Changelog | [../CHANGELOG.md](../CHANGELOG.md) |
