@@ -366,31 +366,204 @@ elif view == "Reliability":
 
 elif view == "Robustness":
     st.title("Robustness")
-    st.info(
-        "**Future work — awaiting perturbed runs.**\n\n"
-        "Robustness measures model performance degradation under input perturbations "
-        "(typos, paraphrase, dialect variation). The `predictions.perturbation` column "
-        "is currently empty (no perturbed runs persisted).\n\n"
-        "Once Sprint 5/6 runs the perturbation suite, this view will compare baseline "
-        "vs perturbed F1 scores per model and surface consistency rates by perturbation "
-        "type. The view scaffolding (loaders, plot helpers) is already in place."
+    st.caption(
+        "Per-model behaviour under controlled input perturbations. Each row pairs "
+        "the un-perturbed baseline against a perturbed version on the same instances "
+        "and reports accuracy, prediction flip rate, and the direction of those flips."
     )
+
+    preds = load_predictions_with_gold()
+    if selected_runs:
+        preds = preds[preds["run_id"].isin(selected_runs)]
+
+    pert_rows = preds[preds["perturbation"].notna()]
+    if pert_rows.empty:
+        st.info(
+            "**No perturbed predictions in the selected runs.** Run "
+            "`puma run specs/runs/sweep_bias_perturbations.yaml` to populate this view."
+        )
+    else:
+        from puma.metrics.fairness import perturbation_disparity
+
+        rows: list[dict] = []
+        for model in sorted(preds["model"].dropna().unique()):
+            base = preds[(preds["model"] == model) & preds["perturbation"].isna()]
+            base_lookup = dict(zip(base["instance_id"], base["parsed_label"], strict=False))
+            gold_lookup = dict(zip(base["instance_id"], base["gold_label"], strict=False))
+            for pert in sorted(pert_rows[pert_rows["model"] == model]["perturbation"].unique()):
+                sub = pert_rows[(pert_rows["model"] == model) & (pert_rows["perturbation"] == pert)]
+                shared = sorted(set(sub["instance_id"]) & set(base_lookup))
+                if not shared:
+                    continue
+                base_preds_l = [base_lookup[i] for i in shared]
+                pert_preds_l = [sub.set_index("instance_id").loc[i, "parsed_label"] for i in shared]
+                gold_l = [gold_lookup[i] for i in shared]
+                metrics = perturbation_disparity(base_preds_l, pert_preds_l, gold_l)
+                rows.append(
+                    {
+                        "model": model,
+                        "perturbation": pert,
+                        "n": len(shared),
+                        **metrics,
+                    }
+                )
+
+        if not rows:
+            st.warning("No baseline/perturbation pairs to compare.")
+        else:
+            df = pd.DataFrame(rows)
+            display = df.copy()
+            for c in (
+                "acc_baseline",
+                "acc_perturbed",
+                "disparity",
+                "flip_rate",
+                "flip_to_correct",
+                "flip_to_incorrect",
+            ):
+                if c in display.columns:
+                    display[c] = display[c].map(lambda v: f"{v:.4f}")
+            st.dataframe(display, use_container_width=True, hide_index=True)
+
+            import matplotlib.pyplot as plt
+
+            fig, ax = plt.subplots(figsize=(8, 4))
+            models = sorted(df["model"].unique())
+            perturbations = sorted(df["perturbation"].unique())
+            x = range(len(perturbations))
+            width = 0.8 / max(1, len(models))
+            for i, m in enumerate(models):
+                row = df[df["model"] == m].set_index("perturbation")
+                values = [row.loc[p, "flip_rate"] if p in row.index else 0.0 for p in perturbations]
+                ax.bar([xi + i * width for xi in x], values, width=width, label=m)
+            ax.set_xticks([xi + width * (len(models) - 1) / 2 for xi in x])
+            ax.set_xticklabels(perturbations, rotation=20, ha="right", fontsize=8)
+            ax.set_ylim(0, 1)
+            ax.set_ylabel("Flip rate")
+            ax.set_title("Prediction flip rate under perturbation")
+            ax.legend(fontsize=8)
+            plt.tight_layout()
+            st.pyplot(fig)
+            st.download_button("Download PNG", fig_to_bytes(fig), "robustness.png", "image/png")
+            plt.close(fig)
+
+            st.caption(
+                "Higher `flip_rate` ⇒ the model changed more of its predictions when "
+                "the perturbation was applied. `flip_to_incorrect` close to 1 means "
+                "the perturbation degrades performance more than it helps."
+            )
 
 
 # ── View: Fairness ────────────────────────────────────────────────────────────
 
 elif view == "Fairness":
     st.title("Fairness")
-    st.info(
-        "**Future work — awaiting Sprint 5 bias perturbations.**\n\n"
-        "Fairness evaluation requires runs with semantic perturbations (gender_swap, "
-        "dialect, etc.) that test model behavior across protected groups. These "
-        "perturbations are scheduled for Sprint 5 (debt D19, see `docs/known_debt.md`).\n\n"
-        "Once perturbed runs are persisted to the database, this view will surface "
-        "group-level accuracy disparities and fairness metrics (demographic parity, "
-        "equalized odds). Per-model accuracy breakdown is available under "
-        "**Model Comparison** in the meantime."
+    st.caption(
+        "Bias evaluation via gender-prefix signal injection. The triage_jira corpus "
+        "has 0% gendered terms (technical incident text), so we inject identity "
+        "prefixes — `John Smith reported:` vs `Mary Smith reported:` — and measure "
+        "whether the same instance is classified differently."
     )
+
+    preds = load_predictions_with_gold()
+    if selected_runs:
+        preds = preds[preds["run_id"].isin(selected_runs)]
+
+    gender_perts = ["gender_swap_prefix_male", "gender_swap_prefix_female"]
+    gender_rows = preds[preds["perturbation"].isin(gender_perts)]
+    if gender_rows.empty:
+        st.info(
+            "**No gender-prefix perturbation runs in the selected runs.** Run "
+            "`puma run specs/runs/sweep_bias_perturbations.yaml` to populate this view."
+        )
+    else:
+        from puma.metrics.fairness import perturbation_disparity
+
+        st.subheader("Prefix vs un-perturbed baseline")
+        baseline_rows: list[dict] = []
+        directional_rows: list[dict] = []
+        for model in sorted(preds["model"].dropna().unique()):
+            base = preds[(preds["model"] == model) & preds["perturbation"].isna()]
+            base_lookup = dict(zip(base["instance_id"], base["parsed_label"], strict=False))
+            gold_lookup = dict(zip(base["instance_id"], base["gold_label"], strict=False))
+            sub_by_pert: dict[str, dict] = {}
+            for pert in gender_perts:
+                sub = gender_rows[
+                    (gender_rows["model"] == model) & (gender_rows["perturbation"] == pert)
+                ]
+                if sub.empty:
+                    continue
+                sub_by_pert[pert] = dict(zip(sub["instance_id"], sub["parsed_label"], strict=False))
+
+            for pert, sub_lookup in sub_by_pert.items():
+                shared = sorted(set(sub_lookup) & set(base_lookup))
+                if not shared:
+                    continue
+                metrics = perturbation_disparity(
+                    [base_lookup[i] for i in shared],
+                    [sub_lookup[i] for i in shared],
+                    [gold_lookup[i] for i in shared],
+                )
+                baseline_rows.append(
+                    {"model": model, "perturbation": pert, "n": len(shared), **metrics}
+                )
+
+            if all(p in sub_by_pert for p in gender_perts):
+                male = sub_by_pert["gender_swap_prefix_male"]
+                female = sub_by_pert["gender_swap_prefix_female"]
+                shared = sorted(set(male) & set(female) & set(gold_lookup))
+                if shared:
+                    metrics = perturbation_disparity(
+                        [male[i] for i in shared],
+                        [female[i] for i in shared],
+                        [gold_lookup[i] for i in shared],
+                    )
+                    directional_rows.append(
+                        {
+                            "model": model,
+                            "comparison": "male vs female",
+                            "n": len(shared),
+                            **metrics,
+                        }
+                    )
+
+        if baseline_rows:
+            df = pd.DataFrame(baseline_rows)
+            display = df.copy()
+            for c in (
+                "acc_baseline",
+                "acc_perturbed",
+                "disparity",
+                "flip_rate",
+                "flip_to_correct",
+                "flip_to_incorrect",
+            ):
+                if c in display.columns:
+                    display[c] = display[c].map(lambda v: f"{v:.4f}")
+            st.dataframe(display, use_container_width=True, hide_index=True)
+
+        if directional_rows:
+            st.subheader("Directional bias (male prefix vs female prefix)")
+            st.caption(
+                "Pairs the male and female prefix conditions on the same instance. "
+                "A non-zero `flip_rate` means the model classified the same ticket "
+                "differently depending on the reporter's gender alone."
+            )
+            df = pd.DataFrame(directional_rows)
+            for c in (
+                "acc_baseline",
+                "acc_perturbed",
+                "disparity",
+                "flip_rate",
+                "flip_to_correct",
+                "flip_to_incorrect",
+            ):
+                if c in df.columns:
+                    df[c] = df[c].map(lambda v: f"{v:.4f}")
+            df = df.rename(columns={"acc_baseline": "acc_male", "acc_perturbed": "acc_female"})
+            st.dataframe(df, use_container_width=True, hide_index=True)
+
+        st.caption("Methodology and full discussion: `docs/results/bias_evaluation.md`.")
 
 
 # ── View: Sustainability Frontier ─────────────────────────────────────────────

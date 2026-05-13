@@ -1,0 +1,28 @@
+id: sweep_bias_perturbations_v1
+description: >
+  Sprint 5 bias evaluation: 2 models × (original + male-prefix + female-prefix +
+  register-shift) × 100 triage_jira instances. The runner adds the unperturbed
+  baseline automatically, so the perturbations list below does not include
+  "none". See docs/results/bias_evaluation.md for the methodology and findings.
+scenario: triage_jira
+sample_size: 100
+models:
+  - qwen2.5:3b
+  - qwen2.5:1.5b
+adaptation:
+  strategy: [contextual-anchoring]
+  cot: [false]
+inference:
+  temperature: 0.0
+  seed: 42
+  logprobs: false
+perturbations:
+  - gender_swap_prefix_male
+  - gender_swap_prefix_female
+  - register_shift_informal
+metrics:
+  - f1_macro
+  - accuracy
+sustainability:
+  codecarbon: false
+repeat: 1

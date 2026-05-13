@@ -459,6 +459,8 @@ def _logprobs_to_jsonable(lps: list) -> list[dict]:
 
 
 def _build_perturbation_fns(perturbations: list[str], seed: int) -> dict:
+    from puma.perturbations.gender_swap_prefix import apply_female_prefix, apply_male_prefix
+    from puma.perturbations.register_shift import apply as register_shift_apply
     from puma.perturbations.text import case_change, tech_noise, truncate, typos
 
     fns = {}
@@ -473,6 +475,12 @@ def _build_perturbation_fns(perturbations: list[str], seed: int) -> dict:
             fns[name] = lambda text: truncate(text, keep=0.5, from_="end")
         elif name == "tech_noise":
             fns[name] = lambda text, s=seed: tech_noise(text, seed=s)
+        elif name == "gender_swap_prefix_male":
+            fns[name] = lambda text, s=seed: apply_male_prefix(text, seed=s)
+        elif name == "gender_swap_prefix_female":
+            fns[name] = lambda text, s=seed: apply_female_prefix(text, seed=s)
+        elif name == "register_shift_informal":
+            fns[name] = lambda text: register_shift_apply(text)
     return fns
 
 
