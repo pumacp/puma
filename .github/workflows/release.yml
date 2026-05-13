@@ -26,10 +26,28 @@ jobs:
       - name: Build wheel
         run: python -m build --wheel
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.whl
-          generate_release_notes: true
+      - name: Upload wheel to release
+        # The release itself is created manually via `gh release create` in
+        # the Phase E (and E.bis) release procedure with curated notes from
+        # docs/RELEASES/<tag>.md. Before this change, the workflow also
+        # created the release with auto-generated notes, which raced the
+        # manual create on tag push and produced a duplicate draft (e.g.
+        # v2.2.0 1:02:06 UTC, both manual and workflow creates landed in
+        # the same second). The workflow now only uploads the wheel to an
+        # existing release, polling for up to 60 s in case the manual
+        # `gh release create` is still in flight.
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 12); do
+            if gh release view "${GITHUB_REF_NAME}" \
+                 --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+              gh release upload "${GITHUB_REF_NAME}" dist/*.whl --clobber
+              exit 0
+            fi
+            echo "Release ${GITHUB_REF_NAME} not found yet (attempt ${i}/12); retrying in 5 s..."
+            sleep 5
+          done
+          echo "::error::Release ${GITHUB_REF_NAME} not found after 60 s. Create it manually with 'gh release create ${GITHUB_REF_NAME} --notes-file docs/RELEASES/${GITHUB_REF_NAME}.md', then re-run this workflow."
+          exit 1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
