@@ -62,6 +62,7 @@ recommended phase for resolution.
 | D11 | Git history prior to commit `1abd831` contains references to internal operational documents (now relocated to `docs/internal/`, gitignored) | Phase A.9 | DECIDED-NO-ACTION. Rewriting history with `git filter-repo` would break clones and any references to specific commits in academic memoria; disproportionate for non-artifact documents | (closed by decision) |
 | ~~D13~~ | ~~`scripts/download_datasets.py` is mis-named: it processes a local SQL zip dump, not downloads anything~~ — **CLOSED in Sprint 1**: renamed to `scripts/prepare_datasets.py`; references updated across `src/puma/datasets/tawos.py`, `data/README.md`, `docs/user_guide.md`, `docs/troubleshooting.md` | Phase A.7 | Renamed | Sprint 1 |
 | D14 | No automated fetch path for the upstream TAWOS SQL dump | Phase A.7 | Investigate UCL repository API or Zenodo alternative mirror; add fetch step with checksum verification to `scripts/` | Future feature |
+| D22 | Synthetic `triage_jira` dataset persists only `instance_id` and `gold_label`; original ticket descriptions (`input_text`) are empty in the `instances` table. Limits instance-level inspectability in dashboard drill-down views but does not affect evaluation metrics. Surfaced during Sprint 4 S4.3.0 when JOIN-eing `predictions ⋈ instances` to fix the silent `gold_label` lookup bug in two views; the JOIN itself works but the joined `input_text` column is empty in 200/200 rows of the active dataset | Sprint 4 S4.3.0 dashboard integration | Modify `scripts/create_jira_data.py` to populate `input_text` with original ticket descriptions; re-ingest dataset; re-run baseline to verify reproducibility holds (F1 should remain 0.5867 ± 0.01 if the prompt template was already using a placeholder for the input) | Future data pipeline enhancement, before next major dataset refresh |
 | ~~D18-cleanup~~ | ~~`pyproject.toml` has `version = "2.0.0-dev"` which causes the published wheel to be named `puma-2.0.0.dev0-py3-none-any.whl` instead of `puma-2.0.0-py3-none-any.whl`~~ — **PARTIALLY CLOSED in Sprint 1**: bumped `2.0.0-dev` → `2.1.0-dev` (development now targets next minor). Full versioning policy (bump to clean string before tag, bump to next `-dev` after) deferred to release-process documentation in Phase E | Phase A.7 observation | Bumped | Sprint 1 (partial) |
 
 ## Resolved technical debt
@@ -226,7 +227,7 @@ S2.2. B.3 sweep evidence in `docs/results/phase_b_analysis.md`
     into Sprint 1 as task S1.5.bis; see CHANGELOG for the full sequence.
 - Closed in Sprint 2: **2** (D15 measurement-and-infrastructure fix;
   D18 documented exclusion based on detokenizer diagnostic).
-- Open technical debt items: **6** (Critical: 0; Medium: 5; Low: 1; one of those marked `DECIDED-NO-ACTION`)
+- Open technical debt items: **7** (Critical: 0; Medium: 5; Low: 2; one of those marked `DECIDED-NO-ACTION`)
 - Total items tracked across project lifecycle: **24**
 
 No critical debt remains after Sprint 2. The repository is in
