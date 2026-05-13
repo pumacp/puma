@@ -1,14 +1,38 @@
-# PUMA — Local LLM Benchmarking for Project Management
+# PUMA — Project Understanding and Management with Agents
 
-**Platform for Understanding & Management with Agents**
+![PUMA Logo](https://raw.githubusercontent.com/pumacp/puma/main/assets/img/PUMA.png)
 
-PUMA is an open-source, reproducible benchmarking framework for evaluating open large language models on project management tasks: issue triage, story-point estimation, and backlog prioritization. All inference runs locally via [Ollama](https://ollama.ai) — no external API calls, no data leaves your machine.
+> **PUMA — Project Understanding and Management with Agents**
+>
+> *Can language models manage ICT projects? An empirical benchmark of local LLM agents for issue triage and effort estimation in ICT projects.*
+
+PUMA is a research-driven platform that benchmarks autonomous AI agents on practical project management tasks. This repository contains the **evaluation platform**: orchestrator, scenarios, metrics, sustainability tracking, dashboard, and reproducible specifications. All inference runs locally via [Ollama](https://ollama.ai) — no external API calls, no data leaves your machine.
 
 ![Tests](https://img.shields.io/badge/tests-313%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 ![Docker](https://img.shields.io/badge/runs%20on-Docker-2496ED)
 ![Version](https://img.shields.io/badge/version-v2.2.0-blue)
+
+## Related resources
+
+- 📚 [PUMA Research Vault](https://github.com/pumacp/puma-vault) — Unified knowledge management for the PUMA project
+- 🌐 [Vault Published](https://pumacp.github.io/puma-vault/) — Published knowledge garden
+- 📦 [Releases](https://github.com/pumacp/puma/releases) — All published versions
+- 📋 [Project Index](INDEX.md) — Phase status, releases, debt tracking
+- 🏗️ [Project Overview](docs/overview.md) — Architecture, scenarios, model catalog
+
+## Status
+
+| Item | Value |
+|------|-------|
+| Current release | [v2.2.0](https://github.com/pumacp/puma/releases/tag/v2.2.0) |
+| Tests | 313 passing |
+| Coverage | 55% |
+| CI | ✓ green on main + develop |
+| Phases A, B, D, E | ✓ Complete |
+| Phase C | 🟡 Core done; polish pending |
+| Debt | 15 resolved; 7 open (0 critical, 5 medium, 2 low) |
 
 > **PUMA is an independent benchmarking framework, fully self-contained, designed specifically for evaluating local LLMs on Project Management Office (PMO) tasks. All evaluation methodology, scenarios, and metrics are developed and maintained independently as part of this work.**
 
