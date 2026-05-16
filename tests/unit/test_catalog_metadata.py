@@ -18,7 +18,28 @@ import yaml
 
 from puma.preflight.catalog import load_catalog
 
-VALID_PROFILES = {"cpu-lite", "cpu-standard", "gpu-entry", "gpu-mid", "gpu-high"}
+VALID_PROFILES = {
+    "cpu-lite",
+    "cpu-standard",
+    "gpu-entry",
+    "gpu-mid",
+    "gpu-high",
+    # Apple Silicon profiles introduced in v2.6.0 (catalog_version 2.6.0).
+    # Empirical validation pending — see config/profiles.yaml and
+    # docs/CROSS_ARCH_REPRODUCIBILITY.md.
+    "apple-silicon-m3",
+    "apple-silicon-m3-pro",
+    "apple-silicon-m3-max",
+    "apple-silicon-m4",
+    "apple-silicon-m4-pro",
+    "apple-silicon-m4-max",
+    "apple-silicon-m5",
+    "apple-silicon-m5-pro",
+    "apple-silicon-m5-max",
+    "apple-silicon-m5-ultra",
+}
+
+APPLE_SILICON_PROFILES = {p for p in VALID_PROFILES if p.startswith("apple-silicon-")}
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _PROFILES_PATH = _REPO_ROOT / "config" / "profiles.yaml"
@@ -88,13 +109,101 @@ def test_catalog_has_version_field() -> None:
     catalog_path = _REPO_ROOT / "config" / "models_catalog.yaml"
     with open(catalog_path, encoding="utf-8") as fh:
         raw = yaml.safe_load(fh)
-    assert raw.get("catalog_version") == "2.5.0", (
-        f"catalog_version must be '2.5.0' for this release; got {raw.get('catalog_version')!r}"
+    assert raw.get("catalog_version") == "2.6.0", (
+        f"catalog_version must be '2.6.0' for this release; got {raw.get('catalog_version')!r}"
     )
     assert raw.get("catalog_changelog_path") == "docs/CATALOG_HISTORY.md", (
         f"catalog_changelog_path must point to docs/CATALOG_HISTORY.md; "
         f"got {raw.get('catalog_changelog_path')!r}"
     )
+
+
+@pytest.mark.unit
+def test_valid_profiles_includes_all_apple_silicon_identifiers() -> None:
+    """v2.6.0 introduces 9 Apple Silicon profile identifiers (M3/M4/M5
+    base, Pro, Max + M5 Ultra). They must all be in VALID_PROFILES so the
+    internal-consistency check accepts model entries that include them."""
+    expected = {
+        "apple-silicon-m3",
+        "apple-silicon-m3-pro",
+        "apple-silicon-m3-max",
+        "apple-silicon-m4",
+        "apple-silicon-m4-pro",
+        "apple-silicon-m4-max",
+        "apple-silicon-m5",
+        "apple-silicon-m5-pro",
+        "apple-silicon-m5-max",
+        "apple-silicon-m5-ultra",
+    }
+    assert expected.issubset(VALID_PROFILES), f"missing: {expected - VALID_PROFILES}"
+
+
+@pytest.mark.unit
+def test_apple_silicon_profiles_defined_in_profiles_yaml(profiles: dict) -> None:
+    """All 9 apple-silicon-* identifiers must be defined as profiles in
+    config/profiles.yaml with the v2.6.0 schema extension (apple_silicon_required
+    + chip_brand_match + min_unified_memory_gb)."""
+    for name in APPLE_SILICON_PROFILES:
+        assert name in profiles, f"{name} missing from profiles.yaml"
+        req = profiles[name]["requirements"]
+        assert req.get("apple_silicon_required") is True, (
+            f"{name} must declare apple_silicon_required: true"
+        )
+        assert isinstance(req.get("chip_brand_match"), str), (
+            f"{name} must declare a chip_brand_match string"
+        )
+        assert req["chip_brand_match"].startswith("Apple M"), (
+            f"{name} chip_brand_match must start with 'Apple M'"
+        )
+        assert isinstance(req.get("min_unified_memory_gb"), int), (
+            f"{name} must declare an integer min_unified_memory_gb"
+        )
+        assert profiles[name].get("empirical_validation") == "pending", (
+            f"{name} must declare empirical_validation: pending until Mac hardware "
+            f"validation is performed"
+        )
+
+
+@pytest.mark.unit
+def test_apple_silicon_chip_brand_match_is_unique(profiles: dict) -> None:
+    """Each apple-silicon-* profile must map to a distinct chip brand —
+    select_profile() relies on the chip_brand_match being unique to dispatch."""
+    brands = [
+        profiles[name]["requirements"]["chip_brand_match"]
+        for name in APPLE_SILICON_PROFILES
+    ]
+    assert len(brands) == len(set(brands)), f"duplicate chip_brand_match entries: {brands}"
+
+
+@pytest.mark.unit
+def test_gemma4_family_not_compatible_with_any_apple_silicon() -> None:
+    """P2/P6 reinforcement: the gemma4 family is excluded from every
+    apple-silicon-* profile. Same VRAM-pressure failure mode as on
+    gpu-entry (RTX 2060 6 GB) applies to small unified-memory variants;
+    re-enabling requires new empirical evidence on Mac hardware. Also
+    guards against accidental copy-paste of profile lists during future
+    catalog edits."""
+    catalog = {entry.ollama_tag: entry for entry in load_catalog()}
+    for tag in ("gemma4:e2b", "gemma4:e4b", "gemma4:26b-a4b"):
+        entry = catalog.get(tag)
+        if entry is None:
+            continue
+        for profile in entry.profiles_compatible:
+            assert not profile.startswith("apple-silicon-"), (
+                f"{tag} must not advertise any apple-silicon-* profile (P6, D18 by "
+                f"analogy on unified memory pressure); got {entry.profiles_compatible}"
+            )
+
+
+@pytest.mark.unit
+def test_qwen25_3b_compatible_with_apple_silicon_m4_pro() -> None:
+    """Anchor test: the canonical model used by puma validate-baseline
+    must be advertised on at least one Apple Silicon Pro variant so a
+    Mac user can run the canonical baseline natively when the time
+    comes for validation."""
+    catalog = {entry.ollama_tag: entry for entry in load_catalog()}
+    entry = catalog["qwen2.5:3b"]
+    assert "apple-silicon-m4-pro" in entry.profiles_compatible
 
 
 @pytest.mark.unit

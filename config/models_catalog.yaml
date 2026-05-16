@@ -7,7 +7,7 @@
 # Bump it whenever a new entry is added, removed, or has its
 # profiles_compatible changed. Record the change in
 # docs/CATALOG_HISTORY.md.
-catalog_version: "2.5.0"
+catalog_version: "2.6.0"
 catalog_changelog_path: "docs/CATALOG_HISTORY.md"
 
 models:
@@ -16,7 +16,11 @@ models:
     gguf_size_gb: 1.0
     context_window: 32768
     logprobs_supported: true
-    profiles_compatible: [cpu-lite, cpu-standard, gpu-entry, gpu-mid, gpu-high]
+    profiles_compatible: [cpu-lite, cpu-standard, gpu-entry, gpu-mid, gpu-high,
+                          apple-silicon-m3, apple-silicon-m3-pro, apple-silicon-m3-max,
+                          apple-silicon-m4, apple-silicon-m4-pro, apple-silicon-m4-max,
+                          apple-silicon-m5, apple-silicon-m5-pro, apple-silicon-m5-max,
+                          apple-silicon-m5-ultra]
     timeout_s: 120
     notes: "Smallest Qwen2.5; good baseline for cpu-lite"
 
@@ -25,32 +29,50 @@ models:
     gguf_size_gb: 1.9
     context_window: 32768
     logprobs_supported: true
-    profiles_compatible: [cpu-standard, gpu-entry, gpu-mid, gpu-high]
+    profiles_compatible: [cpu-standard, gpu-entry, gpu-mid, gpu-high,
+                          apple-silicon-m3-pro, apple-silicon-m3-max,
+                          apple-silicon-m4, apple-silicon-m4-pro, apple-silicon-m4-max,
+                          apple-silicon-m5, apple-silicon-m5-pro, apple-silicon-m5-max,
+                          apple-silicon-m5-ultra]
     timeout_s: 120
-    notes: "MVP model; best accuracy/speed tradeoff on CPU"
+    notes: "MVP model; best accuracy/speed tradeoff on CPU. Apple Silicon: excluded
+            from m3 base (8 GB unified memory minimum) due to tight OS+model headroom."
 
   - ollama_tag: "qwen2.5:7b"
     params_b: 7.0
     gguf_size_gb: 4.4
     context_window: 131072
     logprobs_supported: true
-    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    profiles_compatible: [gpu-entry, gpu-mid, gpu-high,
+                          apple-silicon-m3-pro, apple-silicon-m3-max,
+                          apple-silicon-m4-pro, apple-silicon-m4-max,
+                          apple-silicon-m5-pro, apple-silicon-m5-max,
+                          apple-silicon-m5-ultra]
     timeout_s: 120
+    notes: "Apple Silicon: requires Pro/Max/Ultra variants (≥18 GB unified memory) for
+            OS+model headroom."
 
   - ollama_tag: "qwen2.5:14b"
     params_b: 14.0
     gguf_size_gb: 9.0
     context_window: 131072
     logprobs_supported: true
-    profiles_compatible: [gpu-mid, gpu-high]
+    profiles_compatible: [gpu-mid, gpu-high,
+                          apple-silicon-m3-max, apple-silicon-m4-max,
+                          apple-silicon-m5-max, apple-silicon-m5-ultra]
     timeout_s: 180
+    notes: "Apple Silicon: requires Max/Ultra variants (≥36 GB unified memory)."
 
   - ollama_tag: "gemma3:1b"
     params_b: 1.0
     gguf_size_gb: 0.8
     context_window: 32768
     logprobs_supported: true
-    profiles_compatible: [cpu-lite, cpu-standard, gpu-entry, gpu-mid, gpu-high]
+    profiles_compatible: [cpu-lite, cpu-standard, gpu-entry, gpu-mid, gpu-high,
+                          apple-silicon-m3, apple-silicon-m3-pro, apple-silicon-m3-max,
+                          apple-silicon-m4, apple-silicon-m4-pro, apple-silicon-m4-max,
+                          apple-silicon-m5, apple-silicon-m5-pro, apple-silicon-m5-max,
+                          apple-silicon-m5-ultra]
     timeout_s: 120
 
   - ollama_tag: "gemma3:4b"
@@ -58,24 +80,35 @@ models:
     gguf_size_gb: 3.3
     context_window: 131072
     logprobs_supported: true
-    profiles_compatible: [cpu-standard, gpu-entry, gpu-mid, gpu-high]
+    profiles_compatible: [cpu-standard, gpu-entry, gpu-mid, gpu-high,
+                          apple-silicon-m3-pro, apple-silicon-m3-max,
+                          apple-silicon-m4, apple-silicon-m4-pro, apple-silicon-m4-max,
+                          apple-silicon-m5, apple-silicon-m5-pro, apple-silicon-m5-max,
+                          apple-silicon-m5-ultra]
     timeout_s: 120
+    notes: "Apple Silicon: excluded from m3 base (8 GB tight)."
 
   - ollama_tag: "gemma3:12b"
     params_b: 12.0
     gguf_size_gb: 8.1
     context_window: 131072
     logprobs_supported: true
-    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    profiles_compatible: [gpu-entry, gpu-mid, gpu-high,
+                          apple-silicon-m3-max, apple-silicon-m4-pro, apple-silicon-m4-max,
+                          apple-silicon-m5-pro, apple-silicon-m5-max, apple-silicon-m5-ultra]
     timeout_s: 1800
+    notes: "Apple Silicon: requires ≥24 GB unified memory (Pro/Max/Ultra)."
 
   - ollama_tag: "gemma3:27b"
     params_b: 27.0
     gguf_size_gb: 17.0
     context_window: 131072
     logprobs_supported: true
-    profiles_compatible: [gpu-high]
+    profiles_compatible: [gpu-high,
+                          apple-silicon-m3-max, apple-silicon-m4-max,
+                          apple-silicon-m5-max, apple-silicon-m5-ultra]
     timeout_s: 300
+    notes: "Apple Silicon: requires Max/Ultra variants (≥36 GB unified memory)."
 
   - ollama_tag: "gemma4:e2b"
     params_b: 2.0
@@ -124,31 +157,49 @@ models:
     gguf_size_gb: 4.4
     context_window: 32768
     logprobs_supported: true
-    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    profiles_compatible: [gpu-entry, gpu-mid, gpu-high,
+                          apple-silicon-m3-pro, apple-silicon-m3-max,
+                          apple-silicon-m4-pro, apple-silicon-m4-max,
+                          apple-silicon-m5-pro, apple-silicon-m5-max,
+                          apple-silicon-m5-ultra]
     timeout_s: 120
+    notes: "Apple Silicon: requires Pro/Max/Ultra variants (≥18 GB unified memory)."
 
   - ollama_tag: "llama3.1:8b"
     params_b: 8.0
     gguf_size_gb: 4.9
     context_window: 131072
     logprobs_supported: true
-    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    profiles_compatible: [gpu-entry, gpu-mid, gpu-high,
+                          apple-silicon-m3-pro, apple-silicon-m3-max,
+                          apple-silicon-m4-pro, apple-silicon-m4-max,
+                          apple-silicon-m5-pro, apple-silicon-m5-max,
+                          apple-silicon-m5-ultra]
     timeout_s: 120
+    notes: "Apple Silicon: requires Pro/Max/Ultra variants (≥18 GB unified memory)."
 
   - ollama_tag: "deepseek-r1:7b"
     params_b: 7.0
     gguf_size_gb: 4.7
     context_window: 131072
     logprobs_supported: true
-    profiles_compatible: [gpu-entry, gpu-mid, gpu-high]
+    profiles_compatible: [gpu-entry, gpu-mid, gpu-high,
+                          apple-silicon-m3-pro, apple-silicon-m3-max,
+                          apple-silicon-m4-pro, apple-silicon-m4-max,
+                          apple-silicon-m5-pro, apple-silicon-m5-max,
+                          apple-silicon-m5-ultra]
     timeout_s: 300
-    notes: "Reasoning model; higher latency expected"
+    notes: "Reasoning model; higher latency expected. Apple Silicon: requires
+            Pro/Max/Ultra variants (≥18 GB unified memory)."
 
   - ollama_tag: "deepseek-r1:14b"
     params_b: 14.0
     gguf_size_gb: 9.0
     context_window: 131072
     logprobs_supported: true
-    profiles_compatible: [gpu-mid, gpu-high]
+    profiles_compatible: [gpu-mid, gpu-high,
+                          apple-silicon-m3-max, apple-silicon-m4-max,
+                          apple-silicon-m5-max, apple-silicon-m5-ultra]
     timeout_s: 300
-    notes: "Reasoning model; higher latency expected"
+    notes: "Reasoning model; higher latency expected. Apple Silicon: requires
+            Max/Ultra variants (≥36 GB unified memory)."
