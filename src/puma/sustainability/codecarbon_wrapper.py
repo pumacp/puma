@@ -4,11 +4,69 @@ from __future__ import annotations
 
 import functools
 import logging
+import subprocess
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from puma.preflight.apple_silicon import is_apple_silicon
+
 logger = logging.getLogger(__name__)
+
+
+def _powermetrics_available_without_sudo() -> bool:
+    """Probe whether ``powermetrics`` can run without ``sudo``.
+
+    On stock macOS the answer is always False — Apple ships powermetrics
+    with sudo-only execution. Returns True only when an administrator has
+    configured a sudoers entry granting passwordless powermetrics access
+    (see docs/MACOS_NOTES.md). Off macOS this always returns False
+    without invoking subprocess.
+    """
+    if not is_apple_silicon():
+        return False
+    try:
+        result = subprocess.run(
+            ["powermetrics", "-n", "1", "-i", "1"],
+            capture_output=True,
+            timeout=3,
+        )
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired, PermissionError, OSError):
+        return False
+
+
+def get_tracking_mode_and_warnings() -> tuple[str, list[str]]:
+    """Return the appropriate CodeCarbon ``tracking_mode`` and any warnings.
+
+    Linux + NVIDIA: returns ``("machine", [])`` — identical to the v2.5.0
+    default and the behaviour relied upon by PUMA's split-container
+    architecture (the GPU work happens in ``puma_ollama`` and only
+    ``tracking_mode='machine'`` captures it).
+
+    macOS (Apple Silicon, Mode B):
+    - With passwordless powermetrics: returns ``("machine", [])``.
+    - Without passwordless powermetrics: returns
+      ``("process", [<single-warning>])`` and the caller is expected to
+      log the warning. Energy figures will be less accurate.
+
+    The warning text points at docs/MACOS_NOTES.md so users can opt in
+    to passwordless powermetrics via sudoers.
+    """
+    warnings: list[str] = []
+    if is_apple_silicon():
+        if _powermetrics_available_without_sudo():
+            return "machine", warnings
+        warnings.append(
+            "macOS Mode B: powermetrics requires sudo for accurate energy "
+            "tracking. Falling back to tracking_mode='process' — figures "
+            "are less precise than machine-mode on Linux+NVIDIA. To enable "
+            "the machine path, configure passwordless sudo for "
+            "powermetrics (see docs/MACOS_NOTES.md) or run "
+            "`puma run --no-emissions` to disable tracking entirely."
+        )
+        return "process", warnings
+    return "machine", warnings
 
 
 def gco2_per_f1_point(emissions_g: float, f1: float) -> float | None:
@@ -44,12 +102,15 @@ def track_emissions(
             try:
                 from codecarbon import EmissionsTracker
 
+                tracking_mode, warnings = get_tracking_mode_and_warnings()
+                for w in warnings:
+                    logger.warning(w)
                 tracker = EmissionsTracker(
                     project_name=project_name,
                     output_dir=str(output_dir),
                     log_level="error",
                     save_to_file=True,
-                    tracking_mode="machine",
+                    tracking_mode=tracking_mode,
                 )
                 tracker.start()
             except Exception as exc:

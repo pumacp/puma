@@ -69,13 +69,22 @@ class Runner:
         # tracking is disabled. tracking_mode='machine' captures whole-host
         # energy; with PUMA's split-container architecture the GPU work
         # happens in puma_ollama and would not show up under 'process'.
+        # On macOS Mode B without passwordless powermetrics, the helper
+        # downgrades to 'process' and emits a warning (v2.6.0).
         tracker = None
         if self.spec.sustainability.codecarbon:
             from codecarbon import EmissionsTracker
 
+            from puma.sustainability.codecarbon_wrapper import (
+                get_tracking_mode_and_warnings,
+            )
+
+            tracking_mode, warnings = get_tracking_mode_and_warnings()
+            for w in warnings:
+                logger.warning("codecarbon.tracking_mode_fallback", reason=w)
             tracker = EmissionsTracker(
                 project_name=self.run_id,
-                tracking_mode="machine",
+                tracking_mode=tracking_mode,
                 save_to_file=False,
                 log_level="error",
                 allow_multiple_runs=True,
