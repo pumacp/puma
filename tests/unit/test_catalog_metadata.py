@@ -109,8 +109,8 @@ def test_catalog_has_version_field() -> None:
     catalog_path = _REPO_ROOT / "config" / "models_catalog.yaml"
     with open(catalog_path, encoding="utf-8") as fh:
         raw = yaml.safe_load(fh)
-    assert raw.get("catalog_version") == "2.6.0", (
-        f"catalog_version must be '2.6.0' for this release; got {raw.get('catalog_version')!r}"
+    assert raw.get("catalog_version") == "2.7.0", (
+        f"catalog_version must be '2.7.0' for this release; got {raw.get('catalog_version')!r}"
     )
     assert raw.get("catalog_changelog_path") == "docs/CATALOG_HISTORY.md", (
         f"catalog_changelog_path must point to docs/CATALOG_HISTORY.md; "
@@ -201,6 +201,103 @@ def test_qwen25_3b_compatible_with_apple_silicon_m4_pro() -> None:
     catalog = {entry.ollama_tag: entry for entry in load_catalog()}
     entry = catalog["qwen2.5:3b"]
     assert "apple-silicon-m4-pro" in entry.profiles_compatible
+
+
+@pytest.mark.unit
+def test_qwen3_30b_catalogued_correctly() -> None:
+    """v2.7.0 introduces ``qwen3:30b`` (dense). The entry must use the real
+    Ollama tag (verified via registry probe; ``qwen3:27b`` returns 404 so
+    the originally-planned 'Qwen3.6 27B Dense' is mapped to qwen3:30b),
+    declare gpu-high only, advertise the verified GGUF size, and conserve
+    logprobs_supported=False pending empirical verification."""
+    catalog = {entry.ollama_tag: entry for entry in load_catalog()}
+    entry = catalog.get("qwen3:30b")
+    assert entry is not None, "qwen3:30b must be in the v2.7.0 catalog"
+    assert entry.params_b == 30.0
+    assert entry.gguf_size_gb == 17.3  # verified via Ollama registry manifest
+    assert entry.context_window == 262144
+    assert entry.logprobs_supported is False, (
+        "logprobs_supported conservatively false until empirical verification"
+    )
+    assert entry.profiles_compatible == ["gpu-high"], (
+        f"qwen3:30b must target gpu-high only (P10/P11); got {entry.profiles_compatible}"
+    )
+
+
+@pytest.mark.unit
+def test_qwen3_30b_a3b_catalogued_correctly() -> None:
+    """v2.7.0 introduces ``qwen3:30b-a3b`` (MoE: 30B total, ~3B active).
+    Real Ollama tag (verified); planned 'Qwen3.6 35B-A3B' was 404 so we
+    map to the 30B-A3B variant. params_b follows the gemma4:26b-a4b
+    precedent (TOTAL when the tag encodes both); the notes field carries
+    the F8/D18 caveat for MoE GGUF sizing."""
+    catalog = {entry.ollama_tag: entry for entry in load_catalog()}
+    entry = catalog.get("qwen3:30b-a3b")
+    assert entry is not None, "qwen3:30b-a3b must be in the v2.7.0 catalog"
+    assert entry.params_b == 30.0, "MoE convention (gemma4:26b-a4b precedent): params_b is TOTAL"
+    assert entry.gguf_size_gb == 17.3
+    assert entry.context_window == 262144
+    assert entry.logprobs_supported is False
+    assert entry.profiles_compatible == ["gpu-high"]
+    # The F8 caveat must appear in notes (regression guard against future
+    # edits stripping the MoE-sizing context from the docstring).
+    assert entry.notes is not None
+    assert "F8" in entry.notes or "MoE" in entry.notes, (
+        "qwen3:30b-a3b notes must reference the MoE/F8 caveat"
+    )
+
+
+@pytest.mark.unit
+def test_qwen3_entries_excluded_from_gpu_entry() -> None:
+    """P10/P11: new entries added in v2.7.0 must NOT appear in gpu-entry
+    until empirical validation occurs. PUMA's validation hardware (RTX
+    2060 Mobile 6 GB) cannot run a 17.3 GB GGUF; advertising gpu-entry
+    compatibility without evidence would repeat the gemma4 D18 failure
+    mode on a new model family."""
+    catalog = {entry.ollama_tag: entry for entry in load_catalog()}
+    for tag in ("qwen3:30b", "qwen3:30b-a3b"):
+        entry = catalog.get(tag)
+        assert entry is not None
+        assert "gpu-entry" not in entry.profiles_compatible, (
+            f"{tag} must not advertise gpu-entry until empirical validation "
+            f"on appropriate hardware (P10/P11)"
+        )
+
+
+@pytest.mark.unit
+def test_qwen3_entries_excluded_from_all_apple_silicon() -> None:
+    """P11 generalisation: pending-validation entries also exclude every
+    apple-silicon-* profile. Unified-memory pressure on smaller M-series
+    variants is the same VRAM-pressure failure mode that motivated the
+    gpu-entry exclusion for gemma4 (D18/F8). Re-enabling requires new
+    empirical evidence and an explicit debt entry."""
+    catalog = {entry.ollama_tag: entry for entry in load_catalog()}
+    for tag in ("qwen3:30b", "qwen3:30b-a3b"):
+        entry = catalog.get(tag)
+        assert entry is not None
+        for profile in entry.profiles_compatible:
+            assert not profile.startswith("apple-silicon-"), (
+                f"{tag} must not advertise any apple-silicon-* profile "
+                f"(P11 pending-validation invariant); "
+                f"got {entry.profiles_compatible}"
+            )
+
+
+@pytest.mark.unit
+def test_qwen3_entries_target_gpu_high_only() -> None:
+    """Anchor: v2.7.0 ships qwen3:* with profiles_compatible == ['gpu-high'].
+    This is the empirically-safe target given 17.3 GB GGUF: gpu-mid (12-24 GB
+    VRAM) is borderline once the operating system and context are accounted
+    for; gpu-high (24+ GB) is the only safe default. The test pins the
+    decision so that loosening it requires deliberate intent."""
+    catalog = {entry.ollama_tag: entry for entry in load_catalog()}
+    for tag in ("qwen3:30b", "qwen3:30b-a3b"):
+        entry = catalog.get(tag)
+        assert entry is not None
+        assert entry.profiles_compatible == ["gpu-high"], (
+            f"{tag}.profiles_compatible must equal ['gpu-high'] in v2.7.0; "
+            f"got {entry.profiles_compatible}"
+        )
 
 
 @pytest.mark.unit

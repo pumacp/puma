@@ -7,7 +7,7 @@
 # Bump it whenever a new entry is added, removed, or has its
 # profiles_compatible changed. Record the change in
 # docs/CATALOG_HISTORY.md.
-catalog_version: "2.6.0"
+catalog_version: "2.7.0"
 catalog_changelog_path: "docs/CATALOG_HISTORY.md"
 
 models:
@@ -62,6 +62,64 @@ models:
                           apple-silicon-m5-max, apple-silicon-m5-ultra]
     timeout_s: 180
     notes: "Apple Silicon: requires Max/Ultra variants (≥36 GB unified memory)."
+
+  # Qwen3 family — added in v2.7.0. Real Ollama tags verified via registry
+  # probe (registry.ollama.ai/v2/library/qwen3/manifests/*); see
+  # docs/CATALOG_HISTORY.md catalog_version 2.7.0 section.
+  - ollama_tag: "qwen3:30b"
+    params_b: 30.0
+    gguf_size_gb: 17.3
+    context_window: 262144
+    logprobs_supported: false
+    profiles_compatible: [gpu-high]
+    timeout_s: 600
+    notes: "Qwen3 30B dense model (Apache 2.0, released by Alibaba Qwen team as part
+            of the Qwen3 family). Hybrid Gated DeltaNet + self-attention architecture
+            with native 262144-token context. GGUF size 17.3 GB verified via Ollama
+            registry manifest probe (sum of layer sizes).
+
+            Empirical validation status: pending. PUMA's reference validation
+            hardware (gpu-entry, RTX 2060 Mobile 6 GB) cannot run this model.
+            Validation blockers: gpu-high hardware (24+ GB VRAM) not currently
+            available to the project. Empirical run will occur when hardware
+            becomes available; protocol per docs/CATALOG_HISTORY.md.
+
+            logprobs_supported: conservatively false until empirical verification on
+            gpu-high hardware; the Qwen3 family announces logprob support but PUMA
+            has not yet probed token-level confidence on this specific tag.
+
+            Apple Silicon: not added to apple-silicon-* profiles_compatible[] in
+            v2.7.0 per the pending-validation P11 invariant. Could plausibly run
+            on apple-silicon-m3-max or m4-max+ (36+ GB unified memory); will be
+            revisited when hardware is available."
+
+  - ollama_tag: "qwen3:30b-a3b"
+    params_b: 30.0
+    gguf_size_gb: 17.3
+    context_window: 262144
+    logprobs_supported: false
+    profiles_compatible: [gpu-high]
+    timeout_s: 600
+    notes: "Qwen3 30B-A3B MoE (Apache 2.0, Alibaba Qwen team). Mixture-of-Experts:
+            30B total parameters, ~3B active per token (the '-a3b' suffix encodes
+            'active 3B'). GGUF size 17.3 GB verified via Ollama registry manifest
+            probe (sum of layer sizes — comparable to the 30B dense sibling because
+            the GGUF contains all experts, only a subset is routed per forward).
+
+            Per F8/D18 lesson (gemma4:e2b: 2B effective → 7.2 GB GGUF), MoE
+            active-params count does NOT predict actual GGUF size or runtime VRAM
+            consumption. Empirical validation on gpu-high hardware required before
+            enabling on smaller profiles, including any apple-silicon-* variant.
+
+            Empirical validation status: pending. PUMA's reference validation
+            hardware (gpu-entry, RTX 2060 Mobile 6 GB) cannot run this model.
+            Validation blockers: gpu-high hardware (24+ GB VRAM) not currently
+            available to the project.
+
+            logprobs_supported: conservatively false until empirical verification.
+            Apple Silicon: excluded by the P11 pending-validation invariant.
+            Re-evaluation requires new empirical evidence and an explicit debt
+            entry referencing the gemma4 D18/F8 precedent for MoE families."
 
   - ollama_tag: "gemma3:1b"
     params_b: 1.0
