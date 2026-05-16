@@ -80,6 +80,24 @@ def test_profile_has_at_least_one_compatible_model(profiles: dict) -> None:
 
 
 @pytest.mark.unit
+def test_catalog_has_version_field() -> None:
+    """v2.5.0 introduced a ``catalog_version`` root field and a pointer to
+    docs/CATALOG_HISTORY.md. Both fields are read by docs tooling and by
+    the user-facing version string; they must remain present and match
+    the expected values for the current release."""
+    catalog_path = _REPO_ROOT / "config" / "models_catalog.yaml"
+    with open(catalog_path, encoding="utf-8") as fh:
+        raw = yaml.safe_load(fh)
+    assert raw.get("catalog_version") == "2.5.0", (
+        f"catalog_version must be '2.5.0' for this release; got {raw.get('catalog_version')!r}"
+    )
+    assert raw.get("catalog_changelog_path") == "docs/CATALOG_HISTORY.md", (
+        f"catalog_changelog_path must point to docs/CATALOG_HISTORY.md; "
+        f"got {raw.get('catalog_changelog_path')!r}"
+    )
+
+
+@pytest.mark.unit
 def test_gemma4_family_excluded_from_gpu_entry() -> None:
     """D18 resolution: gemma4 family is empirically incompatible with the
     gpu-entry profile (6 GB VRAM forces CPU offload, which breaks Ollama's
