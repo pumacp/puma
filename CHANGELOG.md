@@ -16,6 +16,146 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
+## [2.7.0] — 2026-05-16
+
+### Added
+
+Sprint 10 (catalog expansion — empirical-first, real Ollama tags
+only):
+
+- Two new entries in `config/models_catalog.yaml`:
+  - **`qwen3:30b`** — Alibaba Qwen3 30B dense (Apache 2.0). 17.3 GB
+    GGUF (verified via Ollama registry manifest probe), native
+    context 262144 tokens, hybrid Gated DeltaNet + self-attention
+    architecture. `profiles_compatible: [gpu-high]`,
+    `logprobs_supported: false` conservatively until empirical
+    verification.
+  - **`qwen3:30b-a3b`** — Alibaba Qwen3 30B-A3B MoE (Apache 2.0).
+    30B total parameters, ~3B active per token. Same GGUF size
+    (17.3 GB) and context as the dense sibling because GGUF
+    contains every expert. `params_b: 30.0` follows the
+    `gemma4:26b-a4b` precedent (TOTAL when the tag encodes both
+    numbers). The `notes` field carries the F8/D18 caveat so MoE
+    active-params count is not mistaken for VRAM consumption.
+- Both entries verified against the Ollama registry
+  (`registry.ollama.ai/v2/library/qwen3/manifests/*`) before
+  cataloguing — HTTP 200 on both tags, GGUF sizes computed from
+  the sum of layer sizes in the manifest.
+- `catalog_version` bumped: **2.6.0 → 2.7.0**.
+- 5 new regression-guard tests in
+  `tests/unit/test_catalog_metadata.py`:
+  - `test_qwen3_30b_catalogued_correctly`
+  - `test_qwen3_30b_a3b_catalogued_correctly` (asserts the F8/MoE
+    caveat is preserved in `notes`)
+  - `test_qwen3_entries_excluded_from_gpu_entry` (P10/P11)
+  - `test_qwen3_entries_excluded_from_all_apple_silicon` (P11
+    generalisation across profile families)
+  - `test_qwen3_entries_target_gpu_high_only` (exact-equality
+    anchor against accidental loosening)
+- `docs/CATALOG_HISTORY.md` gains a `catalog_version 2.7.0`
+  section documenting the two additions, the formal Kimi K2.6
+  exclusion (with the 13-tag probe failure table), and the list of
+  deferred Qwen3 variants (`qwen3:32b`, `qwen3:235b-a22b`,
+  `qwen3-coder:*`).
+
+### Documented (no entry change, formal exclusion)
+
+- **Kimi K2.6 considered and excluded.** A registry probe on
+  2026-05-16 returned **HTTP 404** on all 13 plausible Ollama
+  tag namings (`kimi-k2:6`, `kimi-k2:latest`, `kimi-k2:1t`,
+  `kimi-k2:1t-instruct`, `kimi-k2:0905`, `kimi-k2:base`,
+  `kimi-k2:instruct`, `kimi:latest`, `kimi-k2.6:latest`,
+  `moonshot:latest`, `moonshot:kimi-k2`,
+  `kimi-k2-base:latest`, `kimi-k2-instruct:latest`). The model is
+  not distributed via the Ollama registry as of the v2.7.0 cut.
+  Cataloguing a non-existent `ollama_tag` would violate the
+  project's empirical-first principle (P10) and produce a broken
+  `puma models pull` command. The exclusion is recorded in
+  `docs/CATALOG_HISTORY.md` v2.7.0 § "Considered but not
+  catalogued" with the full probe table for academic
+  traceability.
+- **Deferred to a future release** (when validation hardware
+  becomes available): `qwen3:32b` (18.8 GB dense),
+  `qwen3:235b-a22b` (132.4 GB MoE), `qwen3-coder:30b`,
+  `qwen3-coder:480b`. All exist on Ollama (HTTP 200 confirmed);
+  deferred for scope discipline in v2.7.0.
+
+### Changed
+
+- **Catalog schema retained at 8 fields** (no expansion). Sprint
+  10's original plan proposed ~12 new YAML fields (`family`,
+  `parameters_total_b`, `parameters_active_b`,
+  `profile_recommended`, `size_gb_disk_estimate`,
+  `size_gb_vram_estimate`, `quantization`, `license`,
+  `release_date`, `capabilities`, `empirical_validation`,
+  `validation_blockers`). The user's minimum-complexity decision
+  kept the catalog at the v2.0.0–v2.6.0 schema; all v2.7.0
+  metadata (license, release date, MoE caveat, validation
+  blockers, architecture details) lives within the multi-line
+  `notes:` text. `src/puma/preflight/catalog.py` and the
+  `ModelEntry` dataclass are **byte-identical to v2.6.0**.
+- `tests/unit/test_preflight_catalog.py::test_load_catalog_returns_all_entries`:
+  entry-count expectation updated from 15 to 17 to reflect the
+  two new Qwen3 additions. The test continues to assert that
+  every entry is a `ModelEntry` instance with a populated tag.
+
+### Preserved (regression guards)
+
+- `test_gemma4_family_excluded_from_gpu_entry`: **PASSING**
+  unchanged (D18/F8 honored).
+- `test_gemma4_family_not_compatible_with_any_apple_silicon`:
+  **PASSING** unchanged (P6 enforcement from Sprint 9 honored).
+- The two new Qwen3 entries are excluded from `gpu-entry` AND
+  every `apple-silicon-*` profile by design (P11 invariant) and
+  by test.
+- `puma validate-baseline` triage_jira: **PASS f1=0.5831,
+  delta=-0.0036** (within ±0.01 tolerance).
+- `puma validate-baseline` estimation_tawos: **PASS mae=5.7150,
+  delta=+0.0000** (bit-exact, within ±0.05 tolerance).
+- All 402 previously-passing tests continue to pass; +5 new for
+  a total of **407** under `-m "not ollama"`.
+- Linux + NVIDIA dispatch byte-identical to v2.6.0 (no new
+  profiles, no new dispatch logic, no new code paths). The new
+  Qwen3 entries appear in `models_for_profile('gpu-high')` only.
+
+### Empirical validation status
+
+Both new Qwen3 entries declare validation as **pending** in their
+`notes` text. PUMA's reference validation hardware
+(`gpu-entry`, RTX 2060 Mobile 6 GB) cannot run a 17.3 GB GGUF;
+empirical validation is gated on `gpu-high` hardware (24+ GB
+NVIDIA VRAM) becoming available to the project. The protocol is
+documented in `docs/CATALOG_HISTORY.md` § "Empirical validation
+roadmap": pull the model via Ollama, run the canonical baselines
+(`triage_jira` + `estimation_tawos`), measure
+`parse_failure_rate` + reproducibility, then either bump
+`logprobs_supported` to true or extend `profiles_compatible` to
+vetted Apple Silicon variants. Loosening the gpu-high-only
+restriction requires deliberate test-edit intent against the
+new exact-equality anchor test.
+
+### Highlights
+
+- **Catalogue grows by 2, schema by 0.** The user's
+  minimum-complexity discipline kept the v2.7.0 catalog at the
+  same 8 fields used since v2.0.0 — every new piece of metadata
+  fits in the existing `notes` field. Tooling and the loader are
+  unaffected.
+- **Empirical-first methodology preserved.** Every catalogued
+  `ollama_tag` is verified against the Ollama registry before
+  inclusion. Kimi K2.6 is recorded in `CATALOG_HISTORY.md` with
+  its 13-tag probe failure rather than fabricated. Honesty over
+  completeness.
+- **Invariants generalised, not relaxed.** The pending-validation
+  exclusion from `gpu-entry` (established in Sprint 9 for Apple
+  Silicon entries) is now reaffirmed for the Qwen3 family AND
+  extended to every `apple-silicon-*` profile by an explicit
+  test. The pattern is now: new entries default to the safest
+  profile only; loosening requires evidence.
+- **Reproducibility unchanged**. Both `validate-baseline`
+  scenarios PASS bit-exactly on the develop merge — the catalog
+  expansion does not perturb the inference path.
+
 ## [2.6.0] — 2026-05-16
 
 ### Added
@@ -1017,7 +1157,8 @@ The following items are tracked for future releases:
 Initial evaluation scripts: `evaluate_triage.py`, `evaluate_estimation.py`, `agents/orchestrator.py`.
 Single-file, non-reproducible, not packaged.
 
-[Unreleased]: https://github.com/pumacp/puma/compare/v2.6.0...HEAD
+[Unreleased]: https://github.com/pumacp/puma/compare/v2.7.0...HEAD
+[2.7.0]: https://github.com/pumacp/puma/releases/tag/v2.7.0
 [2.6.0]: https://github.com/pumacp/puma/releases/tag/v2.6.0
 [2.5.0]: https://github.com/pumacp/puma/releases/tag/v2.5.0
 [2.4.0]: https://github.com/pumacp/puma/releases/tag/v2.4.0
