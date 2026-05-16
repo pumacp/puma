@@ -45,7 +45,7 @@ PUMA is a research-driven platform that benchmarks autonomous AI agents on pract
 | Docker Compose | v2 |
 | RAM | 8 GB (16 GB recommended) |
 | Disk | 10 GB free (for models + data) |
-| GPU | Optional — NVIDIA/AMD/Apple Silicon |
+| GPU | Optional — NVIDIA (validated). AMD ROCm and Apple Metal not yet detected; macOS Docker runs CPU-only. See [`docs/MACOS_NOTES.md`](docs/MACOS_NOTES.md). |
 
 > No Python installation needed on the host. Everything runs inside Docker.
 

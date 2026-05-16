@@ -1,6 +1,14 @@
 # PUMA Model Catalog
 # Each entry defines a supported Ollama model with hardware requirements.
 # Add a new model here — no code changes needed.
+#
+# catalog_version is read by docs tooling and by the unit test
+# tests/unit/test_catalog_metadata.py::test_catalog_has_version_field.
+# Bump it whenever a new entry is added, removed, or has its
+# profiles_compatible changed. Record the change in
+# docs/CATALOG_HISTORY.md.
+catalog_version: "2.5.0"
+catalog_changelog_path: "docs/CATALOG_HISTORY.md"
 
 models:
   - ollama_tag: "qwen2.5:1.5b"

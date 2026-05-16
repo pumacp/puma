@@ -103,7 +103,11 @@ If this fails, install `nvidia-container-toolkit` following the official guide, 
 
 AMD/ROCm: ensure `rocm-docker` is installed and the `puma_ollama` service includes the correct `devices` entry.
 
-Apple Silicon: GPU acceleration works automatically through the `metal` backend inside the Ollama container; no extra configuration needed.
+Apple Silicon: in Docker Desktop, Ollama runs CPU-only because the
+Linux VM does not have access to Metal. To use Metal acceleration on
+Apple Silicon, run Ollama natively (outside Docker). See
+[`docs/MACOS_NOTES.md`](MACOS_NOTES.md) for the two operational modes
+and the v2.6.0 plan for first-class native-mode support.
 
 ---
 
