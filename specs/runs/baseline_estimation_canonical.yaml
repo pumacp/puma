@@ -1,0 +1,19 @@
+id: baseline_estimation_canonical_v1
+description: "Canonical baseline: estimation_tawos × qwen2.5:3b × zero-shot × 200 instances. Reference MAE established in v2.5.0 for puma validate-baseline --expected-mae."
+scenario: estimation_tawos
+sample_size: 200
+models:
+  - qwen2.5:3b
+adaptation:
+  strategy: [zero-shot]
+inference:
+  temperature: 0.0
+  seed: 42
+  max_tokens: 256
+  logprobs: false
+perturbations: []
+metrics:
+  - mae
+sustainability:
+  codecarbon: false
+repeat: 1

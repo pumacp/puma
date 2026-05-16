@@ -185,41 +185,91 @@ def _run_baseline_for_validation(spec: str, db_path: str, ollama_host: str) -> d
 
 @app.command(name="validate-baseline")
 def validate_baseline(
-    spec: str = typer.Option(
-        "specs/runs/baseline_triage.yaml",
+    spec: str | None = typer.Option(
+        None,
         "--spec",
-        help="Path to the canonical baseline run-spec",
+        help=(
+            "Path to the canonical baseline run-spec. Defaults to "
+            "specs/runs/baseline_triage.yaml for the F1 path and "
+            "specs/runs/baseline_estimation_canonical.yaml for the MAE path."
+        ),
     ),
-    expected_f1: float = typer.Option(0.5867, "--expected-f1", help="Expected F1-macro value"),
+    expected_f1: float | None = typer.Option(
+        None,
+        "--expected-f1",
+        help="Expected F1-macro value (mutually exclusive with --expected-mae)",
+    ),
+    expected_mae: float | None = typer.Option(
+        None,
+        "--expected-mae",
+        help="Expected MAE in story points (mutually exclusive with --expected-f1)",
+    ),
     tolerance: float = typer.Option(
-        0.01, "--tolerance", help="Absolute tolerance window around expected_f1"
+        0.01, "--tolerance", help="Absolute tolerance window around the expected value"
     ),
     db_path: str = typer.Option("data/puma.db", "--db"),
     ollama_host: str = typer.Option(
         "http://localhost:11434", "--ollama-host", envvar="OLLAMA_HOST"
     ),
 ) -> None:
-    """Validate the canonical baseline F1-macro against its reference value.
+    """Validate a canonical baseline metric against its reference value.
 
-    Runs the spec, reads ``f1_macro`` from the resulting metrics and exits 0
-    if ``|f1 - expected_f1| <= tolerance``, non-zero otherwise. Use as a CI
-    reproducibility check or before tagging a release.
+    Runs the spec, reads the relevant metric from the resulting summary and
+    exits 0 if ``|actual - expected| <= tolerance``, non-zero otherwise. Use
+    as a CI reproducibility check or before tagging a release.
+
+    Two scenarios are supported:
+
+    * ``--expected-f1`` validates ``f1_macro`` from a ``triage_jira`` spec
+      (default reference: ``0.5867`` on ``baseline_triage.yaml``, established
+      in v2.0.0).
+    * ``--expected-mae`` validates ``mae`` from an ``estimation_tawos`` spec
+      (reference established in v2.5.0 on
+      ``specs/runs/baseline_estimation_canonical.yaml``; see
+      ``docs/baseline_references.md``).
+
+    Calling with neither flag preserves the historical default (F1 against
+    0.5867 on the triage baseline), so existing CI commands continue to
+    work unchanged.
     """
-    metrics = _run_baseline_for_validation(spec, db_path, ollama_host)
-    f1 = metrics.get("f1_macro")
-    if f1 is None:
+    if expected_f1 is not None and expected_mae is not None:
         typer.secho(
-            "[ERROR] Baseline run produced no f1_macro metric.",
+            "[ERROR] --expected-f1 and --expected-mae are mutually exclusive.",
             fg=typer.colors.RED,
             err=True,
         )
         raise typer.Exit(2)
 
-    delta = f1 - expected_f1
+    if expected_f1 is None and expected_mae is None:
+        # Backward-compatible default: triage F1 against v2.0.0 reference.
+        expected_f1 = 0.5867
+
+    if expected_mae is not None:
+        resolved_spec = spec or "specs/runs/baseline_estimation_canonical.yaml"
+        metric_key = "mae"
+        expected_value = expected_mae
+    else:
+        resolved_spec = spec or "specs/runs/baseline_triage.yaml"
+        metric_key = "f1_macro"
+        expected_value = expected_f1  # type: ignore[assignment]
+
+    metrics = _run_baseline_for_validation(resolved_spec, db_path, ollama_host)
+    actual = metrics.get(metric_key)
+    if actual is None:
+        typer.secho(
+            f"[ERROR] Baseline run produced no {metric_key} metric.",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(2)
+
+    delta = actual - expected_value
     if abs(delta) <= tolerance:
-        typer.echo(f"PASS: f1_macro={f1:.4f} (delta={delta:+.4f}, tolerance=+/-{tolerance})")
+        typer.echo(
+            f"PASS: {metric_key}={actual:.4f} (delta={delta:+.4f}, tolerance=+/-{tolerance})"
+        )
         raise typer.Exit(0)
-    typer.echo(f"FAIL: f1_macro={f1:.4f} (delta={delta:+.4f}, outside +/-{tolerance})")
+    typer.echo(f"FAIL: {metric_key}={actual:.4f} (delta={delta:+.4f}, outside +/-{tolerance})")
     raise typer.Exit(1)
 
 
