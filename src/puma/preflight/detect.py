@@ -28,6 +28,10 @@ class SystemCapabilities:
     gpu_backend: str  # "nvidia" | "rocm" | "metal" | "none"
     ollama_version: str | None
     ollama_reachable: bool
+    # Apple Silicon-specific fields (added v2.6.0). None on non-Apple-Silicon
+    # hosts. On Apple Silicon, populated from sysctl in detect_capabilities.
+    chip_brand: str | None = None  # e.g. "Apple M4 Pro"
+    unified_memory_gb: int | None = None  # whole GB from hw.memsize
 
 
 def _query_nvidia() -> tuple[str | None, float | None]:
@@ -162,6 +166,15 @@ def detect_capabilities() -> SystemCapabilities:
     except Exception:
         cpu_model = "Unknown"
 
+    # Apple Silicon fields (None on non-Apple-Silicon hosts; cheap probes)
+    from puma.preflight.apple_silicon import (
+        get_chip_brand,
+        get_unified_memory_gb,
+    )
+
+    chip_brand = get_chip_brand()
+    unified_memory_gb = get_unified_memory_gb()
+
     return SystemCapabilities(
         os_system=platform.system(),
         os_arch=platform.machine(),
@@ -178,4 +191,6 @@ def detect_capabilities() -> SystemCapabilities:
         gpu_backend=gpu_backend,
         ollama_version=_query_ollama_version(),
         ollama_reachable=_query_ollama_reachable(),
+        chip_brand=chip_brand,
+        unified_memory_gb=unified_memory_gb,
     )
