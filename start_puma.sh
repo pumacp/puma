@@ -4,6 +4,11 @@
 # Usage: ./start_puma.sh [--profile auto|cpu-lite|cpu-standard|gpu-entry|gpu-mid|gpu-high]
 #                        [--skip-models] [--skip-datasets] [--smoke-only]
 #                        [--observability] [--verbose]
+#                        [--native]   # macOS Mode B (Ollama with Metal, no Docker)
+#
+# --native is macOS-only and added in v2.6.0. It bootstraps a native Ollama
+# server (Metal accelerated) and a Python venv with puma installed in
+# editable mode, then exits without invoking docker. See docs/MACOS_NOTES.md.
 
 set -euo pipefail
 
@@ -13,6 +18,7 @@ SKIP_DATASETS=false
 SMOKE_ONLY=false
 OBSERVABILITY=false
 VERBOSE=false
+NATIVE_MODE=false
 START_TIME=$(date +%s)
 
 while [[ $# -gt 0 ]]; do
@@ -23,9 +29,90 @@ while [[ $# -gt 0 ]]; do
         --smoke-only)    SMOKE_ONLY=true; shift ;;
         --observability) OBSERVABILITY=true; shift ;;
         --verbose)       VERBOSE=true; set -x; shift ;;
+        --native)        NATIVE_MODE=true; shift ;;
         *) echo "Unknown flag: $1"; exit 1 ;;
     esac
 done
+
+# ── Native macOS mode (Ollama + Metal, no Docker). Added in v2.6.0. ──
+# Returns BEFORE the Docker-mode logic below. On Linux, exits with a
+# clear error message. See docs/MACOS_NOTES.md for the operational
+# differences between Mode A (Docker, CPU-only) and Mode B (native).
+if [[ "$NATIVE_MODE" == true ]]; then
+    if [[ "$(uname -s)" != "Darwin" ]]; then
+        echo "[ERROR] --native mode is supported only on macOS in v2.6.0."
+        echo "        On Linux, use the default Docker mode (no flag needed)."
+        exit 1
+    fi
+
+    if [[ "$(uname -m)" != "arm64" ]]; then
+        echo "[WARN] --native mode is designed for Apple Silicon (arm64)."
+        echo "       Detected machine: $(uname -m). Continuing, but Metal"
+        echo "       acceleration is not available on Intel Macs."
+    fi
+
+    echo "[INFO] Starting PUMA in macOS native mode (Ollama with Metal)"
+
+    if ! command -v ollama >/dev/null 2>&1; then
+        echo "[ERROR] Ollama is not installed natively."
+        echo "        Install:   brew install ollama"
+        echo "        Or visit:  https://ollama.com/download"
+        exit 1
+    fi
+
+    if ! pgrep -f "ollama serve" >/dev/null 2>&1; then
+        echo "[INFO] Starting Ollama server in background..."
+        mkdir -p /tmp/puma_logs
+        nohup ollama serve >/tmp/puma_logs/ollama_native.log 2>&1 &
+        # Wait up to 30s for the server to accept connections
+        for _i in $(seq 1 30); do
+            if curl -sf http://localhost:11434/api/version >/dev/null 2>&1; then
+                echo "[INFO] Ollama ready after ${_i}s"
+                break
+            fi
+            sleep 1
+        done
+    else
+        echo "[INFO] Ollama server already running"
+    fi
+
+    if ! curl -sf http://localhost:11434/api/version >/dev/null 2>&1; then
+        echo "[ERROR] Ollama server did not respond at http://localhost:11434"
+        echo "        Check log: /tmp/puma_logs/ollama_native.log"
+        exit 1
+    fi
+
+    if [[ ! -d ".venv" ]]; then
+        echo "[INFO] Creating Python venv at .venv ..."
+        python3 -m venv .venv
+    fi
+    # shellcheck disable=SC1091
+    source .venv/bin/activate
+
+    if ! python -c "import puma" >/dev/null 2>&1; then
+        echo "[INFO] Installing PUMA in editable mode (this may take a minute)..."
+        pip install -q -e .
+    fi
+
+    export PUMA_OLLAMA_HOST="http://localhost:11434"
+    export PUMA_NATIVE_MODE=1
+
+    echo ""
+    echo "[OK] PUMA native mode ready."
+    echo ""
+    echo "  Verify detection:"
+    echo "    puma preflight              # expects apple-silicon-* profile"
+    echo "    puma list-ollama-models     # native Ollama models"
+    echo ""
+    echo "  Run a baseline:"
+    echo "    puma run specs/runs/baseline_triage.yaml"
+    echo "    puma validate-baseline"
+    echo ""
+    echo "  When done:"
+    echo "    ./stop_puma_native.sh       # stops Ollama and prints next steps"
+    echo ""
+    exit 0
+fi
 
 [[ -f .env ]] && { set -a; source .env; set +a; }
 
