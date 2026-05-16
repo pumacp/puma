@@ -111,6 +111,59 @@ recorded `gpu_energy = 3.85e-05 kWh`, `cpu_energy = 8.42e-06 kWh`,
 `ram_energy = 3.71e-05 kWh` over a 7.2 s window — the first emissions
 row in the project's history with non-zero GPU energy.
 
+## gpu-entry profile — hardware equivalence and tolerance
+
+The `gpu-entry` profile is empirically validated on a single reference
+machine (the one described in "Reference machine" above). Other
+hardware configurations that fall within the `gpu-entry` classification
+(GPU 4–8 GB VRAM, RAM 16–32 GB, NVIDIA backend) are expected to produce
+equivalent F1 results — bit-exact under `T=0.0` + `seed=42` + the same
+Ollama model digest — but may differ in latency and energy consumption.
+
+The table below documents the expected tolerance bands. F1 ranges are
+*expected to be bit-exact* on any `gpu-entry` NVIDIA hardware because
+inference is deterministic under the canonical configuration; latency
+and energy ranges reflect plausible variation across GPU generations
+and TGP envelopes.
+
+| Hardware | F1 tolerance | Latency tolerance | Energy tolerance | Validation status |
+|---|---|---|---|---|
+| RTX 2060 Mobile 6 GB (Turing, TGP 80 W) | ±0.000 (reference) | reference (≈45–60 s baseline) | reference (≈0.5 Wh baseline) | ✓ Empirically validated |
+| RTX 3050 Mobile 4–6 GB (Ampere) | ±0.000 expected | +5 % to +15 % | +5 % to +20 % | ✗ Not yet validated |
+| RTX 3060 Mobile 6 GB (Ampere) | ±0.000 expected | –10 % to +0 % | –10 % to +0 % | ✗ Not yet validated |
+| RTX 4050 Mobile 6 GB (Ada) | ±0.000 expected | –20 % to –10 % | –15 % to –5 % | ✗ Not yet validated |
+| RTX 4060 Mobile 8 GB (Ada) | ±0.000 expected | –25 % to –15 % | –20 % to –10 % | ✗ Not yet validated |
+| Apple M3/M4/M5 (native, Metal) | ? — cross-arch | Mode B only — see [`MACOS_NOTES.md`](MACOS_NOTES.md) | different tracking backend | ✗ Not yet validated |
+
+**Critical property.** F1 should be bit-exact (±0.000) on any
+`gpu-entry` NVIDIA hardware in *warm state* because:
+
+1. Inference is deterministic (`T=0.0`, fixed `seed=42`).
+2. The same model weights are loaded (same Ollama digest, verifiable
+   via `ollama show qwen2.5:3b`).
+3. Q4_K_M-quantised arithmetic is integer-precision-deterministic at
+   the model level.
+
+If a user observes F1 deviation greater than ±0.001 on any `gpu-entry`
+NVIDIA hardware after running `puma validate-baseline`, this indicates
+one of:
+
+- A model version mismatch — verify with `ollama show qwen2.5:3b` and
+  compare the digest to the one recorded at `v2.0.0`.
+- A non-determinism introduced in code — file a regression bug.
+- A driver-level FP fast-math difference — very unlikely on
+  Q4_K_M-quantised inference but worth noting.
+
+Latency and energy **are** expected to vary across hardware. The
+reference numbers in this document characterise the validation machine
+only; sweeps and cross-machine comparisons should treat them as a
+calibration baseline, not as a universal ground truth.
+
+For Apple Silicon (M-series) hardware, the reproducibility picture is
+more uncertain — see [`MACOS_NOTES.md`](MACOS_NOTES.md) for the two
+operational modes (Docker CPU vs native Metal) and the empirical-test
+hypothesis recorded for v2.6.0.
+
 ## Reproducibility scope
 
 The reference baseline of v2.0.0 (`F1-macro = 0.5867 ± 0.01` for
