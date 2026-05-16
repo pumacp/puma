@@ -133,7 +133,7 @@ and TGP envelopes.
 | RTX 3060 Mobile 6 GB (Ampere) | ±0.000 expected | –10 % to +0 % | –10 % to +0 % | ✗ Not yet validated |
 | RTX 4050 Mobile 6 GB (Ada) | ±0.000 expected | –20 % to –10 % | –15 % to –5 % | ✗ Not yet validated |
 | RTX 4060 Mobile 8 GB (Ada) | ±0.000 expected | –25 % to –15 % | –20 % to –10 % | ✗ Not yet validated |
-| Apple M3/M4/M5 (native, Metal) | ? — cross-arch | Mode B only — see [`MACOS_NOTES.md`](MACOS_NOTES.md) | different tracking backend | ✗ Not yet validated |
+| Apple M3/M4/M5 (native, Metal) | ? — cross-arch open question, see [`CROSS_ARCH_REPRODUCIBILITY.md`](CROSS_ARCH_REPRODUCIBILITY.md) | Mode B only — see [`MACOS_NOTES.md`](MACOS_NOTES.md) | different tracking backend (powermetrics) | ✗ Not yet validated; 9 `apple-silicon-*` profiles catalogued in v2.6.0 with `empirical_validation: pending` |
 
 **Critical property.** F1 should be bit-exact (±0.000) on any
 `gpu-entry` NVIDIA hardware in *warm state* because:

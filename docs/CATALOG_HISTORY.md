@@ -9,6 +9,63 @@ The catalog uses a list-of-dicts shape (`models: [...]`) keyed on
 `raw.get("models", [])` so the addition of root-level fields such as
 `catalog_version` is backward-compatible.
 
+## catalog_version 2.6.0 — 2026-05-16 (PUMA v2.6.0)
+
+### Added
+
+- 9 Apple Silicon profile identifiers in `config/profiles.yaml`:
+  `apple-silicon-m3`, `-m3-pro`, `-m3-max`, `-m4`, `-m4-pro`,
+  `-m4-max`, `-m5`, `-m5-pro`, `-m5-max`, `-m5-ultra`. All declare
+  `empirical_validation: pending` — PUMA has no Mac hardware in the
+  validation set as of v2.6.0; the dispatch infrastructure ships
+  here so empirical validation can be performed when hardware
+  becomes available. See
+  [`CROSS_ARCH_REPRODUCIBILITY.md`](CROSS_ARCH_REPRODUCIBILITY.md)
+  for the testing protocol.
+- Schema extension to `profiles.yaml` requirements (non-breaking):
+  `apple_silicon_required: bool`, `chip_brand_match: str`,
+  `min_unified_memory_gb: int`. The existing 5 NVIDIA/CPU profiles
+  leave them at their defaults and are unaffected.
+- Model `profiles_compatible[]` extended conservatively per a
+  memory-headroom rule (≈ 2× GGUF + OS overhead). Summary:
+  - `qwen2.5:1.5b`, `gemma3:1b` → compatible with all 10 apple-silicon-*
+  - `qwen2.5:3b`, `gemma3:4b` → skip m3 base (8 GB tight)
+  - 7B–8B models (`qwen2.5:7b`, `mistral:7b`, `llama3.1:8b`,
+    `deepseek-r1:7b`) → require Pro/Max/Ultra (≥ 18 GB)
+  - 14B models (`qwen2.5:14b`, `deepseek-r1:14b`) → require Max/Ultra
+    (≥ 36 GB)
+  - `gemma3:12b` → requires ≥ 24 GB (Pro/Max/Ultra of m3-max,
+    m4-pro+, m5-pro+)
+  - `gemma3:27b` → requires Max/Ultra (≥ 36 GB)
+- New unit tests in `tests/unit/test_catalog_metadata.py`:
+  `test_valid_profiles_includes_all_apple_silicon_identifiers`,
+  `test_apple_silicon_profiles_defined_in_profiles_yaml`,
+  `test_apple_silicon_chip_brand_match_is_unique`,
+  `test_gemma4_family_not_compatible_with_any_apple_silicon`,
+  `test_qwen25_3b_compatible_with_apple_silicon_m4_pro`.
+
+### Preserved (P2 / P6)
+
+The `gemma4` family stays **excluded** from every `apple-silicon-*`
+profile. Same VRAM-pressure failure mode that motivated the
+`gpu-entry` exclusion (D18, F8) applies to unified memory on smaller
+chip variants. Re-enabling any `(gemma4, apple-silicon-*)` pair
+requires new empirical evidence on Mac hardware and an explicit
+debt entry referencing the prior exclusion. The regression-guard
+test `test_gemma4_family_not_compatible_with_any_apple_silicon`
+enforces this from v2.6.0 onward.
+
+### Notes
+
+- Compatibility is **inferred from unified-memory specifications,
+  not empirically validated on Apple Silicon hardware** in v2.6.0.
+- Q4_K_M quantisation is expected to make `f1`/`mae` bit-exact
+  across architectures; logprobs (and therefore ECE) may differ.
+  See [`CROSS_ARCH_REPRODUCIBILITY.md`](CROSS_ARCH_REPRODUCIBILITY.md).
+- `select_profile()` in `src/puma/preflight/profile.py` runs the
+  apple-silicon branch BEFORE the existing GPU/CPU dispatch. On
+  Linux+NVIDIA the new branch is a no-op (caps.chip_brand is None).
+
 ## catalog_version 2.5.0 — 2026-05-13 (PUMA v2.5.0)
 
 ### Added
