@@ -37,3 +37,52 @@ jobs:
         env:
           PYTHONPATH: src
         run: pytest tests/integration/ -q --no-header --tb=short -m "not ollama"
+
+  integration-tests-ollama:
+    name: Integration tests with Ollama
+    runs-on: ubuntu-latest
+    # Only run on push to main/develop, not on PRs — installing Ollama and
+    # pulling a model is too expensive for every PR push. The job exists to
+    # catch Ollama-side regressions on the integration branches.
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    timeout-minutes: 30
+    # Non-blocking for PR merges (different trigger). Failures here are
+    # surfaced via the workflow run page and notify the maintainers without
+    # gating the merge queue.
+    continue-on-error: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Install Ollama
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          ollama serve > /tmp/ollama.log 2>&1 &
+          # Wait for the server to accept connections (≤30 s)
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:11434/api/tags >/dev/null 2>&1; then
+              echo "Ollama ready after ${i}s"
+              break
+            fi
+            sleep 1
+          done
+
+      - name: Pull minimal model (qwen2.5:1.5b)
+        run: ollama pull qwen2.5:1.5b
+
+      - name: Run ollama-marked tests
+        env:
+          PYTHONPATH: src
+          OLLAMA_HOST: http://localhost:11434
+          PUMA_OLLAMA_HOST: http://localhost:11434
+        timeout-minutes: 15
+        run: pytest tests/ -m ollama -v --no-cov --tb=short
