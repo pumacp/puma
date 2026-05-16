@@ -60,3 +60,193 @@ profiles:
       - triage_jira
       - estimation_tawos
       - prioritization_jira
+
+  # Apple Silicon profiles (NEW in v2.6.0).
+  #
+  # All apple-silicon-* entries are empirically unvalidated as of v2.6.0:
+  # PUMA has no Mac hardware in the validation set. The profile dispatch
+  # selects them when sysctl reports the matching chip brand. Empirical
+  # validation (F1/MAE/latency/energy) on each chip variant is deferred
+  # until hardware becomes available.
+  #
+  # The requirements schema is extended additively (non-breaking) with:
+  #   apple_silicon_required:  bool   — gates this profile to macOS arm64.
+  #   chip_brand_match:        str    — exact match of
+  #                                     `sysctl -n machdep.cpu.brand_string`.
+  #   min_unified_memory_gb:   int    — lower bound of the chip variant's
+  #                                     typical unified-memory configuration.
+  # Existing fields (min_ram_gb, gpu_required, min_vram_gb, min_disk_gb)
+  # remain valid; for Apple Silicon profiles the GPU lives in unified
+  # memory rather than discrete VRAM, so min_vram_gb is 0 and
+  # gpu_required is false (no discrete GPU is required by the schema —
+  # Metal acceleration is delivered by the unified memory architecture).
+
+  apple-silicon-m3:
+    description: "Apple M3 base, 8-24 GB unified memory (released 2023-10)"
+    requirements:
+      min_ram_gb: 8
+      gpu_required: false
+      min_vram_gb: 0
+      min_disk_gb: 35
+      apple_silicon_required: true
+      chip_brand_match: "Apple M3"
+      min_unified_memory_gb: 8
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+    empirical_validation: pending
+    runtime_mode_recommended: native
+
+  apple-silicon-m3-pro:
+    description: "Apple M3 Pro, 18-36 GB unified memory (released 2023-10)"
+    requirements:
+      min_ram_gb: 18
+      gpu_required: false
+      min_vram_gb: 0
+      min_disk_gb: 60
+      apple_silicon_required: true
+      chip_brand_match: "Apple M3 Pro"
+      min_unified_memory_gb: 18
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+    empirical_validation: pending
+    runtime_mode_recommended: native
+
+  apple-silicon-m3-max:
+    description: "Apple M3 Max, 36-128 GB unified memory (released 2023-10)"
+    requirements:
+      min_ram_gb: 36
+      gpu_required: false
+      min_vram_gb: 0
+      min_disk_gb: 100
+      apple_silicon_required: true
+      chip_brand_match: "Apple M3 Max"
+      min_unified_memory_gb: 36
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+    empirical_validation: pending
+    runtime_mode_recommended: native
+
+  apple-silicon-m4:
+    description: "Apple M4 base, 16-32 GB unified memory (released 2024-10)"
+    requirements:
+      min_ram_gb: 16
+      gpu_required: false
+      min_vram_gb: 0
+      min_disk_gb: 35
+      apple_silicon_required: true
+      chip_brand_match: "Apple M4"
+      min_unified_memory_gb: 16
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+    empirical_validation: pending
+    runtime_mode_recommended: native
+
+  apple-silicon-m4-pro:
+    description: "Apple M4 Pro, 24-48 GB unified memory (released 2024-10)"
+    requirements:
+      min_ram_gb: 24
+      gpu_required: false
+      min_vram_gb: 0
+      min_disk_gb: 60
+      apple_silicon_required: true
+      chip_brand_match: "Apple M4 Pro"
+      min_unified_memory_gb: 24
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+    empirical_validation: pending
+    runtime_mode_recommended: native
+
+  apple-silicon-m4-max:
+    description: "Apple M4 Max, 36-128 GB unified memory (released 2024-10)"
+    requirements:
+      min_ram_gb: 36
+      gpu_required: false
+      min_vram_gb: 0
+      min_disk_gb: 100
+      apple_silicon_required: true
+      chip_brand_match: "Apple M4 Max"
+      min_unified_memory_gb: 36
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+    empirical_validation: pending
+    runtime_mode_recommended: native
+
+  apple-silicon-m5:
+    description: "Apple M5 base, 16-32 GB unified memory (released 2026-03)"
+    requirements:
+      min_ram_gb: 16
+      gpu_required: false
+      min_vram_gb: 0
+      min_disk_gb: 35
+      apple_silicon_required: true
+      chip_brand_match: "Apple M5"
+      min_unified_memory_gb: 16
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+    empirical_validation: pending
+    runtime_mode_recommended: native
+
+  apple-silicon-m5-pro:
+    description: "Apple M5 Pro, 24-48 GB unified memory (released 2026-03)"
+    requirements:
+      min_ram_gb: 24
+      gpu_required: false
+      min_vram_gb: 0
+      min_disk_gb: 60
+      apple_silicon_required: true
+      chip_brand_match: "Apple M5 Pro"
+      min_unified_memory_gb: 24
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+    empirical_validation: pending
+    runtime_mode_recommended: native
+
+  apple-silicon-m5-max:
+    description: "Apple M5 Max, 36-128 GB unified memory (released 2026-03)"
+    requirements:
+      min_ram_gb: 36
+      gpu_required: false
+      min_vram_gb: 0
+      min_disk_gb: 100
+      apple_silicon_required: true
+      chip_brand_match: "Apple M5 Max"
+      min_unified_memory_gb: 36
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+    empirical_validation: pending
+    runtime_mode_recommended: native
+
+  apple-silicon-m5-ultra:
+    description: "Apple M5 Ultra, 64-512 GB unified memory (expected late 2026)"
+    requirements:
+      min_ram_gb: 64
+      gpu_required: false
+      min_vram_gb: 0
+      min_disk_gb: 150
+      apple_silicon_required: true
+      chip_brand_match: "Apple M5 Ultra"
+      min_unified_memory_gb: 64
+    scenarios:
+      - triage_jira
+      - estimation_tawos
+      - prioritization_jira
+    empirical_validation: pending
+    runtime_mode_recommended: native
