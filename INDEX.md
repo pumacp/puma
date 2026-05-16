@@ -14,7 +14,7 @@ results, and releases.
 
 ## Project status
 
-**Current version**: v2.4.0 (released 2026-05-13)
+**Current version**: v2.5.0 (released 2026-05-16)
 
 | Phase | Description | Status |
 |-------|-------------|--------|
@@ -22,12 +22,14 @@ results, and releases.
 | B | Multi-model evaluation + comparative analysis | ✓ COMPLETE |
 | C | Professional dashboard (Streamlit) | ✓ COMPLETE (Sprint 4 core + Sprint 6 polish) |
 | D | Technical depth (calibration, statistics, bias) | ✓ ~95% (Sprints 1, 2, 3, 5 closed; ROCm/Metal n/a) |
-| E | Documentation and release consolidation | ✓ COMPLETE (v2.0.0, v2.1.0, v2.2.0, v2.3.0, v2.4.0) |
+| E | Documentation and release consolidation | ✓ COMPLETE (v2.0.0–v2.5.0) |
+| F | Hardening (post-v2.4.0 inconsistencies I5–I10) | ✓ COMPLETE (Sprint 8, v2.5.0) |
 
 ## Releases
 
 | Tag | Date | Highlights |
 |-----|------|------------|
+| [v2.5.0](https://github.com/pumacp/puma/releases/tag/v2.5.0) | 2026-05-16 | Hardening (Sprint 8) — I5–I10 resolved; macOS modes, gpu-entry tolerance, versioned catalog, CI Ollama job, validate-baseline MAE, coverage breakdown; 354 tests |
 | [v2.4.0](https://github.com/pumacp/puma/releases/tag/v2.4.0) | 2026-05-13 | CLI completeness (Sprint 7) — Anexo F § A.2 implemented; 6 new commands, 348 tests |
 | [v2.3.0](https://github.com/pumacp/puma/releases/tag/v2.3.0) | 2026-05-13 | Dashboard polish (`app.py` 803→168 LOC, 10 improvements, guided tour) + documentation structure |
 | [v2.2.0](https://github.com/pumacp/puma/releases/tag/v2.2.0) | 2026-05-13 | Statistical pipeline (ECE, multi-seed, Wilcoxon) + dashboard core + empirical bias evaluation |
@@ -64,7 +66,11 @@ PUMA is organized in modular layers under `src/puma/`:
 | [docs/overview.md](docs/overview.md) | Project overview: architecture, scenarios, model catalog, hardware profiles, storage schema, success criteria |
 | [docs/anexo_F_cli_reference.md](docs/anexo_F_cli_reference.md) | Anexo F: CLI command catalog (implemented + proposed extensions) |
 | [CHANGELOG.md](CHANGELOG.md) | Version history (Keep-a-Changelog format) |
-| [docs/HARDWARE.md](docs/HARDWARE.md) | Reference hardware specification |
+| [docs/HARDWARE.md](docs/HARDWARE.md) | Reference hardware specification + gpu-entry tolerance bands |
+| [docs/MACOS_NOTES.md](docs/MACOS_NOTES.md) | macOS operational notes — Docker (CPU) vs native Ollama (Metal) |
+| [docs/CATALOG_HISTORY.md](docs/CATALOG_HISTORY.md) | Models-catalog version history (catalog_version 2.5.0+) |
+| [docs/baseline_references.md](docs/baseline_references.md) | Canonical empirical baselines for `validate-baseline` (F1 + MAE) |
+| [docs/TESTING.md](docs/TESTING.md) | Test layout, markers, per-module coverage breakdown |
 | [docs/known_debt.md](docs/known_debt.md) | Methodological findings + technical debt tracker |
 | [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) | Development workflow, pre-commit setup |
 | [docs/results/](docs/results/) | Empirical analyses (phase_b_analysis, multi_seed_baseline, bias_evaluation, wilcoxon_demo) |
@@ -80,10 +86,10 @@ PUMA is organized in modular layers under `src/puma/`:
 
 ## Quality
 
-- Tests: 348 passing
+- Tests: 354 passing (`-m "not ollama"`; 7 ollama-marked tests run in the new push-only CI job introduced in v2.5.0)
 - Pre-commit: 10/10 hooks green
 - CI: green on main and develop
-- Coverage: 58%
+- Coverage: 61 % (per-module breakdown in [docs/TESTING.md](docs/TESTING.md))
 
 ## Debt tracking
 
@@ -92,7 +98,8 @@ PUMA is organized in modular layers under `src/puma/`:
 | Closed methodological findings (F1–F8) | 8 |
 | Resolved technical debt | 15 |
 | Open technical debt | 7 (0 critical, 5 medium, 2 low; 1 DECIDED-NO-ACTION) |
-| Total tracked | 24 |
+| Inconsistencies resolved in v2.5.0 (I5–I10) | 6 |
+| Total tracked | 30 |
 
 See [docs/known_debt.md](docs/known_debt.md) for full per-item evidence and resolution traceability.
 

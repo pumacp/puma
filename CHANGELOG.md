@@ -16,6 +16,130 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
+## [2.5.0] — 2026-05-16
+
+### Added
+
+Sprint 8 (hardening — six post-v2.4.0 inconsistencies I5–I10 resolved;
+gemma4 family stays empirically excluded from gpu-entry):
+
+- `docs/MACOS_NOTES.md`: canonical macOS operational reference. Two
+  operational modes documented — Docker Desktop (CPU-only inside the
+  Linux VM, no Metal exposure, current default) and Native Ollama
+  (Metal acceleration, planned for first-class support in v2.6.0).
+  Performance expectations table marks every Apple-native row as
+  *estimated, unvalidated*, and an explicit cross-architecture
+  reproducibility caveat is recorded for x86_64 vs arm64. Resolves
+  inconsistency **I5**.
+- `docs/CATALOG_HISTORY.md`: versioned catalog changelog. The
+  `config/models_catalog.yaml` now carries a `catalog_version`
+  field at the YAML root (starting at `"2.5.0"`) plus a
+  `catalog_changelog_path` pointer. Loader unchanged (the existing
+  `raw.get("models", [])` already ignored extra root fields). New
+  unit test `test_catalog_has_version_field` enforces the fields.
+  Resolves inconsistency **I7**.
+- `docs/baseline_references.md`: canonical empirical baselines now
+  have a documented single source of truth. Records the v2.0.0 F1
+  reference (0.5867 on triage), the v2.5.0 MAE reference (5.7150 SP
+  on the new estimation canonical spec), and the fresh-Ollama-state
+  validation protocol that prevents cross-scenario KV-cache
+  contamination. Resolves inconsistency **I9**.
+- `specs/runs/baseline_estimation_canonical.yaml`: canonical
+  estimation baseline (qwen2.5:3b × zero-shot × N=200 × seed=42 ×
+  T=0.0). The reference MAE of 5.7150 SP was established
+  empirically in this release and verified bit-exact across four
+  consecutive runs on the validation hardware (RTX 2060 Mobile
+  6 GB, `gpu-entry`).
+- `docs/TESTING.md`: per-module coverage breakdown with explicit
+  rationale for sub-40 % modules (Streamlit dashboard views,
+  reporting, CodeCarbon vendor branches). Distinguishes the
+  default CI suite (`-m "not ollama"`) from the new
+  Ollama-integration job (push to main/develop only). Resolves
+  inconsistency **I10**.
+- `.github/workflows/lint-and-test.yml`: new
+  `integration-tests-ollama` job that installs Ollama, pulls
+  `qwen2.5:1.5b`, and runs every `@pytest.mark.ollama` test on
+  pushes to `main`/`develop` only. The job is marked
+  `continue-on-error: true` so a transient Ollama failure does not
+  gate the merge queue — its purpose is regression detection on
+  the integration branches, not PR gating. Resolves inconsistency
+  **I8**.
+- `puma validate-baseline --expected-mae`: new flag mutually
+  exclusive with `--expected-f1`. When supplied without `--spec`,
+  the command auto-selects the canonical estimation spec. Tests
+  cover the F1 path (preserved), the MAE PASS/FAIL paths,
+  mutual-exclusivity (exit 2), missing-metric (exit 2), and a
+  regression guard on the MAE-path default-spec resolution.
+  Resolves inconsistency **I9**.
+- `docs/HARDWARE.md`: new section "gpu-entry profile — hardware
+  equivalence and tolerance" documenting expected tolerance bands
+  for RTX 2060 / 3050 / 3060 / 4050 / 4060 Mobile and an Apple
+  M-series cross-arch row pointing to `MACOS_NOTES.md`. F1 is
+  expected bit-exact (±0.000) on any NVIDIA gpu-entry hardware
+  under T=0.0 + seed=42; latency and energy ranges are documented
+  but not validated cross-machine. Resolves inconsistency **I6**.
+
+### Changed
+
+- `config/models_catalog.yaml`: now versioned at the YAML root
+  with `catalog_version: "2.5.0"` and `catalog_changelog_path`.
+  The list-of-dicts shape under `models:` is unchanged. No catalog
+  entries were modified in this release.
+- `docs/troubleshooting.md`: corrected the misleading note that
+  claimed Metal acceleration works automatically inside the Ollama
+  container on macOS. Docker Desktop's Linux VM does not expose
+  Metal. Now links to `docs/MACOS_NOTES.md`.
+- `README.md`: GPU-requirement row now states "NVIDIA (validated).
+  AMD ROCm and Apple Metal not yet detected; macOS Docker runs
+  CPU-only" with a link to `MACOS_NOTES.md`. Tests-passing badge
+  updated to 354.
+- `src/puma/cli.py::validate_baseline`: signature extended with
+  `--expected-mae` (`float | None`). When neither flag is
+  provided, the historical default behaviour (F1 = 0.5867 on the
+  triage baseline) is preserved unchanged. No existing CI
+  invocation breaks.
+- `tests/unit/test_cli_validate_baseline.py`: 3 → 8 tests
+  (3 existing + 5 new for the MAE path, mutual exclusivity,
+  missing metric, and default-spec resolution).
+- `tests/unit/test_catalog_metadata.py`: 4 → 5 tests with the new
+  `test_catalog_has_version_field`. The pre-existing
+  `test_gemma4_family_excluded_from_gpu_entry` regression guard is
+  preserved unchanged per the gemma4 status-clarification decision.
+
+### Highlights
+
+- **Six inconsistencies resolved (I5–I10).** None required
+  weakening a regression-guard test or re-introducing a
+  previously-rejected `(model, profile)` pair. F8 (gemma4:e2b
+  measured at 7.2 GB) and D18 (empty `raw_response` on
+  `gpu-entry`) remain closed and documented in
+  `docs/CATALOG_HISTORY.md`.
+- **Estimation canonical baseline established.** v2.5.0 publishes
+  the first empirical MAE reference for `puma validate-baseline`
+  on `estimation_tawos`: **5.7150 SP** on `qwen2.5:3b × zero-shot
+  × N=200`, bit-exact across four verification runs. Documented
+  with its establishing `run_id` in
+  `docs/baseline_references.md`.
+- **Cross-scenario state contamination finding.** Running
+  `triage_jira` between an Ollama restart and the estimation
+  validation perturbs the model's KV-cache state and shifts MAE
+  to ≈6.3150 SP — a regression well outside the ±0.05 tolerance.
+  The fresh-Ollama-state validation protocol that prevents this
+  is documented alongside the reference in
+  `baseline_references.md`.
+- **Tests: 354 passing.** +6 over v2.4.0; baseline reproducibility
+  preserved (`validate-baseline` triage PASS `f1=0.5831,
+  delta=-0.0036`); new `validate-baseline` MAE path PASS
+  `mae=5.7150, delta=+0.0000`.
+- **Catalog now versioned.** Future entries follow the convention
+  documented in `docs/CATALOG_HISTORY.md`: bump
+  `catalog_version`, mark new entries `empirical_validation:
+  pending` until validation, never re-enable a previously-excluded
+  `(model, profile)` pair without new evidence.
+- **CI gains a real Ollama integration suite.** The four
+  `@pytest.mark.ollama` tests previously had no CI coverage; the
+  new push-only job runs them on every integration-branch push.
+
 ## [2.4.0] — 2026-05-13
 
 ### Added
@@ -713,5 +837,10 @@ The following items are tracked for future releases:
 Initial evaluation scripts: `evaluate_triage.py`, `evaluate_estimation.py`, `agents/orchestrator.py`.
 Single-file, non-reproducible, not packaged.
 
-[Unreleased]: https://github.com/pumacp/puma/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/pumacp/puma/compare/v2.5.0...HEAD
+[2.5.0]: https://github.com/pumacp/puma/releases/tag/v2.5.0
+[2.4.0]: https://github.com/pumacp/puma/releases/tag/v2.4.0
+[2.3.0]: https://github.com/pumacp/puma/releases/tag/v2.3.0
+[2.2.0]: https://github.com/pumacp/puma/releases/tag/v2.2.0
+[2.1.0]: https://github.com/pumacp/puma/releases/tag/v2.1.0
 [2.0.0]: https://github.com/pumacp/puma/releases/tag/v2.0.0
