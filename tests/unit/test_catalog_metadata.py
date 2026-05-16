@@ -168,10 +168,7 @@ def test_apple_silicon_profiles_defined_in_profiles_yaml(profiles: dict) -> None
 def test_apple_silicon_chip_brand_match_is_unique(profiles: dict) -> None:
     """Each apple-silicon-* profile must map to a distinct chip brand —
     select_profile() relies on the chip_brand_match being unique to dispatch."""
-    brands = [
-        profiles[name]["requirements"]["chip_brand_match"]
-        for name in APPLE_SILICON_PROFILES
-    ]
+    brands = [profiles[name]["requirements"]["chip_brand_match"] for name in APPLE_SILICON_PROFILES]
     assert len(brands) == len(set(brands)), f"duplicate chip_brand_match entries: {brands}"
 
 
