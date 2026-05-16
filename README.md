@@ -8,11 +8,11 @@
 
 PUMA is a research-driven platform that benchmarks autonomous AI agents on practical project management tasks. This repository contains the **evaluation platform**: orchestrator, scenarios, metrics, sustainability tracking, dashboard, and reproducible specifications. All inference runs locally via [Ollama](https://ollama.ai) — no external API calls, no data leaves your machine.
 
-![Tests](https://img.shields.io/badge/tests-354%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-402%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 ![Docker](https://img.shields.io/badge/runs%20on-Docker-2496ED)
-![Version](https://img.shields.io/badge/version-v2.5.0-blue)
+![Version](https://img.shields.io/badge/version-v2.6.0-blue)
 
 ## Related resources
 
@@ -26,8 +26,8 @@ PUMA is a research-driven platform that benchmarks autonomous AI agents on pract
 
 | Item | Value |
 |------|-------|
-| Current release | [v2.5.0](https://github.com/pumacp/puma/releases/tag/v2.5.0) |
-| Tests | 354 passing |
+| Current release | [v2.6.0](https://github.com/pumacp/puma/releases/tag/v2.6.0) |
+| Tests | 402 passing |
 | Coverage | 58% |
 | CI | ✓ green on main + develop |
 | Phases A, B, C, D, E | ✓ All complete |
@@ -45,7 +45,7 @@ PUMA is a research-driven platform that benchmarks autonomous AI agents on pract
 | Docker Compose | v2 |
 | RAM | 8 GB (16 GB recommended) |
 | Disk | 10 GB free (for models + data) |
-| GPU | Optional — NVIDIA (validated). AMD ROCm and Apple Metal not yet detected; macOS Docker runs CPU-only. See [`docs/MACOS_NOTES.md`](docs/MACOS_NOTES.md). |
+| GPU | Optional — NVIDIA (validated). Apple Silicon M3/M4/M5 detected in v2.6.0 (native mode via `./start_puma.sh --native`; empirical validation pending). AMD ROCm not yet detected. See [`docs/MACOS_NOTES.md`](docs/MACOS_NOTES.md) and [`docs/CROSS_ARCH_REPRODUCIBILITY.md`](docs/CROSS_ARCH_REPRODUCIBILITY.md). |
 
 > No Python installation needed on the host. Everything runs inside Docker.
 
@@ -456,13 +456,15 @@ Detailed debt inventory in
 | [docs/results/wilcoxon_demo.md](docs/results/wilcoxon_demo.md) | Wilcoxon signed-rank pairwise comparison empirical demo (Sprint 3) |
 | [docs/results/bias_evaluation.md](docs/results/bias_evaluation.md) | Bias evaluation empirical findings (Sprint 5) |
 | [docs/known_debt.md](docs/known_debt.md) | Open and resolved technical debt with diagnostic write-ups |
+| [docs/RELEASES/v2.6.0.md](docs/RELEASES/v2.6.0.md) | v2.6.0 release notes |
 | [docs/RELEASES/v2.5.0.md](docs/RELEASES/v2.5.0.md) | v2.5.0 release notes |
 | [docs/RELEASES/v2.4.0.md](docs/RELEASES/v2.4.0.md) | v2.4.0 release notes |
 | [docs/RELEASES/v2.3.0.md](docs/RELEASES/v2.3.0.md) | v2.3.0 release notes |
 | [docs/RELEASES/v2.2.0.md](docs/RELEASES/v2.2.0.md) | v2.2.0 release notes |
 | [docs/RELEASES/v2.1.0.md](docs/RELEASES/v2.1.0.md) | v2.1.0 release notes |
 | [docs/anexo_F_cli_reference.md](docs/anexo_F_cli_reference.md) | Anexo F: CLI command catalog (source of truth) |
-| [docs/MACOS_NOTES.md](docs/MACOS_NOTES.md) | macOS operational modes — Docker (CPU) vs native Ollama (Metal) |
+| [docs/MACOS_NOTES.md](docs/MACOS_NOTES.md) | macOS operational modes — Docker (CPU) vs native Ollama (Metal); v2.6.0 native mode |
+| [docs/CROSS_ARCH_REPRODUCIBILITY.md](docs/CROSS_ARCH_REPRODUCIBILITY.md) | x86_64 ↔ arm64 reproducibility — open question, theoretical expectations, testing protocol |
 | [docs/CATALOG_HISTORY.md](docs/CATALOG_HISTORY.md) | Models-catalog version history |
 | [docs/baseline_references.md](docs/baseline_references.md) | Canonical empirical baselines for `validate-baseline` |
 | [docs/TESTING.md](docs/TESTING.md) | Test layout, markers, per-module coverage breakdown |

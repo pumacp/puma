@@ -16,6 +16,186 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
+## [2.6.0] — 2026-05-16
+
+### Added
+
+Sprint 9 (Apple Silicon M3/M4/M5 detection + native runtime mode;
+empirical validation pending until Mac hardware joins the validation
+set):
+
+- **9 Apple Silicon profile identifiers** in `config/profiles.yaml`:
+  `apple-silicon-m3`, `-m3-pro`, `-m3-max`, `-m4`, `-m4-pro`,
+  `-m4-max`, `-m5`, `-m5-pro`, `-m5-max`, `-m5-ultra`. All declare
+  `empirical_validation: pending`. The requirements schema is
+  extended additively (non-breaking) with `apple_silicon_required`,
+  `chip_brand_match`, and `min_unified_memory_gb` fields; the
+  existing 5 NVIDIA/CPU profiles ignore them at load time.
+- **New module `src/puma/preflight/apple_silicon.py`**: platform-
+  isolated detection via `sysctl machdep.cpu.brand_string` and
+  `sysctl hw.memsize`. Public entry points
+  (`is_apple_silicon`, `get_chip_brand`, `get_unified_memory_gb`,
+  `detect_apple_silicon_profile`, `get_apple_silicon_info`) return
+  `None` on non-macOS hosts without invoking subprocess — safe to
+  import everywhere; fully mockable on Linux CI (P9).
+  `CHIP_BRAND_TO_PROFILE` maps the 10 catalogued chip brands to
+  profile identifiers; unrecognised brands return `None` so dispatch
+  falls through (forward-compat for future M-series).
+- **SystemCapabilities + Profile dispatch extended** for Apple
+  Silicon. `SystemCapabilities` gains optional `chip_brand` and
+  `unified_memory_gb` fields populated from sysctl in
+  `detect_capabilities`. `Profile` gains optional
+  `apple_silicon_required`, `chip_brand_match`,
+  `min_unified_memory_gb` (defaults preserve v2.5.0 behaviour).
+  `select_profile()` runs a new `_match_apple_silicon_profile`
+  branch BEFORE the existing GPU/CPU dispatch — on Linux+NVIDIA
+  hosts where `caps.chip_brand is None`, the branch is a no-op and
+  the dispatch is byte-identical to v2.5.0.
+- **`start_puma.sh --native` flag** for macOS Mode B (Ollama with
+  Metal, no Docker). Refuses to run on non-Darwin with a clear
+  error; warns on Intel Mac; verifies `ollama` in PATH and starts
+  `ollama serve` in background if not already running; creates
+  `.venv` and installs `puma` in editable mode if absent; exports
+  `PUMA_OLLAMA_HOST` and `PUMA_NATIVE_MODE` env vars; prints
+  next-step commands. The Docker-mode path on Linux is unchanged.
+- **New script `stop_puma_native.sh`** — companion teardown that
+  SIGTERMs the native `ollama serve` process (escalates to SIGKILL
+  after 2s if needed) and prints the venv-deactivate hint. No-op on
+  Linux.
+- **`get_tracking_mode_and_warnings()` in
+  `puma.sustainability.codecarbon_wrapper`**: platform-aware
+  CodeCarbon `tracking_mode` resolver. Returns `("machine", [])` on
+  Linux — byte-identical to v2.5.0 behaviour and the D15 fix that
+  PUMA's split-container architecture relies upon. On macOS Apple
+  Silicon, probes `powermetrics` availability without `sudo`;
+  returns `("machine", [])` when configured, or
+  `("process", [<single-warning>])` on the default macOS state.
+  The decorator `track_emissions` and `Runner.run` both now thread
+  this helper.
+- **`docs/CROSS_ARCH_REPRODUCIBILITY.md`**: documents the open
+  empirical question of bit-exact F1/MAE/logprobs between x86_64
+  Linux (validation environment) and arm64 macOS (Mode B).
+  Theoretical expectations (F1/MAE bit-exact under Q4_K_M integer
+  quantisation; logprobs differ by FP rounding) plus H0/H1/H2/H3
+  hypotheses and a 6-step testing protocol for when Mac hardware
+  becomes available.
+- **`docs/MACOS_NOTES.md` extended** with "Energy tracking on macOS
+  (Mode B / native)" section: documents the three behaviours
+  (passwordless powermetrics → machine; default → process with
+  warning; `--no-emissions` → off), with a `NOPASSWD` sudoers
+  snippet for advanced users and an explanation of why
+  `tracking_mode="machine"` is needed (D15 cross-container reasoning
+  applies in reverse to native Mode B).
+- **Cross-links** from `docs/HARDWARE.md` (Apple Silicon row of the
+  gpu-entry tolerance table) and `docs/CATALOG_HISTORY.md` (new
+  `catalog_version 2.6.0` section) to
+  `docs/CROSS_ARCH_REPRODUCIBILITY.md`.
+- **48 new tests** (354 → 402 passing):
+  `tests/unit/test_apple_silicon.py` (28 tests covering every
+  public entry point with mocks for Darwin/arm64 gate, sysctl
+  success + 3 failure modes, parametrised mapping for all 10 chip
+  brands, forward-compat for unmapped chips, `get_apple_silicon_info`
+  dict shape, `CHIP_BRAND_TO_PROFILE` consistency);
+  `tests/unit/test_codecarbon_macos.py` (7 tests for the
+  tracking_mode helper and powermetrics probe — Linux short-circuit,
+  macOS sudo present/absent, probe failure modes);
+  `tests/unit/test_catalog_metadata.py` (+5: VALID_PROFILES
+  inclusion, profiles.yaml definitions for all 9 apple-silicon-*,
+  chip_brand_match uniqueness, gemma4 exclusion from every
+  apple-silicon-*, qwen2.5:3b anchor on apple-silicon-m4-pro);
+  `tests/unit/test_preflight_profile.py` (+7: auto-dispatch for
+  M4/M4 Pro/M5 Max, fall-through cases for insufficient unified
+  memory, unmapped chips, non-Apple chip brands; +1 manual override
+  test for apple-silicon-m4).
+
+### Changed
+
+- `catalog_version` bumped: **2.5.0 → 2.6.0**.
+- `tests/unit/test_catalog_metadata.py::VALID_PROFILES`: extended
+  with the 9 apple-silicon-* identifiers. The existing invariant
+  test `test_model_metadata_is_internally_consistent` is unchanged
+  in semantics; it now accepts the new identifiers when they appear
+  in any model's `profiles_compatible[]`.
+- `config/profiles.yaml`: schema extended additively with
+  `apple_silicon_required`, `chip_brand_match`,
+  `min_unified_memory_gb` fields. The existing 5 NVIDIA/CPU
+  profiles leave them at their defaults and are unaffected.
+- `config/models_catalog.yaml`: conservative `profiles_compatible[]`
+  additions per a memory-headroom rule (≈ 2× GGUF + OS overhead):
+  `qwen2.5:1.5b` and `gemma3:1b` → compatible with all 10
+  apple-silicon-*; `qwen2.5:3b` and `gemma3:4b` → skip m3 base
+  (8 GB tight); 7B–8B models (`qwen2.5:7b`, `mistral:7b`,
+  `llama3.1:8b`, `deepseek-r1:7b`) → Pro/Max/Ultra only;
+  14B models (`qwen2.5:14b`, `deepseek-r1:14b`) → Max/Ultra only;
+  `gemma3:12b` → ≥ 24 GB unified memory (Pro/Max/Ultra of m3-max,
+  m4-pro+, m5-pro+); `gemma3:27b` → Max/Ultra only.
+- `src/puma/orchestrator/runner.py`: the CodeCarbon initialisation
+  block now calls `get_tracking_mode_and_warnings()` and logs any
+  fallback warning via structlog. The `machine` path is unchanged
+  on Linux+NVIDIA.
+
+### Preserved (regression guards)
+
+- The `gemma4` family stays excluded from `gpu-entry` per D18/F8.
+  `test_gemma4_family_excluded_from_gpu_entry` is preserved
+  unchanged.
+- The `gemma4` family is additionally excluded from **every**
+  `apple-silicon-*` profile. New invariant test
+  `test_gemma4_family_not_compatible_with_any_apple_silicon`
+  extends the P6 rule to Apple Silicon dispatch. Re-enabling any
+  `(gemma4, apple-silicon-*)` pair requires new empirical evidence
+  on Mac hardware and an explicit debt entry.
+- **Linux + NVIDIA dispatch byte-identical to v2.5.0** —
+  `select_profile()`'s new branch returns `None` from
+  `_match_apple_silicon_profile()` when `caps.chip_brand` is None
+  (i.e., on Linux);
+  `get_tracking_mode_and_warnings()` returns `("machine", [])` on
+  Linux. No existing CI invocation of `puma validate-baseline`
+  changes behaviour.
+- `puma validate-baseline` triage_jira: **PASS f1=0.5831,
+  delta=-0.0036** (within ±0.01 tolerance).
+- `puma validate-baseline` estimation_tawos: **PASS mae=5.7150,
+  delta=+0.0000** (bit-exact).
+- All 354 previously-passing tests continue to pass; +48 new for a
+  total of **402** under `-m "not ollama"`.
+
+### Empirical validation status
+
+ALL `apple-silicon-*` profiles declare
+`empirical_validation: pending`. PUMA's validation hardware is the
+RTX 2060 Mobile 6 GB (`gpu-entry`); no Apple Silicon hardware is in
+the validation set as of v2.6.0. The dispatch infrastructure shipped
+here enables empirical validation when Mac hardware becomes
+available; the testing protocol (H0/H1 task metrics, H2/H3 logprob
+deltas; 6-step procedure) is documented in
+`docs/CROSS_ARCH_REPRODUCIBILITY.md` § Testing protocol.
+
+### Highlights
+
+- **Apple Silicon catalogued end-to-end** without weakening any
+  existing guarantee. The two compatibility sources of truth
+  (`config/profiles.yaml` for `select_profile`, model
+  `profiles_compatible[]` for dispatch) are now extended; the
+  Linux path is unchanged.
+- **Cross-arch reproducibility framed as an open empirical
+  question.** The plus side of catalogue-without-validation is
+  honesty: v2.6.0 ships a testable hypothesis (`f1` and `mae` are
+  expected bit-exact across architectures; logprobs are not) and a
+  protocol to close it out, instead of asserting compatibility
+  without evidence.
+- **macOS Mode B with one command.** `./start_puma.sh --native`
+  boots Ollama natively (Metal accelerated) and a Python venv,
+  then exits. No Docker installation required on the user's
+  machine.
+- **CodeCarbon survives on macOS.** v2.5.0's machine-mode default
+  would silently fail on macOS without `sudo`. v2.6.0 falls back
+  to process-mode with a warning that points back to the docs —
+  imprecise but non-zero data.
+- **48 new tests, zero regressions.** Every Apple Silicon code
+  path is exercised through `unittest.mock` on Linux CI; the
+  Sprint can move forward without Mac hardware while keeping the
+  test suite honest.
+
 ## [2.5.0] — 2026-05-16
 
 ### Added
@@ -837,7 +1017,8 @@ The following items are tracked for future releases:
 Initial evaluation scripts: `evaluate_triage.py`, `evaluate_estimation.py`, `agents/orchestrator.py`.
 Single-file, non-reproducible, not packaged.
 
-[Unreleased]: https://github.com/pumacp/puma/compare/v2.5.0...HEAD
+[Unreleased]: https://github.com/pumacp/puma/compare/v2.6.0...HEAD
+[2.6.0]: https://github.com/pumacp/puma/releases/tag/v2.6.0
 [2.5.0]: https://github.com/pumacp/puma/releases/tag/v2.5.0
 [2.4.0]: https://github.com/pumacp/puma/releases/tag/v2.4.0
 [2.3.0]: https://github.com/pumacp/puma/releases/tag/v2.3.0
