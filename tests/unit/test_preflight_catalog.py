@@ -19,9 +19,10 @@ from puma.preflight.catalog import ModelEntry, get_model_by_tag, load_catalog, m
 
 @pytest.mark.unit
 def test_load_catalog_returns_all_entries() -> None:
-    """Catalog file currently lists 15 models; load_catalog must return all of them."""
+    """Catalog file currently lists 17 models (v2.7.0 added qwen3:30b and
+    qwen3:30b-a3b); load_catalog must return all of them."""
     catalog = load_catalog()
-    assert len(catalog) == 15
+    assert len(catalog) == 17
     assert all(isinstance(m, ModelEntry) for m in catalog)
     assert all(m.ollama_tag for m in catalog)
 

@@ -9,6 +9,113 @@ The catalog uses a list-of-dicts shape (`models: [...]`) keyed on
 `raw.get("models", [])` so the addition of root-level fields such as
 `catalog_version` is backward-compatible.
 
+## catalog_version 2.7.0 — 2026-05-16 (PUMA v2.7.0)
+
+### Added
+
+Two Qwen3 family entries, both restricted to `gpu-high` with
+`logprobs_supported: false` until empirical verification on
+appropriate hardware (P10 / P11):
+
+- **`qwen3:30b`** — Qwen3 30B dense (Apache 2.0, Alibaba Qwen team).
+  Hybrid Gated DeltaNet + self-attention architecture, native
+  context 262144 tokens. GGUF size 17.3 GB verified via Ollama
+  registry manifest probe (`registry.ollama.ai/v2/library/qwen3/manifests/30b`,
+  sum of layer sizes).
+- **`qwen3:30b-a3b`** — Qwen3 30B-A3B MoE: 30B total parameters,
+  ~3B active per token. Same registry-verified GGUF size of 17.3 GB
+  (comparable to the dense sibling because the GGUF contains every
+  expert, only a subset is routed per forward — same property as
+  the gemma4 family observed in F8). The `notes` field carries the
+  F8/D18 caveat so that future contributors do not extend
+  compatibility to smaller profiles without empirical evidence.
+
+Both entries:
+
+- `params_b: 30.0` (TOTAL, following the
+  `gemma4:26b-a4b` precedent where the tag itself encodes both
+  numbers).
+- `profiles_compatible: [gpu-high]` only. PUMA's reference
+  validation hardware (`gpu-entry`, RTX 2060 Mobile 6 GB) cannot
+  run a 17.3 GB GGUF. `gpu-mid` (12–24 GB VRAM) is borderline once
+  the operating system and context are accounted for; `gpu-high`
+  (24+ GB) is the only safe default.
+- Excluded from every `apple-silicon-*` profile pending empirical
+  validation (P11 invariant). Re-enabling requires new empirical
+  evidence and an explicit debt entry referencing the gemma4 D18
+  precedent.
+
+### Considered but not catalogued: Kimi K2.6
+
+Moonshot AI's Kimi K2.6 was considered for cataloguing in v2.7.0.
+A probe of the Ollama registry on 2026-05-16 returned **HTTP 404**
+for every plausible tag naming:
+
+| Probed tag | Result |
+|---|---|
+| `kimi-k2:6` | 404 |
+| `kimi-k2:latest` | 404 |
+| `kimi-k2:1t` | 404 |
+| `kimi-k2:1t-instruct` | 404 |
+| `kimi-k2:0905` | 404 |
+| `kimi-k2:base` | 404 |
+| `kimi-k2:instruct` | 404 |
+| `kimi:latest` | 404 |
+| `kimi-k2.6:latest` | 404 |
+| `moonshot:latest` | 404 |
+| `moonshot:kimi-k2` | 404 |
+| `kimi-k2-base:latest` | 404 |
+| `kimi-k2-instruct:latest` | 404 |
+
+The model is not distributed via the Ollama registry as of the
+v2.7.0 cut. Cataloguing a non-existent `ollama_tag` would violate
+the project's empirical-first principle (P10) and would produce a
+broken `puma models pull` command for users following the catalog
+metadata.
+
+The model is excluded from the v2.7.0 catalog. It may be
+reconsidered in a future release if Moonshot AI or a third-party
+distributor publishes K2.6 to the Ollama registry, or if PUMA
+extends its schema to support non-Ollama distribution channels
+(out of scope for v2.7.0).
+
+### Considered but deferred: additional Qwen3 variants
+
+The registry probe also confirmed the following real Ollama tags
+exist but were deferred from v2.7.0 to keep scope minimal:
+
+| Tag | Real GGUF | Reason for deferral |
+|---|---|---|
+| `qwen3:32b` (dense) | 18.8 GB | Marginal upgrade over qwen3:30b; defer until empirical validation on `gpu-high` distinguishes them |
+| `qwen3:235b-a22b` (MoE) | 132.4 GB | Requires multi-GPU rigs well beyond `gpu-high` (24+ GB VRAM); defer pending hardware tier extension |
+| `qwen3-coder:30b`, `qwen3-coder:480b` | — | Coder family is task-specific; out of scope for PMO benchmarks |
+
+### Notes
+
+- **Schema unchanged**: the catalog continues to use exactly the 8
+  fields established in v2.0.0–v2.6.0 (`ollama_tag`, `params_b`,
+  `gguf_size_gb`, `context_window`, `logprobs_supported`,
+  `profiles_compatible`, `timeout_s`, `notes`). All additional
+  information (release date, license, MoE caveats, validation
+  status, architecture details) is encoded as multi-line text
+  inside `notes`. This preserves the project's minimum-complexity
+  principle (P5) and keeps `src/puma/preflight/catalog.py` and the
+  `ModelEntry` dataclass byte-identical to v2.6.0.
+- **Empirical validation roadmap**: the two new entries declare
+  validation as pending in their `notes` text. When `gpu-high`
+  hardware (24+ GB NVIDIA VRAM) becomes available to the project,
+  the validation protocol is: pull the model via Ollama, run the
+  canonical baselines (triage_jira and estimation_tawos), measure
+  parse_failure_rate and reproducibility, then either bump the
+  `logprobs_supported` flag, extend `profiles_compatible` to
+  appropriate Apple Silicon variants, or document a new failure
+  mode.
+- **Regression guards**: 5 new unit tests under
+  `tests/unit/test_catalog_metadata.py` pin the v2.7.0 contract —
+  exact `profiles_compatible == ['gpu-high']`, no `gpu-entry`, no
+  `apple-silicon-*`, MoE caveat preserved in `notes`. Loosening
+  any of these requires deliberate test-edit intent.
+
 ## catalog_version 2.6.0 — 2026-05-16 (PUMA v2.6.0)
 
 ### Added
