@@ -119,6 +119,56 @@ If you reproduce PUMA on macOS, please record your results and open an
 issue — empirical data from M-series hardware would directly close the
 cross-architecture reproducibility gap.
 
+## Energy tracking on macOS (Mode B / native)
+
+CodeCarbon supports macOS energy tracking via the `powermetrics`
+utility, which requires `sudo`. PUMA v2.6.0 adopts a graceful
+fallback driven by
+`puma.sustainability.codecarbon_wrapper.get_tracking_mode_and_warnings`:
+
+1. **Passwordless powermetrics configured** — PUMA uses
+   `tracking_mode="machine"` (most accurate; identical to the Linux
+   path).
+2. **Default macOS state (sudo required)** — PUMA falls back to
+   `tracking_mode="process"` and emits a single warning. Energy
+   values are still recorded but are less precise. The warning text
+   points back to this section.
+3. **No tracking wanted** — run `puma run --no-emissions` to disable
+   CodeCarbon entirely.
+
+The Linux path is unchanged from v2.5.0: `tracking_mode="machine"`
+with no warnings.
+
+### Configuring passwordless powermetrics (advanced)
+
+Edit `/etc/sudoers` (always via `sudo visudo`, never directly) and
+add a single line:
+
+```
+%admin ALL=(root) NOPASSWD: /usr/bin/powermetrics
+```
+
+**Caution**: this grants every admin user passwordless root access
+to `powermetrics`. Evaluate the security implication for your
+environment before applying. For shared machines, prefer the
+process-mode fallback or disable emissions entirely.
+
+### Why CodeCarbon needs `tracking_mode="machine"` in particular
+
+PUMA's split-container architecture on Linux runs orchestration in
+`puma_runner` and inference in `puma_ollama`. With
+`tracking_mode="process"`, CodeCarbon measures only the
+orchestrator's own energy and misses the GPU work performed in the
+other container — exactly the D15 bug that was fixed in v2.1.0.
+`tracking_mode="machine"` captures whole-host energy and attributes
+it correctly under PUMA's documented sweep convention (AC power,
+idle host, no other GPU consumers).
+
+On macOS Mode B with a native Ollama process, the same reasoning
+applies in reverse: process-mode would measure only puma's own
+energy and miss Ollama's. The machine path requires `powermetrics`
+under the hood, hence the sudo dependency.
+
 ## Recommendation
 
 - For reproducibility-critical research, use Linux with an NVIDIA GPU
