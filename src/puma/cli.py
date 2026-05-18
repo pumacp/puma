@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import typer
+from puma.community.auth_cli import auth_app
 
 app = typer.Typer(
     name="puma",
@@ -1006,5 +1007,6 @@ def generate_plots_cmd(
         raise typer.Exit(1)
 
 
+app.add_typer(auth_app, name="auth")
 if __name__ == "__main__":
     app()
