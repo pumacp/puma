@@ -27,6 +27,7 @@ dependencies = [
     "structlog>=24.1",
     "rich>=13.7",
     "requests>=2.31",
+    "jsonschema>=4.23.0",
 ]
 
 [project.optional-dependencies]
