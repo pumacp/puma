@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import io
 from itertools import pairwise
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pandas as pd
+
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure
 
 
 def metric_card(
@@ -86,7 +89,7 @@ def comparison_table(run_metrics: dict[str, dict[str, float]]) -> pd.DataFrame:
     return df.reset_index()
 
 
-def reliability_plot(confs: list[float], corrects: list[bool], n_bins: int = 10):
+def reliability_plot(confs: list[float], corrects: list[bool], n_bins: int = 10) -> Figure:
     """Return a matplotlib Figure for a reliability diagram."""
     import matplotlib.pyplot as plt
     import numpy as np
@@ -117,7 +120,7 @@ def pareto_scatter(
     labels: list[str],
     x_label: str = "Efficiency",
     y_label: str = "Quality",
-):
+) -> Figure:
     """Return a matplotlib Figure for a Pareto / efficiency-quality scatter."""
     import matplotlib.pyplot as plt
 
@@ -132,7 +135,7 @@ def pareto_scatter(
     return fig
 
 
-def fig_to_bytes(fig, fmt: str = "png") -> bytes:
+def fig_to_bytes(fig: Figure, fmt: str = "png") -> bytes:
     """Serialize a matplotlib Figure to bytes for st.download_button."""
     buf = io.BytesIO()
     fig.savefig(buf, format=fmt, bbox_inches="tight")
