@@ -125,9 +125,7 @@ class ExcludedModelError(CommunityError):
     def __init__(self, model: str, reason: Literal["excluded", "pending_validation"]) -> None:
         self.model = model
         self.reason = reason
-        super().__init__(
-            f"Model {model!r} is {reason} and cannot be shared via PUMA Community."
-        )
+        super().__init__(f"Model {model!r} is {reason} and cannot be shared via PUMA Community.")
 
 
 @functools.lru_cache(maxsize=1)
@@ -294,9 +292,7 @@ def build_submission_from_run(
         raise RunNotFoundError(f"run_id {run_id!r} not found")
 
     pair_rows = session.execute(
-        select(distinct(Prediction.model), Prediction.strategy).where(
-            Prediction.run_id == run_id
-        )
+        select(distinct(Prediction.model), Prediction.strategy).where(Prediction.run_id == run_id)
     ).all()
     if not pair_rows:
         raise IncompleteRunError(f"run_id {run_id!r} has no predictions")
@@ -312,9 +308,7 @@ def build_submission_from_run(
     spec = _parse_runspec(run.spec_yaml)
     raw_scenario = spec.get("scenario")
     if raw_scenario is None:
-        raise IncompleteRunError(
-            f"run_id {run_id!r} has no scenario recorded in spec_yaml"
-        )
+        raise IncompleteRunError(f"run_id {run_id!r} has no scenario recorded in spec_yaml")
     scenario = _translate_scenario(raw_scenario)
     strategy = _translate_strategy(raw_strategy)
 
@@ -324,15 +318,11 @@ def build_submission_from_run(
     if snapshot is None:
         raise IncompleteRunError(f"run_id {run_id!r} has no profile_snapshot")
     if not run.profile:
-        raise IncompleteRunError(
-            f"run_id {run_id!r} has no profile_id (Run.profile is NULL)"
-        )
+        raise IncompleteRunError(f"run_id {run_id!r} has no profile_id (Run.profile is NULL)")
 
     emission = (
         session.execute(
-            select(Emission)
-            .where(Emission.run_id == run_id)
-            .order_by(Emission.emission_id.desc())
+            select(Emission).where(Emission.run_id == run_id).order_by(Emission.emission_id.desc())
         )
         .scalars()
         .first()
@@ -354,9 +344,7 @@ def build_submission_from_run(
         select(func.count(Prediction.pred_id)).where(Prediction.run_id == run_id)
     ).scalar_one()
     latencies = (
-        session.execute(
-            select(Prediction.latency_ms).where(Prediction.run_id == run_id)
-        )
+        session.execute(select(Prediction.latency_ms).where(Prediction.run_id == run_id))
         .scalars()
         .all()
     )
@@ -375,9 +363,7 @@ def build_submission_from_run(
     extra = snapshot.extra or {}
     cpu_cores = extra.get("cpu_cores")
     if cpu_cores is None:
-        raise IncompleteRunError(
-            f"run_id {run_id!r} ProfileSnapshot.extra is missing 'cpu_cores'."
-        )
+        raise IncompleteRunError(f"run_id {run_id!r} ProfileSnapshot.extra is missing 'cpu_cores'.")
 
     inference_raw = spec.get("inference")
     inference: dict[str, Any] = inference_raw if isinstance(inference_raw, dict) else {}
@@ -465,9 +451,7 @@ def list_shareable_runs(*, session: Session) -> list[dict[str, Any]]:
         mmap: dict[str, float] = {row[0]: row[1] for row in metric_rows}
 
         emission = (
-            session.execute(select(Emission).where(Emission.run_id == run.run_id))
-            .scalars()
-            .first()
+            session.execute(select(Emission).where(Emission.run_id == run.run_id)).scalars().first()
         )
         co2 = float((emission.co2_kg or 0.0) * 1000.0) if emission else 0.0
 
