@@ -46,4 +46,5 @@ def select_examples(
     else:
         result_df = pool.sample(n=min(k, len(pool)), random_state=seed)
 
-    return result_df.to_dict("records")
+    records: list[dict[str, Any]] = result_df.to_dict("records")
+    return records

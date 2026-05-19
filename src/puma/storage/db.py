@@ -16,7 +16,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Engine, create_engine, text
+from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 if TYPE_CHECKING:
@@ -66,7 +66,6 @@ def init_db(db_path: Path | str = _DEFAULT_DB) -> None:
     command.upgrade(cfg, "head")
 
     _engine = create_engine(url, connect_args={"check_same_thread": False})
-    _engine.execute = lambda sql: _engine.connect().execute(text(sql))
     _SessionLocal = sessionmaker(bind=_engine, autoflush=False, autocommit=False)
 
 
