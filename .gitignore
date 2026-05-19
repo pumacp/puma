@@ -42,6 +42,10 @@ htmlcov/
 # data/*.parquet      ← commented: same rationale
 !data/.gitkeep
 !data/README.md
+# Local benchmark artefacts (never committed)
+data/cache/
+data/puma.db
+data/community/
 
 # Run outputs
 results/*
