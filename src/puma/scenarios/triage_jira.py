@@ -51,7 +51,8 @@ def _load_cache() -> dict[str, Any]:
     if CACHE_FILE.exists():
         try:
             with open(CACHE_FILE, encoding="utf-8") as fh:
-                return json.load(fh)
+                cache: dict[str, Any] = json.load(fh)
+                return cache
         except json.JSONDecodeError:
             logger.warning("Triage cache corrupted, starting fresh")
     return {}
