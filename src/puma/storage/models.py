@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from typing import Any
 
 from sqlalchemy import (
     JSON,
@@ -141,6 +142,6 @@ class ProfileSnapshot(Base):
     vram_gb: Mapped[float | None] = mapped_column(Float, nullable=True)
     ollama_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
     puma_version: Mapped[str | None] = mapped_column(String(32), nullable=True)
-    extra: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    extra: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
 
     run: Mapped[Run] = relationship(back_populates="profile_snapshot")

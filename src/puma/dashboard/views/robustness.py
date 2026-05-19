@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import matplotlib.pyplot as plt
 import pandas as pd
 import streamlit as st
@@ -34,7 +36,7 @@ def render() -> None:
         )
         return
 
-    rows: list[dict] = []
+    rows: list[dict[str, Any]] = []
     for model in sorted(preds["model"].dropna().unique()):
         base = preds[(preds["model"] == model) & preds["perturbation"].isna()]
         base_lookup = dict(zip(base["instance_id"], base["parsed_label"], strict=False))

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
@@ -34,8 +34,8 @@ class Strategy(ABC):
     def build_prompt(
         self,
         scenario: Scenario,
-        instance: dict,
-        examples: list[dict] | None = None,
+        instance: dict[str, Any],
+        examples: list[dict[str, Any]] | None = None,
     ) -> str:
         """Render the Jinja template for this strategy and scenario."""
         env = _get_jinja_env(scenario.name)

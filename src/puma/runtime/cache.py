@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS inferences (
 
 
 def _result_to_json(result: GenerationResult) -> str:
-    def _logprob_to_dict(tl: TokenLogprob) -> dict:
+    def _logprob_to_dict(tl: TokenLogprob) -> dict[str, Any]:
         return {
             "token": tl.token,
             "logprob": tl.logprob,
@@ -49,7 +49,7 @@ def _result_to_json(result: GenerationResult) -> str:
 def _json_to_result(text: str) -> GenerationResult:
     data = json.loads(text)
 
-    def _dict_to_logprob(d: dict) -> TokenLogprob:
+    def _dict_to_logprob(d: dict[str, Any]) -> TokenLogprob:
         return TokenLogprob(
             token=d["token"],
             logprob=d["logprob"],
@@ -110,7 +110,7 @@ class InferenceCache:
         except sqlite3.DatabaseError as exc:
             logger.warning("Cache write error: %s", exc)
 
-    def stats(self) -> dict:
+    def stats(self) -> dict[str, int]:
         count = self._conn.execute("SELECT COUNT(*) FROM inferences").fetchone()[0]
         size_bytes = self._path.stat().st_size if self._path.exists() else 0
         return {"total_entries": count, "db_size_bytes": size_bytes}

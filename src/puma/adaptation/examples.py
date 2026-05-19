@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pandas as pd
 
 
@@ -11,7 +13,7 @@ def select_examples(
     seed: int = 42,
     stratify_by: str | None = None,
     exclude_index: int | None = None,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Return k examples from df, stratified by class if requested.
 
     Args:

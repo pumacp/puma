@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 
@@ -22,7 +24,7 @@ def stability_score(metric_values: list[float]) -> float:
     return max(0.0, min(1.0, 1.0 - cv))
 
 
-def stability_report(metric_values: list[float]) -> dict:
+def stability_report(metric_values: list[float]) -> dict[str, Any]:
     """Full stability report: mean, stddev, cv, stability score."""
     if not metric_values:
         raise ValueError("stability_report: empty input")
