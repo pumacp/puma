@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pandas as pd
 import streamlit as st
 
@@ -37,13 +39,13 @@ def render() -> None:
         return
 
     st.subheader("Prefix vs un-perturbed baseline")
-    baseline_rows: list[dict] = []
-    directional_rows: list[dict] = []
+    baseline_rows: list[dict[str, Any]] = []
+    directional_rows: list[dict[str, Any]] = []
     for model in sorted(preds["model"].dropna().unique()):
         base = preds[(preds["model"] == model) & preds["perturbation"].isna()]
         base_lookup = dict(zip(base["instance_id"], base["parsed_label"], strict=False))
         gold_lookup = dict(zip(base["instance_id"], base["gold_label"], strict=False))
-        sub_by_pert: dict[str, dict] = {}
+        sub_by_pert: dict[str, dict[str, Any]] = {}
         for pert in GENDER_PERTURBATIONS:
             sub = gender_rows[
                 (gender_rows["model"] == model) & (gender_rows["perturbation"] == pert)

@@ -9,7 +9,7 @@ description = "Local, reproducible benchmarking of open LLMs on project manageme
 requires-python = ">=3.11"
 license = { text = "MIT" }
 dependencies = [
-    "typer>=0.12",
+    "typer>=0.15",
     "httpx>=0.27",
     "pydantic>=2.7",
     "pyyaml>=6.0",
@@ -27,6 +27,9 @@ dependencies = [
     "structlog>=24.1",
     "rich>=13.7",
     "requests>=2.31",
+    "jsonschema>=4.23.0",
+    "tomli-w>=1.0.0",
+    "PyGithub>=2.4,<3",
 ]
 
 [project.optional-dependencies]
@@ -71,6 +74,7 @@ ignore = ["E501"]
 python_version = "3.11"
 strict = false
 warn_return_any = true
+# Re-enabled in Phase 5 once the CI gate runs full-scope mypy on src/puma/.
 warn_unused_configs = true
 ignore_missing_imports = true
 exclude = ["alembic/versions/", "scripts/"]

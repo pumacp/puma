@@ -7,12 +7,13 @@ import re
 import signal
 import time
 from pathlib import Path
-from typing import ClassVar
+from typing import Any, ClassVar
 
 import pandas as pd
 from sklearn.metrics import mean_absolute_error
 
 from puma.scenarios._reasoning import strip_reasoning
+from puma.scenarios.base import Scenario
 
 logger = logging.getLogger(__name__)
 
@@ -82,17 +83,18 @@ def _build_few_shot_prompt(title: str, description: str) -> str:
     return f"{examples}\n\nNow estimate:\nTitle: {title}\nDescription: {description}\nStory Points:"
 
 
-def _load_cache() -> dict:
+def _load_cache() -> dict[str, Any]:
     if CACHE_FILE.exists():
         try:
             with open(CACHE_FILE, encoding="utf-8") as fh:
-                return json.load(fh)
+                cache: dict[str, Any] = json.load(fh)
+                return cache
         except json.JSONDecodeError:
             logger.warning("Estimation cache corrupted, starting fresh")
     return {}
 
 
-def _save_cache(cache: dict) -> None:
+def _save_cache(cache: dict[str, Any]) -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     with open(CACHE_FILE, "w", encoding="utf-8") as fh:
         json.dump(cache, fh, indent=2, ensure_ascii=False)
@@ -153,7 +155,7 @@ class EstimationEvaluator:
 
     def evaluate_batch(
         self, df: pd.DataFrame, project_filter: str | None = None, max_items: int = 0
-    ) -> list:
+    ) -> list[dict[str, Any]]:
         cache = _load_cache()
         if project_filter:
             df = df[df.get("project", "Unknown") == project_filter].copy()
@@ -203,7 +205,7 @@ class EstimationEvaluator:
         return results
 
 
-def calculate_metrics(results: list) -> dict:
+def calculate_metrics(results: list[dict[str, Any]]) -> dict[str, Any]:
     pairs = [(r["story_points"], r["prediction"]) for r in results if r["prediction"] is not None]
     if not pairs:
         return {}
@@ -219,13 +221,13 @@ def calculate_metrics(results: list) -> dict:
     }
 
 
-class EstimationTawosScenario:
+class EstimationTawosScenario(Scenario):
     """Story-point regression on TAWOS issues — Scenario interface."""
 
     name = "estimation_tawos"
     dataset = "tawos"
     task_type = "regression"
-    labels: ClassVar[list] = []
+    labels: ClassVar[list[str]] = []
 
     def sample(self, n: int, seed: int = 42) -> pd.DataFrame:
         from puma.datasets.tawos import load, sample
@@ -235,5 +237,5 @@ class EstimationTawosScenario:
     def parse_response(self, raw: str) -> float | None:
         return parse_story_points(raw)
 
-    def gold_label(self, instance: dict) -> float:
+    def gold_label(self, instance: dict[str, Any]) -> float:
         return float(instance.get("story_points", 0))

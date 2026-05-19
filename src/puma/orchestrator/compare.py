@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 
-def compare_runs(run_ids: list[str], db_path: Path | str = "data/puma.db") -> dict:
+def compare_runs(run_ids: list[str], db_path: Path | str = "data/puma.db") -> dict[str, Any]:
     """Query metrics for run_ids and return a comparison dict + markdown table."""
     from puma.storage.db import init_db, session_scope
     from puma.storage.models import Metric, Run

@@ -119,7 +119,7 @@ def save_to_history(
         fh.write(",".join(row) + "\n")
 
 
-def get_history() -> list:
+def get_history() -> list[dict[str, str]]:
     if not HISTORY_FILE.exists():
         return []
     with open(HISTORY_FILE, encoding="utf-8") as fh:

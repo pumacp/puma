@@ -14,6 +14,7 @@ import streamlit as st
 
 from puma.dashboard.data import load_predictions, load_runs
 from puma.dashboard.views import (
+    community,
     fairness,
     instance_drilldown,
     model_comparison,
@@ -34,6 +35,7 @@ VIEWS = {
     "⚖️ Fairness": fairness.render,
     "🌱 Sustainability Frontier": sustainability.render,
     "🔍 Instance Drill-down": instance_drilldown.render,
+    "🤝 Community": community.render,
 }
 
 st.set_page_config(
