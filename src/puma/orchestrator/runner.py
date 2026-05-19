@@ -9,11 +9,15 @@ import uuid
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
 
 from puma.orchestrator.runspec import RunSpec
+
+if TYPE_CHECKING:
+    import pandas as pd
+    from sqlalchemy.orm import Session
 
 logger = structlog.get_logger(__name__)
 
@@ -428,7 +432,7 @@ def _save_metrics_json(metrics: dict[str, Any], results_dir: Path) -> None:
         json.dump(metrics, fh, indent=2, default=str)
 
 
-def _empty_dataframe():
+def _empty_dataframe() -> pd.DataFrame:
     import pandas as pd
 
     return pd.DataFrame()
@@ -473,7 +477,7 @@ def _build_perturbation_fns(perturbations: list[str], seed: int) -> dict[str, Ca
     from puma.perturbations.register_shift import apply as register_shift_apply
     from puma.perturbations.text import case_change, tech_noise, truncate, typos
 
-    fns = {}
+    fns: dict[str, Callable[..., str]] = {}
     for name in perturbations:
         if name == "typos_5pct":
             fns[name] = lambda text, s=seed: typos(text, rate=0.05, seed=s)
@@ -494,7 +498,9 @@ def _build_perturbation_fns(perturbations: list[str], seed: int) -> dict[str, Ca
     return fns
 
 
-def _apply_perturbation(instance: dict[str, Any], perturb_fn) -> dict[str, Any]:
+def _apply_perturbation(
+    instance: dict[str, Any], perturb_fn: Callable[[str], str] | None
+) -> dict[str, Any]:
     if perturb_fn is None:
         return instance
     perturbed = dict(instance)
@@ -515,7 +521,7 @@ def _flatten_metrics(metrics: dict[str, Any], prefix: str = "") -> list[tuple[st
     return result
 
 
-def _add_profile_snapshot(db, run_id: str) -> None:
+def _add_profile_snapshot(db: Session, run_id: str) -> None:
     from puma.storage.models import ProfileSnapshot
 
     try:

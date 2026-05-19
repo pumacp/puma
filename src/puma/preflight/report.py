@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TextIO
 
 import yaml
 
@@ -50,7 +51,7 @@ def print_report(
     profile: Profile,
     issues: list[ProvisioningIssue],
     *,
-    file=None,
+    file: TextIO | None = None,
 ) -> None:
     """Print a human-readable preflight diagnostic to stdout (or file)."""
     if file is None:
