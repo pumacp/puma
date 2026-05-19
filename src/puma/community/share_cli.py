@@ -85,9 +85,7 @@ def _anonymous_alias() -> str:
 
 
 def _validate_alias(alias: str, *, source: str) -> str:
-    if not _ALIAS_PATTERN.match(alias) or not (
-        _ALIAS_MIN_LEN <= len(alias) <= 64
-    ):
+    if not _ALIAS_PATTERN.match(alias) or not (_ALIAS_MIN_LEN <= len(alias) <= 64):
         raise typer.BadParameter(
             f"submitter alias from {source} does not match required format: "
             f"3-64 chars from [A-Za-z0-9_-.]"
@@ -394,9 +392,7 @@ def _discover_run(*, run_id: str | None) -> ShareableRunSummary | None:
     if run_id is not None:
         summary = get_run_summary(run_id)
         if summary is None:
-            console.print(
-                f"[red]Run {run_id!r} not found, or its status is not 'done'.[/red]"
-            )
+            console.print(f"[red]Run {run_id!r} not found, or its status is not 'done'.[/red]")
             raise typer.Exit(code=1)
         return summary
     rows = list_shareable_runs()

@@ -76,9 +76,7 @@ def save_dry_run(
         try:
             os.write(
                 fd,
-                json.dumps(
-                    payload, indent=2, sort_keys=True, ensure_ascii=False
-                ).encode("utf-8"),
+                json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False).encode("utf-8"),
             )
         finally:
             os.close(fd)

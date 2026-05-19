@@ -37,9 +37,7 @@ SERVICE_TOKEN_PATTERNS: Final[dict[str, re.Pattern[str]]] = {
     "github": re.compile(r"^(ghp_|github_pat_)[A-Za-z0-9_]{30,}$"),
     "huggingface": re.compile(r"^hf_[A-Za-z0-9]{30,}$"),
     "zenodo": re.compile(r"^[A-Za-z0-9]{60}$"),
-    "discord_webhook": re.compile(
-        r"^https://discord\.com/api/webhooks/\d+/[A-Za-z0-9_\-]+$"
-    ),
+    "discord_webhook": re.compile(r"^https://discord\.com/api/webhooks/\d+/[A-Za-z0-9_\-]+$"),
     "telegram_bot": re.compile(r"^\d+:[A-Za-z0-9_\-]{35,}$"),
     "telegram_chat_id": re.compile(r"^-?\d+$"),
 }
@@ -173,9 +171,7 @@ class CredentialStore:
 
     def _guard_permissions_on_read(self) -> None:
         if not self.verify_permissions():
-            raise InsecurePermissionsError(
-                f"chmod 600 {self._path} to secure the file."
-            )
+            raise InsecurePermissionsError(f"chmod 600 {self._path} to secure the file.")
 
     def _ensure_parent_dir(self) -> None:
         parent = self._path.parent

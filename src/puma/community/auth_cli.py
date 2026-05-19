@@ -101,9 +101,7 @@ def auth_status() -> None:
     icon = "[green]✓[/green]" if ok else "[red]✗[/red]"
     console.print(f"\n{icon} Credentials file: {store.path}")
     if not ok:
-        console.print(
-            f"[yellow]File mode is not 0600. Run: chmod 600 {store.path}[/yellow]"
-        )
+        console.print(f"[yellow]File mode is not 0600. Run: chmod 600 {store.path}[/yellow]")
 
 
 @auth_app.command("logout")
