@@ -74,7 +74,14 @@ ignore = ["E501"]
 python_version = "3.11"
 strict = false
 warn_return_any = true
-warn_unused_configs = true
+# warn_unused_configs is intentionally disabled: the [[tool.mypy.overrides]]
+# block below targets puma.metrics.*, puma.preflight.*, puma.runtime.* with
+# strict = true. Those overrides are correctly applied on full-scope runs
+# (mypy src/puma/) but appear "unused" on narrow-scope runs (mypy
+# src/puma/community/) because the targeted modules are out of scope. The
+# CI gate in lint-and-test.yml runs the narrow scope, so this flag would
+# emit a spurious note. Re-enable in Phase 4 once full-scope mypy is gated.
+warn_unused_configs = false
 ignore_missing_imports = true
 exclude = ["alembic/versions/", "scripts/"]
 
