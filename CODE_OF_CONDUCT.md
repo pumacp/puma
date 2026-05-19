@@ -7,7 +7,7 @@ project are expected to abide by it.
 ## Reporting
 
 Concerns about behaviour that violates the Code of Conduct can be
-reported privately to `puma-community-conduct@pumacp.org`. Reports will
+reported privately to `pumacapstoneproject@gmail.com`. Reports will
 be reviewed by the maintainers in confidence and addressed promptly.
 
 ## Scope

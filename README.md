@@ -266,4 +266,4 @@ canonical list lives in [`pyproject.toml`](pyproject.toml).
 
 This project follows the
 [Contributor Covenant v2.1](CODE_OF_CONDUCT.md). Conduct concerns can be
-reported privately to `puma-community-conduct@pumacp.org`.
+reported privately to `pumacapstoneproject@gmail.com`.
