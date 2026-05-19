@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from itertools import pairwise
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
@@ -73,7 +74,7 @@ def brier_score(confidences: list[float], corrects: list[bool]) -> float:
 
 
 def class_confidence_from_logprobs(
-    logprobs: list,  # list[TokenLogprob]
+    logprobs: list[Any],  # list[TokenLogprob]
     label_tokens: dict[str, list[str]],
 ) -> dict[str, float]:
     """Extract per-class confidence from Ollama logprobs via stable softmax.

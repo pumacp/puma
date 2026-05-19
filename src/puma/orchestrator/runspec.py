@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -17,7 +17,7 @@ class InferenceConfig(BaseModel):
     max_tokens: int = Field(default=256, gt=0)
     logprobs: bool = False
     top_logprobs: int = Field(default=0, ge=0, le=20)
-    format: dict | str | None = None
+    format: dict[str, Any] | str | None = None
 
 
 class AdaptationConfig(BaseModel):

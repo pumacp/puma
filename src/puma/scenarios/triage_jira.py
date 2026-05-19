@@ -7,6 +7,7 @@ import logging
 import os
 import re
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 from sklearn.metrics import classification_report, confusion_matrix, f1_score
@@ -46,7 +47,7 @@ VALID_PRIORITIES = ["Critical", "Major", "Minor", "Trivial"]
 _PRIORITY_RE = re.compile(r"\b(critical|major|minor|trivial)\b", re.IGNORECASE)
 
 
-def _load_cache() -> dict:
+def _load_cache() -> dict[str, Any]:
     if CACHE_FILE.exists():
         try:
             with open(CACHE_FILE, encoding="utf-8") as fh:
@@ -56,7 +57,7 @@ def _load_cache() -> dict:
     return {}
 
 
-def _save_cache(cache: dict) -> None:
+def _save_cache(cache: dict[str, Any]) -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     with open(CACHE_FILE, "w", encoding="utf-8") as fh:
         json.dump(cache, fh, indent=2, ensure_ascii=False)
@@ -87,7 +88,7 @@ class TriageJiraScenario(Scenario):
     def parse_response(self, raw: str) -> str | None:
         return parse_prediction(raw)
 
-    def gold_label(self, instance: dict) -> str:
+    def gold_label(self, instance: dict[str, Any]) -> str:
         return str(instance.get("priority", ""))
 
 
@@ -115,7 +116,7 @@ class TriageEvaluator:
             logger.error("Error evaluating issue %s: %s", issue_key, exc)
             return None
 
-    def evaluate_batch(self, df: pd.DataFrame) -> list:
+    def evaluate_batch(self, df: pd.DataFrame) -> list[dict[str, Any]]:
         cache = _load_cache()
         results = []
         processed = skipped = 0
@@ -158,7 +159,7 @@ class TriageEvaluator:
         return results
 
 
-def calculate_metrics(results: list) -> dict:
+def calculate_metrics(results: list[dict[str, Any]]) -> dict[str, Any]:
     y_true = [r["priority"] for r in results if r["priority"] and r["prediction"]]
     y_pred = [r["prediction"] for r in results if r["priority"] and r["prediction"]]
     if not y_true:

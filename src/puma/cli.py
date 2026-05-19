@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import typer
 
 from puma.community.auth_cli import auth_app
@@ -460,7 +462,7 @@ def list_runs(
         "MAX(CASE WHEN m.metric_name='parse_failure_rate' THEN m.value END) AS pfr "
         "FROM runs r LEFT JOIN metrics m ON r.run_id = m.run_id WHERE 1=1"
     )
-    params: list = []
+    params: list[Any] = []
     if scenario:
         sql += " AND r.run_id LIKE ?"
         params.append(f"%{scenario}%")
@@ -571,7 +573,7 @@ def list_ollama_models(
         )
         raise typer.Exit(1)
 
-    records: list[dict] = []
+    records: list[dict[str, Any]] = []
     for ln in lines[1:]:
         # Ollama list uses variable whitespace; collapse to single splits
         parts = re.split(r"\s{2,}", ln.strip())
@@ -849,8 +851,8 @@ def bias_analysis_cmd(
             )
             raise typer.Exit(2)
 
-    disparity_rows: list[dict] = []
-    directional_rows: list[dict] = []
+    disparity_rows: list[dict[str, Any]] = []
+    directional_rows: list[dict[str, Any]] = []
     for model in sorted(preds["model"].dropna().unique()):
         base = preds[(preds["model"] == model) & preds["perturbation"].isna()]
         base_lookup = dict(zip(base["instance_id"], base["parsed_label"], strict=False))
@@ -901,7 +903,7 @@ def bias_analysis_cmd(
         )
         raise typer.Exit(1)
 
-    def _fmt_table(rows: list[dict], headers: list[str]) -> str:
+    def _fmt_table(rows: list[dict[str, Any]], headers: list[str]) -> str:
         out = ["| " + " | ".join(headers) + " |", "|" + "|".join(["---"] * len(headers)) + "|"]
         for r in rows:
             cells = [
