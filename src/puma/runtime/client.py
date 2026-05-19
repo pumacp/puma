@@ -34,10 +34,10 @@ class GenerationResult:
     prompt_eval_count: int
     eval_count: int
     eval_duration_ns: int
-    raw: dict
+    raw: dict[str, Any]
 
 
-def _parse_logprobs(raw: dict) -> list[TokenLogprob]:
+def _parse_logprobs(raw: dict[str, Any]) -> list[TokenLogprob]:
     """Parse Ollama logprobs payload into TokenLogprob list."""
     tokens = raw.get("logprobs") or []
     if not tokens:
@@ -61,10 +61,10 @@ def _build_payload(
     max_tokens: int,
     logprobs: bool,
     top_logprobs: int,
-    format: dict | str | None,
+    format: dict[str, Any] | str | None,
     system: str | None,
     stream: bool,
-) -> dict:
+) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "model": model,
         "prompt": prompt,
@@ -85,7 +85,7 @@ def _build_payload(
     return payload
 
 
-def _result_from_json(raw: dict) -> GenerationResult:
+def _result_from_json(raw: dict[str, Any]) -> GenerationResult:
     return GenerationResult(
         model=raw.get("model", ""),
         response=raw.get("response", ""),
@@ -122,7 +122,7 @@ class OllamaClient:
         max_tokens: int = 256,
         logprobs: bool = False,
         top_logprobs: int = 0,
-        format: dict | str | None = None,
+        format: dict[str, Any] | str | None = None,
         system: str | None = None,
     ) -> GenerationResult:
         """Synchronous generate call with retries."""
@@ -182,7 +182,7 @@ class OllamaClient:
         max_tokens: int = 256,
         logprobs: bool = False,
         top_logprobs: int = 0,
-        format: dict | str | None = None,
+        format: dict[str, Any] | str | None = None,
         system: str | None = None,
     ) -> GenerationResult:
         """Async generate call with retries."""

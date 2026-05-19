@@ -6,13 +6,20 @@ import hashlib
 import json
 import time
 import uuid
+from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import structlog
 
 from puma.orchestrator.runspec import RunSpec
+
+if TYPE_CHECKING:
+    import pandas as pd
+    from sqlalchemy.orm import Session
+
+    from puma.scenarios.base import Scenario
 
 logger = structlog.get_logger(__name__)
 
@@ -91,7 +98,7 @@ class Runner:
             )
             tracker.start()
 
-        predictions: list[dict] = []
+        predictions: list[dict[str, Any]] = []
         start_wall = time.time()
 
         try:
@@ -169,7 +176,7 @@ class Runner:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _execute_inferences(self, results_dir: Path) -> list[dict]:
+    def _execute_inferences(self, results_dir: Path) -> list[dict[str, Any]]:
         from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 
         from puma.adaptation.strategies import get_strategy
@@ -179,7 +186,7 @@ class Runner:
         from puma.scenarios.prioritization_jira import PrioritizationJiraScenario
         from puma.scenarios.triage_jira import TriageJiraScenario
 
-        scenario_map = {
+        scenario_map: dict[str, Callable[[], Scenario]] = {
             "triage_jira": TriageJiraScenario,
             "estimation_tawos": EstimationTawosScenario,
             "prioritization_jira": PrioritizationJiraScenario,
@@ -196,7 +203,7 @@ class Runner:
 
         perturb_fns = _build_perturbation_fns(self.spec.perturbations, self.spec.inference.seed)
 
-        all_predictions: list[dict] = []
+        all_predictions: list[dict[str, Any]] = []
         rows = df.to_dict("records")
         total_tasks = len(rows) * len(self.spec.models) * len(self.spec.adaptation.strategy)
 
@@ -229,7 +236,7 @@ class Runner:
                                 raw_response = "[dry-run]"
                                 latency_ms = 0.0
                                 tokens_in = tokens_out = 0
-                                logprobs_raw: list = []
+                                logprobs_raw: list[Any] = []
                             else:
                                 t0 = time.time()
                                 try:
@@ -303,7 +310,7 @@ class Runner:
 
         return all_predictions
 
-    def _compute_metrics(self, predictions: list[dict]) -> dict[str, Any]:
+    def _compute_metrics(self, predictions: list[dict[str, Any]]) -> dict[str, Any]:
         from puma.metrics.accuracy import classification_metrics, regression_metrics
         from puma.metrics.efficiency import percentiles
 
@@ -353,7 +360,7 @@ class Runner:
             from puma.metrics.calibration import expected_calibration_error
 
             correct = [
-                int(p["parsed_label"] == p["gold_label"])
+                p["parsed_label"] == p["gold_label"]
                 for p in orig
                 if p.get("confidence") is not None
             ]
@@ -362,7 +369,7 @@ class Runner:
 
         return result
 
-    def _persist_predictions(self, predictions: list[dict]) -> None:
+    def _persist_predictions(self, predictions: list[dict[str, Any]]) -> None:
         from puma.storage.db import session_scope
         from puma.storage.models import Instance, Prediction
 
@@ -400,7 +407,7 @@ class Runner:
                     )
                 )
 
-    def _persist_metrics(self, metrics: dict, results_dir: Path) -> None:
+    def _persist_metrics(self, metrics: dict[str, Any], results_dir: Path) -> None:
         pass  # JSON saved separately; SQLAlchemy rows added in run()
 
 
@@ -421,13 +428,13 @@ def _save_frozen_spec(spec: RunSpec, results_dir: Path) -> None:
         yaml.dump(spec.model_dump(mode="json"), fh, default_flow_style=False)
 
 
-def _save_metrics_json(metrics: dict, results_dir: Path) -> None:
+def _save_metrics_json(metrics: dict[str, Any], results_dir: Path) -> None:
     path = results_dir / "metrics.json"
     with open(path, "w", encoding="utf-8") as fh:
         json.dump(metrics, fh, indent=2, default=str)
 
 
-def _empty_dataframe():
+def _empty_dataframe() -> pd.DataFrame:
     import pandas as pd
 
     return pd.DataFrame()
@@ -453,7 +460,7 @@ def _scenario_label_tokens(scenario: str) -> dict[str, list[str]] | None:
     return None
 
 
-def _logprobs_to_jsonable(lps: list) -> list[dict]:
+def _logprobs_to_jsonable(lps: list[Any]) -> list[dict[str, Any]]:
     """Serialize ``list[TokenLogprob]`` to plain dicts for JSON storage."""
     out = []
     for tl in lps:
@@ -467,12 +474,12 @@ def _logprobs_to_jsonable(lps: list) -> list[dict]:
     return out
 
 
-def _build_perturbation_fns(perturbations: list[str], seed: int) -> dict:
+def _build_perturbation_fns(perturbations: list[str], seed: int) -> dict[str, Callable[..., str]]:
     from puma.perturbations.gender_swap_prefix import apply_female_prefix, apply_male_prefix
     from puma.perturbations.register_shift import apply as register_shift_apply
     from puma.perturbations.text import case_change, tech_noise, truncate, typos
 
-    fns = {}
+    fns: dict[str, Callable[..., str]] = {}
     for name in perturbations:
         if name == "typos_5pct":
             fns[name] = lambda text, s=seed: typos(text, rate=0.05, seed=s)
@@ -493,7 +500,9 @@ def _build_perturbation_fns(perturbations: list[str], seed: int) -> dict:
     return fns
 
 
-def _apply_perturbation(instance: dict, perturb_fn) -> dict:
+def _apply_perturbation(
+    instance: dict[str, Any], perturb_fn: Callable[[str], str] | None
+) -> dict[str, Any]:
     if perturb_fn is None:
         return instance
     perturbed = dict(instance)
@@ -503,7 +512,7 @@ def _apply_perturbation(instance: dict, perturb_fn) -> dict:
     return perturbed
 
 
-def _flatten_metrics(metrics: dict, prefix: str = "") -> list[tuple[str, float]]:
+def _flatten_metrics(metrics: dict[str, Any], prefix: str = "") -> list[tuple[str, float]]:
     result = []
     for k, v in metrics.items():
         full_key = f"{prefix}.{k}" if prefix else k
@@ -514,7 +523,7 @@ def _flatten_metrics(metrics: dict, prefix: str = "") -> list[tuple[str, float]]
     return result
 
 
-def _add_profile_snapshot(db, run_id: str) -> None:
+def _add_profile_snapshot(db: Session, run_id: str) -> None:
     from puma.storage.models import ProfileSnapshot
 
     try:

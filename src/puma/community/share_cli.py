@@ -1,0 +1,410 @@
+"""``puma share-results`` — share a PUMA run with the PUMA Community.
+
+Dual-mode: ``--dry-run`` saves the submission payload locally without any
+network access; the default opens a Pull Request against
+``pumacp/puma-community`` via :mod:`puma.community.github_client`.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import re
+import secrets
+from collections.abc import Callable
+from typing import Any
+
+import typer
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+
+from puma.community.builder import (
+    CommunityError,
+    ExcludedModelError,
+    PIIDetectedError,
+    UnknownScenarioError,
+    UnknownStrategyError,
+    build_submission_from_run,
+)
+from puma.community.dry_run_saver import save_dry_run
+from puma.community.github_client import (
+    APIRateLimitError,
+    AuthenticationError,
+    CommunityGitHubClient,
+    ConflictError,
+    GitHubError,
+)
+from puma.community.ratelimit import LocalRateLimiter
+from puma.community.runs_query import (
+    ShareableRunSummary,
+    get_run_summary,
+    list_shareable_runs,
+)
+from puma.community.schema import Submitter
+from puma.community.validator import is_safe_to_publish
+from puma.storage.db import session_scope
+
+log = logging.getLogger("puma.community.share_cli")
+
+console = Console()
+
+_ALIAS_PATTERN = re.compile(r"^[A-Za-z0-9_\-\.]+$")
+_ALIAS_MAX_LEN = 32
+_ALIAS_MIN_LEN = 3
+
+
+share_results_app = typer.Typer(
+    name="share-results",
+    help="Share a PUMA run with the PUMA Community (dry-run or real PR).",
+    invoke_without_command=True,
+    no_args_is_help=False,
+    add_completion=False,
+)
+
+
+# ── helpers ─────────────────────────────────────────────────────────────────
+
+
+def _slugify_alias(login: str) -> str:
+    """Coerce a GitHub login into the schema's alias regex.
+
+    Lowercase, replace disallowed characters with ``-``, truncate to 32 chars.
+    Returns an empty string if the result has fewer than 3 valid characters,
+    which the caller treats as the trigger to fall back to an anonymous alias.
+    """
+    sanitised = re.sub(r"[^A-Za-z0-9_\-\.]", "-", login.lower())
+    sanitised = sanitised[:_ALIAS_MAX_LEN]
+    if len(sanitised) < _ALIAS_MIN_LEN:
+        return ""
+    return sanitised
+
+
+def _anonymous_alias() -> str:
+    return f"anonymous-{secrets.token_hex(4)}"
+
+
+def _validate_alias(alias: str, *, source: str) -> str:
+    if not _ALIAS_PATTERN.match(alias) or not (_ALIAS_MIN_LEN <= len(alias) <= 64):
+        raise typer.BadParameter(
+            f"submitter alias from {source} does not match required format: "
+            f"3-64 chars from [A-Za-z0-9_-.]"
+        )
+    return alias
+
+
+def _resolve_submitter_alias(
+    *,
+    cli_alias: str | None,
+    env_alias: str | None,
+    dry_run: bool,
+    publish_login_provider: Callable[[], str],
+) -> str:
+    if cli_alias:
+        return _validate_alias(cli_alias, source="--submitter-alias")
+    if env_alias:
+        return _validate_alias(env_alias, source="PUMA_SUBMITTER_ALIAS env var")
+    if dry_run:
+        return _anonymous_alias()
+    try:
+        login = publish_login_provider()
+    except Exception as exc:
+        log.warning("could not resolve GitHub login: %s", exc)
+        return _anonymous_alias()
+    slug = _slugify_alias(login)
+    return slug or _anonymous_alias()
+
+
+def _render_run_table(rows: list[ShareableRunSummary]) -> Table:
+    table = Table(title="Shareable runs", show_lines=False)
+    table.add_column("#", justify="right", style="cyan")
+    table.add_column("run_id", style="bold")
+    table.add_column("scenario")
+    table.add_column("model")
+    table.add_column("strategy")
+    table.add_column("preds", justify="right")
+    table.add_column("finished_at")
+    for idx, row in enumerate(rows):
+        table.add_row(
+            str(idx + 1),
+            row.run_id,
+            row.scenario,
+            row.model,
+            row.strategy,
+            str(row.n_predictions),
+            row.finished_at or "—",
+        )
+    return table
+
+
+def _pr_title(submission_id: str, summary: ShareableRunSummary) -> str:
+    return (
+        f"Submission {submission_id[:12]}: "
+        f"{summary.scenario} / {summary.model} / {summary.strategy}"
+    )
+
+
+def _pr_body(payload: dict[str, Any], summary: ShareableRunSummary) -> str:
+    rm = payload["run_metadata"]
+    metrics = payload["metrics"]
+    sustainability = payload["sustainability"]
+    integrity = payload["integrity"]
+    metric_lines = []
+    for key in ("f1_macro", "accuracy", "mae", "mdae", "ece"):
+        value = metrics.get(key)
+        if value is not None:
+            metric_lines.append(f"- {key}: {value}")
+    metric_block = "\n".join(metric_lines) if metric_lines else "- (no scalar metrics)"
+    return (
+        f"# PUMA Community submission `{payload['submission_id']}`\n\n"
+        f"This submission was generated by `puma share-results`.\n\n"
+        f"**Schema version:** {payload['schema_version']}\n"
+        f"**PUMA version:** {payload['puma_version']}\n\n"
+        f"## Run summary\n\n"
+        f"- Scenario: `{rm['scenario']}`\n"
+        f"- Model: `{rm['model']}`\n"
+        f"- Strategy: `{rm['strategy']}`\n"
+        f"- Instances: {rm['n_instances']}\n"
+        f"- Hardware profile: `{payload['hardware_profile']['profile_id']}`\n"
+        f"- Started at: {rm['started_at']}\n"
+        f"- Completed at: {rm['completed_at']}\n\n"
+        f"## Metrics\n\n{metric_block}\n\n"
+        f"## Sustainability\n\n"
+        f"- CO2 grams total: {sustainability['co2_grams_total']}\n"
+        f"- Energy kWh total: {sustainability['energy_kwh_total']}\n"
+        f"- Tracking mode: {sustainability['tracking_mode']}\n\n"
+        f"## Integrity\n\n"
+        f"- predictions_summary_hash: `{integrity['predictions_summary_hash']}`\n\n"
+        f"Schema spec: https://pumacp.github.io/puma-community/schema/submission.v1.json\n"
+    )
+
+
+def _build_submitter(alias: str) -> Submitter:
+    return Submitter(
+        name_or_alias=alias,
+        affiliation=None,
+        contact=None,
+        consent_public_release=True,
+        consent_redistribution=True,
+        consent_research_use=True,
+    )
+
+
+def _show_consent_panel(
+    payload: dict[str, Any],
+    summary: ShareableRunSummary,
+    *,
+    dry_run: bool,
+    alias: str,
+) -> None:
+    metrics = payload["metrics"]
+    metric_lines = []
+    for key in ("f1_macro", "accuracy", "mae"):
+        if metrics.get(key) is not None:
+            metric_lines.append(f"  {key}: {metrics[key]}")
+    metric_text = "\n".join(metric_lines) if metric_lines else "  (no scalar metrics)"
+    action = (
+        "will save locally (dry-run dir)"
+        if dry_run
+        else "will open a PR against pumacp/puma-community"
+    )
+    body = (
+        f"submission_id   : {payload['submission_id']}\n"
+        f"submitter alias : {alias}\n"
+        f"run_id          : {summary.run_id}\n"
+        f"scenario / model: {summary.scenario} / {summary.model}\n"
+        f"strategy        : {summary.strategy}\n"
+        f"n_instances     : {payload['run_metadata']['n_instances']}\n"
+        f"metrics:\n{metric_text}\n\n"
+        f"Action: {action}"
+    )
+    console.print(Panel(body, title="[cyan]Review submission[/cyan]", border_style="cyan"))
+
+
+# ── command ─────────────────────────────────────────────────────────────────
+
+
+@share_results_app.callback(invoke_without_command=True)
+def share_results(
+    ctx: typer.Context,
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Save the submission payload locally; do not open a PR.",
+    ),
+    run_id: str = typer.Option(
+        "",
+        "--run-id",
+        help="Specific run to share. If omitted, an interactive selector is shown.",
+    ),
+    submitter_alias: str = typer.Option(
+        "",
+        "--submitter-alias",
+        help="Override the submitter alias. Default: anonymous-<8-char-hash>.",
+    ),
+    yes: bool = typer.Option(
+        False,
+        "--yes",
+        "-y",
+        help="Skip the consent prompt. Use with caution.",
+    ),
+    env_alias: str = typer.Option(
+        "",
+        "--env-alias-override",
+        envvar="PUMA_SUBMITTER_ALIAS",
+        hidden=True,
+        help="(env-only) PUMA_SUBMITTER_ALIAS",
+    ),
+) -> None:
+    """Entrypoint for ``puma share-results``."""
+    # Step 1 — discover run
+    summary = _discover_run(run_id=(run_id or None))
+    if summary is None:
+        raise typer.Exit(code=0)
+
+    cli_alias = submitter_alias or None
+    env_alias_value = env_alias or None
+
+    # Step 2 — resolve submitter alias
+    if dry_run:
+        alias = _resolve_submitter_alias(
+            cli_alias=cli_alias,
+            env_alias=env_alias_value,
+            dry_run=True,
+            publish_login_provider=lambda: "",
+        )
+        client: CommunityGitHubClient | None = None
+    else:
+        try:
+            client = CommunityGitHubClient()
+        except AuthenticationError as exc:
+            console.print(f"[red]{exc}[/red]")
+            raise typer.Exit(code=1) from exc
+        alias = _resolve_submitter_alias(
+            cli_alias=cli_alias,
+            env_alias=env_alias_value,
+            dry_run=False,
+            publish_login_provider=client.authenticated_user_login,
+        )
+
+    # Step 3 — build submission payload
+    try:
+        with session_scope() as session:
+            submission = build_submission_from_run(
+                run_id=summary.run_id,
+                submitter=_build_submitter(alias),
+                session=session,
+            )
+    except (
+        UnknownScenarioError,
+        UnknownStrategyError,
+        ExcludedModelError,
+        PIIDetectedError,
+        CommunityError,
+    ) as exc:
+        console.print(f"[red]Cannot build submission:[/red] {exc}")
+        raise typer.Exit(code=1) from exc
+
+    payload = json.loads(submission.model_dump_json())
+
+    # Step 4 — safety sweep
+    safe, reasons = is_safe_to_publish(submission)
+    if not safe:
+        console.print("[red]Submission failed safety checks:[/red]")
+        for r in reasons:
+            console.print(f"  • {r}")
+        raise typer.Exit(code=1)
+
+    # Step 5 — consent
+    _show_consent_panel(payload, summary, dry_run=dry_run, alias=alias)
+    if not yes:
+        confirmed = typer.confirm("Proceed?", default=False)
+        if not confirmed:
+            console.print("Aborted.")
+            raise typer.Exit(code=0)
+
+    # Step 6 — rate limit (publish only)
+    if not dry_run:
+        ok, reason = LocalRateLimiter().can_submit(submitter_alias=alias)
+        if not ok:
+            console.print(f"[yellow]{reason}[/yellow]")
+            raise typer.Exit(code=1)
+
+    # Step 7 — execute
+    if dry_run:
+        path = save_dry_run(payload=payload)
+        console.print(
+            Panel(
+                f"Saved dry-run submission to:\n[bold]{path}[/bold]",
+                title="[green]share-results --dry-run[/green]",
+                border_style="green",
+            )
+        )
+        return
+
+    assert client is not None  # type-narrow for mypy; AuthenticationError exits above
+    try:
+        fork_owner = client.ensure_fork()
+        branch = client.create_submission_branch(
+            fork_owner=fork_owner,
+            submission_id=payload["submission_id"],
+        )
+        client.write_submission_file(
+            fork_owner=fork_owner,
+            branch=branch,
+            submission_id=payload["submission_id"],
+            payload_json=json.dumps(payload, indent=2, sort_keys=True),
+            commit_message=f"data(community): add submission {payload['submission_id']}",
+        )
+        result = client.open_pull_request(
+            fork_owner=fork_owner,
+            branch=branch,
+            submission_id=payload["submission_id"],
+            title=_pr_title(payload["submission_id"], summary),
+            body=_pr_body(payload, summary),
+        )
+    except APIRateLimitError as exc:
+        console.print(f"[yellow]{exc}[/yellow] Re-run with --dry-run as a fallback.")
+        raise typer.Exit(code=1) from exc
+    except ConflictError as exc:
+        console.print(f"[yellow]{exc}[/yellow] Re-run after the existing PR is closed.")
+        raise typer.Exit(code=1) from exc
+    except GitHubError as exc:
+        console.print(f"[red]GitHub error:[/red] {exc}. Try --dry-run as a fallback.")
+        raise typer.Exit(code=1) from exc
+
+    LocalRateLimiter().record_submission(
+        submitter_alias=alias,
+        submission_id=payload["submission_id"],
+    )
+    console.print(
+        Panel(
+            f"Pull request opened:\n[bold]{result.pr_url}[/bold]\n"
+            f"PR #{result.pr_number} from {result.fork_owner}:{result.branch_name}",
+            title="[green]share-results[/green]",
+            border_style="green",
+        )
+    )
+
+
+def _discover_run(*, run_id: str | None) -> ShareableRunSummary | None:
+    """Return the chosen run summary, or ``None`` to signal a clean exit."""
+    if run_id is not None:
+        summary = get_run_summary(run_id)
+        if summary is None:
+            console.print(f"[red]Run {run_id!r} not found, or its status is not 'done'.[/red]")
+            raise typer.Exit(code=1)
+        return summary
+    rows = list_shareable_runs()
+    if not rows:
+        console.print("[yellow]No shareable runs found.[/yellow]")
+        return None
+    console.print(_render_run_table(rows))
+    pick = int(typer.prompt("Pick a run number", type=int))
+    if pick < 1 or pick > len(rows):
+        console.print(f"[red]Invalid selection {pick}.[/red]")
+        raise typer.Exit(code=1)
+    return rows[pick - 1]
+
+
+__all__ = ["share_results_app"]

@@ -16,9 +16,11 @@ def no_data() -> None:
 
 def selected_runs() -> list[str]:
     """Sidebar-selected run IDs, or empty if the sidebar has not initialised yet."""
-    return st.session_state.get("selected_runs", [])
+    runs: list[str] = st.session_state.get("selected_runs", [])
+    return runs
 
 
 def selected_models() -> list[str]:
     """Sidebar-selected model names, or empty if the sidebar has not initialised yet."""
-    return st.session_state.get("selected_models", [])
+    models: list[str] = st.session_state.get("selected_models", [])
+    return models

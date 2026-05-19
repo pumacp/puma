@@ -1,0 +1,512 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pumacp.github.io/puma-community/schema/submission.v1.json",
+  "$defs": {
+    "HardwareProfile": {
+      "additionalProperties": false,
+      "description": "Hardware identification keyed by canonical PUMA profile_id.",
+      "properties": {
+        "profile_id": {
+          "maxLength": 64,
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "cpu_model": {
+          "maxLength": 128,
+          "title": "Cpu Model",
+          "type": "string"
+        },
+        "cpu_cores": {
+          "maximum": 512,
+          "minimum": 1,
+          "title": "Cpu Cores",
+          "type": "integer"
+        },
+        "ram_gb": {
+          "maximum": 4096,
+          "minimum": 1,
+          "title": "Ram Gb",
+          "type": "integer"
+        },
+        "gpu_model": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gpu Model"
+        },
+        "gpu_vram_gb": {
+          "anyOf": [
+            {
+              "maximum": 512,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Gpu Vram Gb"
+        },
+        "os": {
+          "maxLength": 128,
+          "title": "Os",
+          "type": "string"
+        }
+      },
+      "required": [
+        "profile_id",
+        "cpu_model",
+        "cpu_cores",
+        "ram_gb",
+        "os"
+      ],
+      "title": "HardwareProfile",
+      "type": "object"
+    },
+    "Integrity": {
+      "additionalProperties": false,
+      "description": "Integrity attestations for the submission payload.",
+      "properties": {
+        "predictions_summary_hash": {
+          "pattern": "^[a-f0-9]{64}$",
+          "title": "Predictions Summary Hash",
+          "type": "string"
+        },
+        "payload_signature": {
+          "anyOf": [
+            {
+              "maxLength": 512,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Payload Signature"
+        },
+        "verification_status": {
+          "default": "self-attested",
+          "enum": [
+            "unverified",
+            "self-attested",
+            "community-verified"
+          ],
+          "title": "Verification Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "predictions_summary_hash"
+      ],
+      "title": "Integrity",
+      "type": "object"
+    },
+    "Metrics": {
+      "additionalProperties": false,
+      "description": "Scenario-specific quality metrics. At least one of f1_macro / mae / accuracy.",
+      "properties": {
+        "f1_macro": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "F1 Macro"
+        },
+        "f1_per_class": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "F1 Per Class"
+        },
+        "mae": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mae"
+        },
+        "mdae": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mdae"
+        },
+        "accuracy": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Accuracy"
+        },
+        "confusion_matrix": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Confusion Matrix"
+        },
+        "ece": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ece"
+        }
+      },
+      "title": "Metrics",
+      "type": "object"
+    },
+    "RunMetadata": {
+      "additionalProperties": false,
+      "description": "Per-run identification: scenario, model, strategy, timing, latency.",
+      "properties": {
+        "scenario": {
+          "enum": [
+            "triage_jira",
+            "effort_tawos",
+            "prioritization_jira"
+          ],
+          "title": "Scenario",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 128,
+          "title": "Model",
+          "type": "string"
+        },
+        "strategy": {
+          "enum": [
+            "zero_shot",
+            "zero_shot_cot",
+            "few_shot_3",
+            "few_shot_6",
+            "cot_few_shot",
+            "rcoif",
+            "contextual_anchoring",
+            "egi",
+            "self_consistency"
+          ],
+          "title": "Strategy",
+          "type": "string"
+        },
+        "n_instances": {
+          "maximum": 100000,
+          "minimum": 1,
+          "title": "N Instances",
+          "type": "integer"
+        },
+        "seed": {
+          "default": 42,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "temperature": {
+          "maximum": 2.0,
+          "minimum": 0.0,
+          "title": "Temperature",
+          "type": "number"
+        },
+        "ollama_version": {
+          "maxLength": 64,
+          "title": "Ollama Version",
+          "type": "string"
+        },
+        "started_at": {
+          "format": "date-time",
+          "title": "Started At",
+          "type": "string"
+        },
+        "completed_at": {
+          "format": "date-time",
+          "title": "Completed At",
+          "type": "string"
+        },
+        "latency_ms_total": {
+          "minimum": 0,
+          "title": "Latency Ms Total",
+          "type": "integer"
+        },
+        "latency_ms_p50": {
+          "minimum": 0,
+          "title": "Latency Ms P50",
+          "type": "integer"
+        },
+        "latency_ms_p95": {
+          "minimum": 0,
+          "title": "Latency Ms P95",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scenario",
+        "model",
+        "strategy",
+        "n_instances",
+        "temperature",
+        "ollama_version",
+        "started_at",
+        "completed_at",
+        "latency_ms_total",
+        "latency_ms_p50",
+        "latency_ms_p95"
+      ],
+      "title": "RunMetadata",
+      "type": "object"
+    },
+    "Submitter": {
+      "additionalProperties": false,
+      "description": "Contributor identity and consent block.",
+      "properties": {
+        "name_or_alias": {
+          "maxLength": 64,
+          "minLength": 3,
+          "pattern": "^[A-Za-z0-9_\\-\\.]+$",
+          "title": "Name Or Alias",
+          "type": "string"
+        },
+        "affiliation": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Affiliation"
+        },
+        "contact": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Contact"
+        },
+        "consent_public_release": {
+          "title": "Consent Public Release",
+          "type": "boolean"
+        },
+        "consent_redistribution": {
+          "title": "Consent Redistribution",
+          "type": "boolean"
+        },
+        "consent_research_use": {
+          "title": "Consent Research Use",
+          "type": "boolean"
+        },
+        "license": {
+          "const": "CC-BY-4.0",
+          "default": "CC-BY-4.0",
+          "title": "License",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name_or_alias",
+        "consent_public_release",
+        "consent_redistribution",
+        "consent_research_use"
+      ],
+      "title": "Submitter",
+      "type": "object"
+    },
+    "Sustainability": {
+      "additionalProperties": false,
+      "description": "CodeCarbon emissions block (cf. PUMA core sustainability subsystem).",
+      "properties": {
+        "codecarbon_version": {
+          "maxLength": 32,
+          "title": "Codecarbon Version",
+          "type": "string"
+        },
+        "co2_grams_total": {
+          "minimum": 0.0,
+          "title": "Co2 Grams Total",
+          "type": "number"
+        },
+        "energy_kwh_total": {
+          "minimum": 0.0,
+          "title": "Energy Kwh Total",
+          "type": "number"
+        },
+        "tracking_mode": {
+          "enum": [
+            "machine",
+            "process"
+          ],
+          "title": "Tracking Mode",
+          "type": "string"
+        },
+        "country_iso": {
+          "maxLength": 3,
+          "minLength": 3,
+          "pattern": "^[A-Z]{3}$",
+          "title": "Country Iso",
+          "type": "string"
+        }
+      },
+      "required": [
+        "codecarbon_version",
+        "co2_grams_total",
+        "energy_kwh_total",
+        "tracking_mode",
+        "country_iso"
+      ],
+      "title": "Sustainability",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Root submission payload (v1.0.0).",
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0",
+      "default": "1.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "submission_id": {
+      "format": "uuid",
+      "title": "Submission Id",
+      "type": "string"
+    },
+    "submitted_at": {
+      "format": "date-time",
+      "title": "Submitted At",
+      "type": "string"
+    },
+    "submitter": {
+      "$ref": "#/$defs/Submitter"
+    },
+    "puma_version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9\\.]+)?$",
+      "title": "Puma Version",
+      "type": "string"
+    },
+    "run_metadata": {
+      "$ref": "#/$defs/RunMetadata"
+    },
+    "hardware_profile": {
+      "$ref": "#/$defs/HardwareProfile"
+    },
+    "metrics": {
+      "$ref": "#/$defs/Metrics"
+    },
+    "sustainability": {
+      "$ref": "#/$defs/Sustainability"
+    },
+    "integrity": {
+      "$ref": "#/$defs/Integrity"
+    },
+    "raw_predictions_url": {
+      "anyOf": [
+        {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Raw Predictions Url"
+    },
+    "notes": {
+      "anyOf": [
+        {
+          "maxLength": 2000,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Notes"
+    }
+  },
+  "required": [
+    "submitter",
+    "puma_version",
+    "run_metadata",
+    "hardware_profile",
+    "metrics",
+    "sustainability",
+    "integrity"
+  ],
+  "title": "Submission",
+  "type": "object"
+}

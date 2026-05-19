@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pandas as pd
 
 
@@ -11,7 +13,7 @@ def select_examples(
     seed: int = 42,
     stratify_by: str | None = None,
     exclude_index: int | None = None,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Return k examples from df, stratified by class if requested.
 
     Args:
@@ -44,4 +46,5 @@ def select_examples(
     else:
         result_df = pool.sample(n=min(k, len(pool)), random_state=seed)
 
-    return result_df.to_dict("records")
+    records: list[dict[str, Any]] = result_df.to_dict("records")
+    return records

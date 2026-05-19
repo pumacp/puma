@@ -28,6 +28,14 @@ jobs:
       - name: Ruff format check
         run: ruff format --check src/puma/ tests/
 
+      - name: Type-check full PUMA codebase (strict)
+        # SCOPE: src/puma/ (entire package). The 5-phase mypy remediation
+        # documented in docs/maintenance/baseline-2026-05.md brought the
+        # codebase from 104 errors to 0. This gate locks in the clean state.
+        env:
+          PYTHONPATH: src
+        run: mypy src/puma/
+
       - name: Unit tests
         env:
           PYTHONPATH: src
