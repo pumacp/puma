@@ -13,6 +13,7 @@ sqlalchemy>=2.0
 alembic>=1.13
 psutil>=5.9
 codecarbon>=2.4
+PyGithub==2.4.0
 streamlit>=1.35
 langdetect>=1.0.9
 structlog>=24.1

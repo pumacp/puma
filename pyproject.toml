@@ -29,6 +29,7 @@ dependencies = [
     "requests>=2.31",
     "jsonschema>=4.23.0",
     "tomli-w>=1.0.0",
+    "PyGithub>=2.4,<3",
 ]
 
 [project.optional-dependencies]
