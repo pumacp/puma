@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import random
+from typing import Any
 
 HOMOGLYPHS: dict[str, str] = {
     "a": "4",
@@ -71,7 +72,7 @@ def truncate(text: str, keep: float = 0.5, from_: str = "end") -> str:
     raise ValueError(f"Unknown from_ '{from_}'. Use 'end' or 'middle'.")
 
 
-def reorder_fields(instance: dict, order: list[str]) -> dict:
+def reorder_fields(instance: dict[str, Any], order: list[str]) -> dict[str, Any]:
     """Return a new dict with text fields concatenated in the given order.
 
     Fields not in `order` are preserved unchanged.

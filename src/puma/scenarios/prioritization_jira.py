@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import ClassVar
+from typing import Any, ClassVar
 
 import pandas as pd
 
@@ -57,5 +57,5 @@ class PrioritizationJiraScenario(Scenario):
         m = _ANSWER_RE.search(raw)
         return m.group(0).upper() if m else None
 
-    def gold_label(self, instance: dict) -> str:
+    def gold_label(self, instance: dict[str, Any]) -> str:
         return str(instance.get("higher_priority", "A"))

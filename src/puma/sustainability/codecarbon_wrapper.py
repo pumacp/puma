@@ -86,7 +86,7 @@ def gco2_per_mae_unit(emissions_g: float, mae: float) -> float | None:
 def track_emissions(
     project_name: str,
     output_dir: str | Path = "results/",
-) -> Callable:
+) -> Callable[..., Any]:
     """Decorator: wraps a function with CodeCarbon EmissionsTracker.
 
     Uses tracking_mode='machine' so GPU work performed by other processes
@@ -96,7 +96,7 @@ def track_emissions(
     Injects an `emissions_data` attribute onto the returned result if possible.
     """
 
-    def decorator(fn: Callable) -> Callable:
+    def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
         @functools.wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
             try:
@@ -133,7 +133,7 @@ def track_emissions(
     return decorator
 
 
-def emissions_summary(emissions_csv_path: Path) -> dict:
+def emissions_summary(emissions_csv_path: Path) -> dict[str, Any]:
     """Parse a CodeCarbon emissions.csv and return a summary dict."""
     import pandas as pd
 

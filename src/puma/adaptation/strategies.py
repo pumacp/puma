@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from puma.adaptation.base import Strategy
 
@@ -39,8 +39,8 @@ class OneShot(Strategy):
     def build_prompt(
         self,
         scenario: Scenario,
-        instance: dict,
-        examples: list[dict] | None = None,
+        instance: dict[str, Any],
+        examples: list[dict[str, Any]] | None = None,
     ) -> str:
         if examples and len(examples) > 1:
             examples = examples[:1]
@@ -62,8 +62,8 @@ class FewShotK(Strategy):
     def build_prompt(
         self,
         scenario: Scenario,
-        instance: dict,
-        examples: list[dict] | None = None,
+        instance: dict[str, Any],
+        examples: list[dict[str, Any]] | None = None,
     ) -> str:
         if examples and len(examples) > self.k:
             examples = examples[: self.k]
@@ -125,7 +125,7 @@ class EGI(Strategy):
     def _template_name(self, scenario_name: str) -> str:
         return "egi.jinja"
 
-    def clarification_prompt(self, scenario: Scenario, instance: dict) -> str:
+    def clarification_prompt(self, scenario: Scenario, instance: dict[str, Any]) -> str:
         """First-turn clarifying question template."""
         from puma.adaptation.base import _get_jinja_env
 
