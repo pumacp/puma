@@ -150,4 +150,4 @@ record under `docs/decisions/`) before implementation.
 
 By participating you agree to the
 [Contributor Covenant v2.1](CODE_OF_CONDUCT.md). Concerns can be reported
-privately to `puma-community-conduct@pumacp.org`.
+privately to `pumacapstoneproject@gmail.com`.
