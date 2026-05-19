@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from typing import Any
 
 import numpy as np
 from sklearn.metrics import (
@@ -25,7 +26,7 @@ def classification_metrics(
     y_true: list[str],
     y_pred: list[str],
     labels: list[str],
-) -> dict:
+) -> dict[str, Any]:
     """Compute F1-macro, F1-weighted, accuracy, confusion matrix, per-class metrics."""
     if not y_true:
         raise ValueError("classification_metrics: empty y_true/y_pred")
@@ -56,7 +57,7 @@ def classification_metrics(
 def regression_metrics(
     y_true: list[float],
     y_pred: list[float],
-) -> dict:
+) -> dict[str, Any]:
     """Compute MAE, MdAE, RMSE, and MAE by story-point bin."""
     if not y_true:
         raise ValueError("regression_metrics: empty y_true/y_pred")
@@ -86,7 +87,7 @@ def ranking_metrics(
     y_true_rankings: list[list[str]],
     y_pred_rankings: list[list[str]],
     k: int = 10,
-) -> dict:
+) -> dict[str, float | int]:
     """Compute NDCG@k and MRR for pairwise ranking predictions."""
     ndcg_scores = []
     mrr_scores = []

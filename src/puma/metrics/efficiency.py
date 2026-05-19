@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 
@@ -27,7 +29,7 @@ def throughput(n_instances: int, duration_s: float) -> float:
     return (n_instances / duration_s) * 60.0
 
 
-def parse_ollama_timings(raw: dict) -> dict[str, float]:
+def parse_ollama_timings(raw: dict[str, Any]) -> dict[str, float]:
     """Extract latency fields from an Ollama API response dict."""
     total_ns = raw.get("total_duration", 0)
     load_ns = raw.get("load_duration", 0)

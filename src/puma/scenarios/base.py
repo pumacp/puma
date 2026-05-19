@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Literal
+from typing import Any, Literal
 
 import pandas as pd
 
@@ -25,5 +25,5 @@ class Scenario(ABC):
         """Extract structured prediction from raw LLM text. Returns None if unparseable."""
 
     @abstractmethod
-    def gold_label(self, instance: dict) -> str | float:
+    def gold_label(self, instance: dict[str, Any]) -> str | float:
         """Return the ground-truth label for an instance dict (row from DataFrame)."""

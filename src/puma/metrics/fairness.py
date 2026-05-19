@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 from sklearn.metrics import f1_score
@@ -13,7 +14,7 @@ def fairness_report(
     y_pred: list[str],
     groups: list[str],
     metric: str = "accuracy",
-) -> dict:
+) -> dict[str, Any]:
     """Compute per-group performance, disparity, worst-group, and fairness gap.
 
     Args:
@@ -60,7 +61,7 @@ def perturbation_disparity(
     predictions_baseline: Sequence[str] | np.ndarray,
     predictions_perturbed: Sequence[str] | np.ndarray,
     gold: Sequence[str] | np.ndarray,
-) -> dict:
+) -> dict[str, float]:
     """Quantify model sensitivity to a perturbation by paired comparison.
 
     Compares predictions on the original (baseline) instances against
