@@ -13,6 +13,7 @@ import pandas as pd
 from sklearn.metrics import mean_absolute_error
 
 from puma.scenarios._reasoning import strip_reasoning
+from puma.scenarios.base import Scenario
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +87,8 @@ def _load_cache() -> dict[str, Any]:
     if CACHE_FILE.exists():
         try:
             with open(CACHE_FILE, encoding="utf-8") as fh:
-                return json.load(fh)
+                cache: dict[str, Any] = json.load(fh)
+                return cache
         except json.JSONDecodeError:
             logger.warning("Estimation cache corrupted, starting fresh")
     return {}
@@ -219,7 +221,7 @@ def calculate_metrics(results: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-class EstimationTawosScenario:
+class EstimationTawosScenario(Scenario):
     """Story-point regression on TAWOS issues — Scenario interface."""
 
     name = "estimation_tawos"
