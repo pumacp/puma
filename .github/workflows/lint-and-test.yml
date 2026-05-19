@@ -28,6 +28,16 @@ jobs:
       - name: Ruff format check
         run: ruff format --check src/puma/ tests/
 
+      - name: Type-check PUMA Community module (strict)
+        # SCOPE: src/puma/community/ and its dashboard view only. The broader
+        # codebase has 104 pre-existing mypy errors (see
+        # docs/maintenance/baseline-2026-05.md) and will be gated in Phase 4
+        # of the remediation plan. This step protects the clean Community
+        # subsystem from regressions while remediation lands incrementally.
+        env:
+          PYTHONPATH: src
+        run: mypy src/puma/community/ src/puma/dashboard/views/community.py
+
       - name: Unit tests
         env:
           PYTHONPATH: src
