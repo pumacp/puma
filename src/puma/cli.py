@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import typer
+
 from puma.community.auth_cli import auth_app
+from puma.community.share_cli import share_results_app
 
 app = typer.Typer(
     name="puma",
@@ -1008,5 +1010,6 @@ def generate_plots_cmd(
 
 
 app.add_typer(auth_app, name="auth")
+app.add_typer(share_results_app, name="share-results")
 if __name__ == "__main__":
     app()
