@@ -12,11 +12,12 @@ from typing import Any
 
 import pandas as pd
 import streamlit as st
+from sqlalchemy import Engine
 
 _DEFAULT_DB = Path("data/puma.db")
 
 
-def _engine(db_path: Path):
+def _engine(db_path: Path) -> Engine:
     from sqlalchemy import create_engine
 
     return create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})

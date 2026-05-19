@@ -14,17 +14,21 @@ from __future__ import annotations
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from sqlalchemy import create_engine, text
+from sqlalchemy import Engine, create_engine, text
 from sqlalchemy.orm import Session, sessionmaker
+
+if TYPE_CHECKING:
+    from alembic.config import Config
 
 _DEFAULT_DB = Path("data/puma.db")
 _ALEMBIC_INI = Path("alembic.ini")
-_engine = None
-_SessionLocal = None
+_engine: Engine | None = None
+_SessionLocal: sessionmaker[Session] | None = None
 
 
-def _alembic_config_for(url: str):
+def _alembic_config_for(url: str) -> Config:
     """Build an Alembic ``Config`` bound to ``url``.
 
     Loads ``alembic.ini`` from the current working directory and overrides
@@ -66,15 +70,17 @@ def init_db(db_path: Path | str = _DEFAULT_DB) -> None:
     _SessionLocal = sessionmaker(bind=_engine, autoflush=False, autocommit=False)
 
 
-def get_engine():
+def get_engine() -> Engine:
     if _engine is None:
         init_db()
+    assert _engine is not None  # init_db() always sets _engine
     return _engine
 
 
-def get_session_factory():
+def get_session_factory() -> sessionmaker[Session]:
     if _SessionLocal is None:
         init_db()
+    assert _SessionLocal is not None  # init_db() always sets _SessionLocal
     return _SessionLocal
 
 
