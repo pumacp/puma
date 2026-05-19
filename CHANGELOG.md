@@ -6,15 +6,42 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased]
+## [Unreleased] — Mypy remediation (Phases 0-4) — 2026-05
+
+Comprehensive technical-debt cleanup that brought the academic codebase
+from 104 mypy errors to zero. See `docs/maintenance/baseline-2026-05.md`
+for the full baseline analysis.
 
 ### Added
+- CI gate: full-scope `mypy src/puma/` in `lint-and-test.yml`.
+- `scripts/smoke-test.sh` — end-to-end validation script (Levels 1-3
+  of the validation playbook).
+- Technical-debt baseline report at `docs/maintenance/baseline-2026-05.md`.
 
 ### Changed
+- Re-enabled `warn_unused_configs = true` in `pyproject.toml` (was
+  temporarily disabled in Phase 1).
+- Parametrised every generic `dict`/`list`/`Callable` annotation in
+  `src/puma/` (71 occurrences across 24 files, Phase 2).
+- Annotated 17 untyped functions, parameters, lambdas, and call sites
+  (Phase 3).
+- Resolved 12 potential-bug typing errors covering `Returning Any`,
+  Scenario polymorphism, SQLAlchemy 2.0 API, ClassVar declarations, and
+  one variance issue (Phase 4).
+- `Scenario` base class members (`name`, `dataset`, `task_type`,
+  `labels`) now declared as `ClassVar` to match subclass usage.
+- `src/puma/community/` and `src/puma/dashboard/views/community.py`
+  reformatted to ruff's default style (Phase 5).
 
 ### Fixed
-
-### Removed
+- **Real bug**: `EstimationTawosScenario` was not declared as a subclass
+  of `Scenario` despite implementing the contract; added the missing
+  inheritance. The other two scenarios already inherited correctly.
+- **Real bug**: removed a dead SQLAlchemy 1.x monkey-patch in
+  `storage/db.py` (`_engine.execute = lambda ...`) that would have
+  raised `AttributeError` under SQLAlchemy 2.0 if any caller had ever
+  triggered it (verified: zero callers across `src/`, `tests/`,
+  `alembic/`).
 
 ## [2.7.0] — 2026-05-16
 
