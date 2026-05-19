@@ -57,9 +57,7 @@ class CommunityGitHubClient:
         self._store = store if store is not None else CredentialStore()
         token = self._store.get("github")
         if not token:
-            raise AuthenticationError(
-                "No GitHub token configured. Run: puma auth login github"
-            )
+            raise AuthenticationError("No GitHub token configured. Run: puma auth login github")
         self._client = Github(auth=Auth.Token(token))
 
     def __repr__(self) -> str:
@@ -84,9 +82,7 @@ class CommunityGitHubClient:
             raise GitHubError(f"Cannot read rate limit: {exc.status}") from exc
         if core.remaining <= 0:
             reset = getattr(core, "reset", None)
-            raise APIRateLimitError(
-                f"GitHub API rate limit exhausted. Resets at {reset}."
-            )
+            raise APIRateLimitError(f"GitHub API rate limit exhausted. Resets at {reset}.")
 
     def ensure_fork(self) -> str:
         """Return the owner login of the user's fork, creating one if needed.
@@ -98,9 +94,7 @@ class CommunityGitHubClient:
         try:
             user = self._client.get_user()
         except GithubException as exc:
-            raise AuthenticationError(
-                "Cannot identify authenticated user."
-            ) from exc
+            raise AuthenticationError("Cannot identify authenticated user.") from exc
 
         try:
             fork = user.get_repo(self.UPSTREAM_REPO)
@@ -111,9 +105,7 @@ class CommunityGitHubClient:
                 raise GitHubError(f"Cannot inspect fork: {exc.status}") from exc
 
         try:
-            upstream = self._client.get_repo(
-                f"{self.UPSTREAM_OWNER}/{self.UPSTREAM_REPO}"
-            )
+            upstream = self._client.get_repo(f"{self.UPSTREAM_OWNER}/{self.UPSTREAM_REPO}")
             self._client.get_user().create_fork(upstream)  # type: ignore[union-attr]
         except GithubException as exc:
             raise GitHubError(f"Fork creation failed: {exc.status}") from exc
@@ -128,8 +120,7 @@ class CommunityGitHubClient:
                 pass
             time.sleep(_FORK_POLL_INTERVAL_S)
         raise GitHubError(
-            f"Fork creation did not complete within {_FORK_POLL_TIMEOUT_S}s. "
-            "Retry later."
+            f"Fork creation did not complete within {_FORK_POLL_TIMEOUT_S}s. Retry later."
         )
 
     def create_submission_branch(
@@ -140,26 +131,18 @@ class CommunityGitHubClient:
     ) -> str:
         branch_name = f"submission/{submission_id}"
         try:
-            upstream = self._client.get_repo(
-                f"{self.UPSTREAM_OWNER}/{self.UPSTREAM_REPO}"
-            )
+            upstream = self._client.get_repo(f"{self.UPSTREAM_OWNER}/{self.UPSTREAM_REPO}")
             fork = self._client.get_repo(f"{fork_owner}/{self.UPSTREAM_REPO}")
             base_sha = upstream.get_branch("main").commit.sha
         except GithubException as exc:
-            raise GitHubError(
-                f"Cannot read upstream main HEAD: {exc.status}"
-            ) from exc
+            raise GitHubError(f"Cannot read upstream main HEAD: {exc.status}") from exc
 
         try:
             fork.get_branch(branch_name)
-            raise ConflictError(
-                f"Branch {branch_name} already exists on fork {fork_owner}."
-            )
+            raise ConflictError(f"Branch {branch_name} already exists on fork {fork_owner}.")
         except GithubException as exc:
             if exc.status != 404:
-                raise GitHubError(
-                    f"Cannot inspect branch: {exc.status}"
-                ) from exc
+                raise GitHubError(f"Cannot inspect branch: {exc.status}") from exc
 
         try:
             fork.create_git_ref(ref=f"refs/heads/{branch_name}", sha=base_sha)
@@ -192,9 +175,7 @@ class CommunityGitHubClient:
             )
         except GithubException as exc:
             if exc.status == 422:
-                raise ConflictError(
-                    f"File {file_path} already exists on branch {branch}."
-                ) from exc
+                raise ConflictError(f"File {file_path} already exists on branch {branch}.") from exc
             raise GitHubError(f"File write failed: {exc.status}") from exc
         log.info("wrote %s on %s@%s", file_path, fork_owner, branch)
 
@@ -208,9 +189,7 @@ class CommunityGitHubClient:
         body: str,
     ) -> SubmissionPRResult:
         try:
-            upstream = self._client.get_repo(
-                f"{self.UPSTREAM_OWNER}/{self.UPSTREAM_REPO}"
-            )
+            upstream = self._client.get_repo(f"{self.UPSTREAM_OWNER}/{self.UPSTREAM_REPO}")
             pr = upstream.create_pull(
                 title=title,
                 body=body,
@@ -219,9 +198,7 @@ class CommunityGitHubClient:
             )
         except GithubException as exc:
             if exc.status == 422:
-                raise ConflictError(
-                    "A pull request from this branch already exists."
-                ) from exc
+                raise ConflictError("A pull request from this branch already exists.") from exc
             raise GitHubError(f"PR creation failed: {exc.status}") from exc
         log.info("opened PR #%d at %s", pr.number, pr.html_url)
         return SubmissionPRResult(

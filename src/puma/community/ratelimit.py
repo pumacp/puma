@@ -164,9 +164,7 @@ class LocalRateLimiter:
     def _connect(self) -> sqlite3.Connection:
         return sqlite3.connect(self._db_path)
 
-    def _last_timestamp(
-        self, conn: sqlite3.Connection, alias: str
-    ) -> datetime | None:
+    def _last_timestamp(self, conn: sqlite3.Connection, alias: str) -> datetime | None:
         row = conn.execute(
             "SELECT timestamp_utc FROM submissions WHERE submitter_alias = ? "
             "ORDER BY timestamp_utc DESC LIMIT 1",
@@ -176,12 +174,9 @@ class LocalRateLimiter:
             return None
         return datetime.fromisoformat(row[0])
 
-    def _count_since(
-        self, conn: sqlite3.Connection, alias: str, since: datetime
-    ) -> int:
+    def _count_since(self, conn: sqlite3.Connection, alias: str, since: datetime) -> int:
         row = conn.execute(
-            "SELECT COUNT(*) FROM submissions "
-            "WHERE submitter_alias = ? AND timestamp_utc >= ?",
+            "SELECT COUNT(*) FROM submissions WHERE submitter_alias = ? AND timestamp_utc >= ?",
             (alias, since.isoformat()),
         ).fetchone()
         return int(row[0])

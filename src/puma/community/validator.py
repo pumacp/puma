@@ -102,8 +102,7 @@ def is_safe_to_publish(s: Submission) -> tuple[bool, list[str]]:
             )
         if ts > future_cutoff:
             reasons.append(
-                f"Anomalous timestamps: {label} is more than "
-                f"{_MAX_FUTURE_DAYS} days in the future"
+                f"Anomalous timestamps: {label} is more than {_MAX_FUTURE_DAYS} days in the future"
             )
 
     return (not reasons, reasons)

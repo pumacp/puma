@@ -101,9 +101,7 @@ def _reset_wizard() -> None:
         "selected_run_id": None,
         "last_result": None,
         "action_mode": None,
-        "allow_dry_run_without_token": _community_state().get(
-            "allow_dry_run_without_token", False
-        ),
+        "allow_dry_run_without_token": _community_state().get("allow_dry_run_without_token", False),
     }
 
 
@@ -263,9 +261,7 @@ def _render_consent() -> None:
     sus_cols[0].metric("CO₂ (g)", f"{sustainability['co2_grams_total']:.2f}")
     sus_cols[1].metric("Energy (kWh)", f"{sustainability['energy_kwh_total']:.4f}")
 
-    st.markdown(
-        f"**Integrity hash:** `{integrity['predictions_summary_hash'][:12]}…`"
-    )
+    st.markdown(f"**Integrity hash:** `{integrity['predictions_summary_hash'][:12]}…`")
 
     state["_pending_payload"] = payload
     state["_pending_alias"] = alias
@@ -322,9 +318,7 @@ def _do_publish(payload: dict[str, Any], alias: str) -> dict[str, Any]:
     rm = payload["run_metadata"]
     try:
         fork_owner = client.ensure_fork()
-        branch = client.create_submission_branch(
-            fork_owner=fork_owner, submission_id=submission_id
-        )
+        branch = client.create_submission_branch(fork_owner=fork_owner, submission_id=submission_id)
         client.write_submission_file(
             fork_owner=fork_owner,
             branch=branch,
@@ -333,8 +327,7 @@ def _do_publish(payload: dict[str, Any], alias: str) -> dict[str, Any]:
             commit_message=f"data(community): add submission {submission_id}",
         )
         title = (
-            f"Submission {submission_id[:12]}: "
-            f"{rm['scenario']} / {rm['model']} / {rm['strategy']}"
+            f"Submission {submission_id[:12]}: {rm['scenario']} / {rm['model']} / {rm['strategy']}"
         )
         body = (
             f"Submission generated via the PUMA Dashboard Community view.\n\n"
