@@ -19,6 +19,8 @@ if TYPE_CHECKING:
     import pandas as pd
     from sqlalchemy.orm import Session
 
+    from puma.scenarios.base import Scenario
+
 logger = structlog.get_logger(__name__)
 
 RESULTS_ROOT = Path("results")
@@ -184,7 +186,7 @@ class Runner:
         from puma.scenarios.prioritization_jira import PrioritizationJiraScenario
         from puma.scenarios.triage_jira import TriageJiraScenario
 
-        scenario_map = {
+        scenario_map: dict[str, Callable[[], Scenario]] = {
             "triage_jira": TriageJiraScenario,
             "estimation_tawos": EstimationTawosScenario,
             "prioritization_jira": PrioritizationJiraScenario,
@@ -358,7 +360,7 @@ class Runner:
             from puma.metrics.calibration import expected_calibration_error
 
             correct = [
-                int(p["parsed_label"] == p["gold_label"])
+                p["parsed_label"] == p["gold_label"]
                 for p in orig
                 if p.get("confidence") is not None
             ]
