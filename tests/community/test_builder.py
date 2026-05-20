@@ -52,9 +52,7 @@ def test_missing_run_raises_run_not_found(populated_db, valid_submitter):
 def test_incomplete_run_no_metrics_raises_incomplete(populated_db, valid_submitter):
     with populated_db() as session:
         with pytest.raises(IncompleteRunError):
-            build_submission_from_run(
-                run_id="run-C", submitter=valid_submitter, session=session
-            )
+            build_submission_from_run(run_id="run-C", submitter=valid_submitter, session=session)
 
 
 def test_failed_run_excluded_from_shareable(populated_db):
@@ -110,9 +108,7 @@ def test_pii_in_notes_raises_with_pattern_names(populated_db, valid_submitter):
     assert "email" in exc.value.patterns
 
 
-def test_build_uses_resolved_puma_version_from_git_tag(
-    populated_db, valid_submitter, monkeypatch
-):
+def test_build_uses_resolved_puma_version_from_git_tag(populated_db, valid_submitter, monkeypatch):
     def fake_run(*args, **kwargs):
         return SimpleNamespace(returncode=0, stdout="v9.9.9\n", stderr="")
 
@@ -156,16 +152,12 @@ def test_excluded_model_raises_excluded_model_error(populated_db, valid_submitte
         )
         session.commit()
         with pytest.raises(ExcludedModelError) as exc:
-            build_submission_from_run(
-                run_id="run-kimi", submitter=valid_submitter, session=session
-            )
+            build_submission_from_run(run_id="run-kimi", submitter=valid_submitter, session=session)
     assert exc.value.reason == "excluded"
     assert exc.value.model == "kimi-k2:6.0"
 
 
-def test_pending_validation_model_raises_excluded_model_error(
-    populated_db, valid_submitter
-):
+def test_pending_validation_model_raises_excluded_model_error(populated_db, valid_submitter):
     with populated_db() as session:
         add_full_run(
             session,
@@ -237,11 +229,7 @@ def test_build_falls_back_to_unknown_when_git_and_snapshot_fail(
 def test_unknown_scenario_in_runspec_raises(populated_db, valid_submitter):
     bad_spec = "id: rs\nscenario: not_a_real_scenario\n"
     with populated_db() as session:
-        session.execute(
-            update(Run).where(Run.run_id == "run-A").values(spec_yaml=bad_spec)
-        )
+        session.execute(update(Run).where(Run.run_id == "run-A").values(spec_yaml=bad_spec))
         session.commit()
         with pytest.raises(UnknownScenarioError):
-            build_submission_from_run(
-                run_id="run-A", submitter=valid_submitter, session=session
-            )
+            build_submission_from_run(run_id="run-A", submitter=valid_submitter, session=session)
