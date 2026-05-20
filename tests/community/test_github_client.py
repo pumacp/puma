@@ -110,9 +110,7 @@ def test_create_submission_branch_raises_conflict_if_branch_exists(
 
         client = CommunityGitHubClient(store=configured_store)
         with pytest.raises(ConflictError):
-            client.create_submission_branch(
-                fork_owner="alice", submission_id="abc-123"
-            )
+            client.create_submission_branch(fork_owner="alice", submission_id="abc-123")
 
 
 def test_create_submission_branch_succeeds_when_branch_missing(
@@ -130,9 +128,7 @@ def test_create_submission_branch_succeeds_when_branch_missing(
         gh_class.return_value = instance
 
         client = CommunityGitHubClient(store=configured_store)
-        branch = client.create_submission_branch(
-            fork_owner="alice", submission_id="abc-123"
-        )
+        branch = client.create_submission_branch(fork_owner="alice", submission_id="abc-123")
         assert branch == "submission/abc-123"
         fork.create_git_ref.assert_called_once()
 

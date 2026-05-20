@@ -22,13 +22,7 @@ def test_view_module_imports_cleanly() -> None:
 
 def test_view_registered_in_main_app() -> None:
     """``app.py``'s ``VIEWS`` dict registers the community view under the emoji key."""
-    app_path = (
-        Path(__file__).resolve().parents[2]
-        / "src"
-        / "puma"
-        / "dashboard"
-        / "app.py"
-    )
+    app_path = Path(__file__).resolve().parents[2] / "src" / "puma" / "dashboard" / "app.py"
     source = app_path.read_text(encoding="utf-8")
     match = re.search(r"VIEWS\s*=\s*\{(.*?)\}", source, re.DOTALL)
     assert match is not None, "VIEWS dict not found in app.py"
