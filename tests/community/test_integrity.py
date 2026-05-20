@@ -100,9 +100,7 @@ def test_compute_hash_empty_predictions_raises(populated_db):
 def test_verify_hash_matches_when_correct(populated_db):
     with populated_db() as session:
         digest = compute_predictions_hash(session=session, run_id="run-A")
-        assert verify_predictions_hash(
-            session=session, run_id="run-A", expected_hash=digest
-        )
+        assert verify_predictions_hash(session=session, run_id="run-A", expected_hash=digest)
 
 
 def test_verify_hash_mismatches_when_db_tampered(populated_db):
@@ -116,6 +114,4 @@ def test_verify_hash_mismatches_when_db_tampered(populated_db):
             .values(confidence=0.99999)
         )
         session.commit()
-        assert not verify_predictions_hash(
-            session=session, run_id="run-A", expected_hash=original
-        )
+        assert not verify_predictions_hash(session=session, run_id="run-A", expected_hash=original)

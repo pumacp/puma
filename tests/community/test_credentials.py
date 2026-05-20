@@ -138,9 +138,7 @@ def test_mask_token_format() -> None:
     assert "plaintoken" not in plain
 
 
-def test_real_config_directory_is_never_touched(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_real_config_directory_is_never_touched(tmp_path: Path, monkeypatch) -> None:
     """Sanity check: with PUMA_CONFIG_DIR set, nothing is written outside tmp_path."""
     monkeypatch.setenv("PUMA_CONFIG_DIR", str(tmp_path / "puma-config"))
     store = CredentialStore()
