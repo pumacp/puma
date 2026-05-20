@@ -104,9 +104,7 @@ def test_db_created_with_safe_permissions(tmp_path: Path) -> None:
     assert mode == 0o600
 
 
-def test_ratelimit_db_is_isolated_from_academic_db(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_ratelimit_db_is_isolated_from_academic_db(tmp_path: Path, monkeypatch) -> None:
     """Rate limiter must NOT touch ``data/puma.db`` or any SQLAlchemy session."""
     db_path = tmp_path / "ratelimit.db"
     limiter = LocalRateLimiter(db_path=db_path)

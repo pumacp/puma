@@ -183,9 +183,7 @@ def test_validation_failure_aborts_before_publish(cli: CliRunner, isolated_env) 
     fake_client.open_pull_request.assert_not_called()
 
 
-def test_consent_declined_exits_zero_without_side_effects(
-    cli: CliRunner, isolated_env
-) -> None:
+def test_consent_declined_exits_zero_without_side_effects(cli: CliRunner, isolated_env) -> None:
     _store_github_token(isolated_env)
     fake_client = MagicMock()
     fake_client.authenticated_user_login.return_value = "alice"
