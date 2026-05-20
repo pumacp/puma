@@ -5,11 +5,7 @@
 <h1 align="center">PUMA</h1>
 
 <p align="center">
-  <em>PUMA Understanding and Management with Agents</em>
-</p>
-
-<p align="center">
-  Benchmarking platform for local language-model agents on ICT Project Management tasks.
+  <em>Local LLM benchmarking platform for ICT Project Management tasks. Reproducible by design, sustainability-aware, fully open-source.</em>
 </p>
 
 <p align="center">
@@ -17,29 +13,30 @@
   <a href="https://github.com/pumacp/puma/actions/workflows/lint-and-test.yml">
     <img src="https://github.com/pumacp/puma/actions/workflows/lint-and-test.yml/badge.svg" alt="Lint and test">
   </a>
-  <img src="https://img.shields.io/badge/python-3.11%2B-blue" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/python-3.11+-blue" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT">
-  <img src="https://img.shields.io/badge/runs%20on-Docker-2496ED" alt="Runs on Docker">
+  <img src="https://img.shields.io/badge/runs%20on-Docker-2496ED?logo=docker&logoColor=white" alt="Runs on Docker">
   <br>
   <!-- Group B: methodology & ecosystem -->
   <a href="https://codecarbon.io">
-    <img src="https://img.shields.io/badge/sustainability-CodeCarbon-green" alt="Sustainability via CodeCarbon">
+    <img src="https://img.shields.io/badge/sustainability-CodeCarbon-2EA44F" alt="CodeCarbon">
   </a>
   <a href="https://ollama.com">
-    <img src="https://img.shields.io/badge/local%20models-Ollama-black" alt="Local models via Ollama">
+    <img src="https://img.shields.io/badge/inference-Ollama-7C3AED" alt="Ollama">
   </a>
-  <img src="https://img.shields.io/github/v/tag/pumacp/puma?label=version&color=blue" alt="Latest tag">
+  <a href="https://github.com/pumacp/puma/releases/latest">
+    <img src="https://img.shields.io/github/v/tag/pumacp/puma?label=release" alt="Latest release">
+  </a>
   <br>
   <!-- Group C: community -->
   <a href="https://github.com/pumacp/puma-community">
-    <img src="https://img.shields.io/badge/community-puma--community-purple" alt="PUMA Community data hub">
+    <img src="https://img.shields.io/badge/PUMA-Community-orange" alt="PUMA Community">
   </a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/pumacp/puma-community">PUMA Community</a> ·
   <a href="../../wiki">Wiki</a> ·
-  <a href="../../releases">Releases</a> ·
+  <a href="https://github.com/pumacp/puma-community">PUMA Community</a> ·
   <a href="CONTRIBUTING.md">Contribute</a> ·
   <a href="../../issues">Issues</a>
 </p>
