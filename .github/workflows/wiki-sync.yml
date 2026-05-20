@@ -1,0 +1,56 @@
+name: wiki-sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'wiki/**'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out main repo
+        uses: actions/checkout@v4
+        with:
+          path: main-repo
+
+      - name: Clone (or init) the wiki repository
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          git config --global user.name "PUMA"
+          git config --global user.email "pumacapstoneproject@gmail.com"
+          if ! git clone \
+              "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git" \
+              wiki-repo; then
+            mkdir wiki-repo
+            cd wiki-repo
+            git init -b master
+            git remote add origin \
+              "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git"
+          fi
+
+      - name: Sync wiki content
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: |
+          set -e
+          rsync -av --delete \
+            --exclude='.git' \
+            main-repo/wiki/ wiki-repo/
+          cd wiki-repo
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Wiki content unchanged; nothing to push."
+            exit 0
+          fi
+          git commit -m "chore: sync wiki from main @ ${GITHUB_SHA::7}"
+          git push origin HEAD
