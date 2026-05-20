@@ -6,6 +6,26 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [Unreleased] — Public documentation overhaul
+
+### Added
+- New `wiki/` folder containing 9 audience-facing pages (Home,
+  Installation, Quick-Start, Architecture, Running-Benchmarks,
+  Models-And-Datasets, Metrics-And-Sustainability, Publishing-Results,
+  FAQ).
+- New `.github/workflows/wiki-sync.yml` workflow that publishes
+  `wiki/` to the GitHub Wiki on every push to `main`.
+
+### Changed
+- README header rewritten with centered logo, three-group badge layout
+  (build & quality, methodology & ecosystem, community), and primary
+  navigation links. Body content of the README is preserved.
+
+### Note
+- The companion repository `pumacp/puma-community` gains 7 new Wiki
+  pages in parallel covering mission, submission flow, privacy, and
+  maintainer operations.
+
 ## [Unreleased] — Mypy remediation (Phases 0-4) — 2026-05
 
 Comprehensive technical-debt cleanup that brought the academic codebase
