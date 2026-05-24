@@ -65,6 +65,47 @@ recommended phase for resolution.
 | D22 | Synthetic `triage_jira` dataset persists only `instance_id` and `gold_label`; original ticket descriptions (`input_text`) are empty in the `instances` table. Limits instance-level inspectability in dashboard drill-down views but does not affect evaluation metrics. Surfaced during Sprint 4 S4.3.0 when JOIN-eing `predictions ⋈ instances` to fix the silent `gold_label` lookup bug in two views; the JOIN itself works but the joined `input_text` column is empty in 200/200 rows of the active dataset | Sprint 4 S4.3.0 dashboard integration | Modify `scripts/create_jira_data.py` to populate `input_text` with original ticket descriptions; re-ingest dataset; re-run baseline to verify reproducibility holds (F1 should remain 0.5867 ± 0.01 if the prompt template was already using a placeholder for the input) | Future data pipeline enhancement, before next major dataset refresh |
 | ~~D18-cleanup~~ | ~~`pyproject.toml` has `version = "2.0.0-dev"` which causes the published wheel to be named `puma-2.0.0.dev0-py3-none-any.whl` instead of `puma-2.0.0-py3-none-any.whl`~~ — **PARTIALLY CLOSED in Sprint 1**: bumped `2.0.0-dev` → `2.1.0-dev` (development now targets next minor). Full versioning policy (bump to clean string before tag, bump to next `-dev` after) deferred to release-process documentation in Phase E | Phase A.7 observation | Bumped | Sprint 1 (partial) |
 
+### D23 — Verifier Space algorithmic mismatch with the client (since v3.0.0)
+
+**Status:** open. Scheduled for resolution: v4.x with a schema decision.
+**Severity:** low — affects only `puma community verify-hash --remote`; local
+verification is unaffected and remains canonical.
+
+**Description.** The client (`src/puma/community/integrity.py`,
+`compute_predictions_hash`) computes `predictions_summary_hash` over a 4-field
+CSV `(instance_id, predicted_label, predicted_value, prompt_hash)` read from the
+PUMA database, joined by LF, then SHA-256 (plain 64-hex, no prefix). The Verifier
+Space `pumaproject/puma-verifier` (`app.py`) computes its hash over a 2-field
+JSONL `(instance_id, prediction)` fetched from `raw_predictions_url`, then SHA-256
+prefixed with `sha256:`. The two operate on different inputs and different
+formats, so they never agree by construction.
+
+**Schema note (correction to an earlier Sprint 11' assumption).**
+`raw_predictions_url` IS an optional field in schema v1.0.0
+(`submission.v1.json`, absent from `required`), so `--remote` is reachable
+whenever a submission sets that field — contrary to the initial premise that the
+field was absent. The limitation is purely algorithmic, not a missing field.
+
+**Impact.**
+- `puma community verify-hash --remote` returns a systematic `mismatch` for
+  genuine submissions that set `raw_predictions_url`. The command detects the
+  local-verified + remote-mismatch case, warns, and treats it as
+  `verified-local-only (D23 warned)` (exit 0).
+- Submissions without `raw_predictions_url` (the common case, since the field is
+  optional) give `--remote` no URL to fetch; the command prints an informational
+  note and falls back to the canonical local result.
+- Local verification (`verify-hash` without `--remote`) is canonical and fully
+  functional.
+
+**Path to resolution (deferred to a future Sprint with explicit schema scope).**
+(a) Converge the Verifier onto the canonical 4-field CSV algorithm — requires the
+    client to publish that CSV alongside the submission (e.g. to the HF dataset).
+(b) Strip the `sha256:` prefix on the Verifier side (the S11'.5 minimal repair)
+    and redefine the Verifier's input to match the client — still needs a way to
+    recover the 4 canonical columns from a public artifact.
+Both directions require a decision on which canonical artifact the Verifier
+consumes; neither is attempted in Sprint 11'.
+
 ## Resolved technical debt
 
 Items previously tracked as open technical debt that have been fully
