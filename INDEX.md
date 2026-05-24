@@ -66,7 +66,7 @@ PUMA is organized in modular layers under `src/puma/`:
 | Sustainability | `sustainability/` | CodeCarbon integration (CPU + RAM + GPU energy) |
 | Perturbations | `perturbations/` | Surface and semantic perturbations (typos, case, gender_swap_prefix, register_shift) |
 | Preflight | `preflight/` | Hardware detection, profile selection, model catalog SoT |
-| Dashboard | `dashboard/` | Streamlit interface (9 views) |
+| Dashboard | `dashboard/` | Streamlit interface (8 views) |
 | Reporting | `reporting/` | Markdown / PDF report generation |
 
 ## Documentation
