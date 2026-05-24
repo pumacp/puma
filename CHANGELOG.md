@@ -6,7 +6,23 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [Unreleased] — Public documentation overhaul
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Removed
+
+### Fixed
+
+## [3.0.0] — 2026-05-20
+
+First public release. Consolidates two threads of work previously tracked
+as `[Unreleased]`: the public documentation overhaul (Wiki + README +
+sync workflow) and the comprehensive mypy remediation that brought the
+academic codebase from 104 mypy errors to zero. See
+`docs/maintenance/baseline-2026-05.md` for the mypy baseline analysis.
 
 ### Added
 - New `wiki/` folder containing 9 audience-facing pages (Home,
@@ -15,30 +31,15 @@ Versions follow [Semantic Versioning](https://semver.org/).
   FAQ).
 - New `.github/workflows/wiki-sync.yml` workflow that publishes
   `wiki/` to the GitHub Wiki on every push to `main`.
-
-### Changed
-- README header rewritten with centered logo, three-group badge layout
-  (build & quality, methodology & ecosystem, community), and primary
-  navigation links. Body content of the README is preserved.
-
-### Note
-- The companion repository `pumacp/puma-community` gains 7 new Wiki
-  pages in parallel covering mission, submission flow, privacy, and
-  maintainer operations.
-
-## [Unreleased] — Mypy remediation (Phases 0-4) — 2026-05
-
-Comprehensive technical-debt cleanup that brought the academic codebase
-from 104 mypy errors to zero. See `docs/maintenance/baseline-2026-05.md`
-for the full baseline analysis.
-
-### Added
 - CI gate: full-scope `mypy src/puma/` in `lint-and-test.yml`.
 - `scripts/smoke-test.sh` — end-to-end validation script (Levels 1-3
   of the validation playbook).
 - Technical-debt baseline report at `docs/maintenance/baseline-2026-05.md`.
 
 ### Changed
+- README header rewritten with centered logo, three-group badge layout
+  (build & quality, methodology & ecosystem, community), and primary
+  navigation links. Body content of the README is preserved.
 - Re-enabled `warn_unused_configs = true` in `pyproject.toml` (was
   temporarily disabled in Phase 1).
 - Parametrised every generic `dict`/`list`/`Callable` annotation in
@@ -62,6 +63,11 @@ for the full baseline analysis.
   raised `AttributeError` under SQLAlchemy 2.0 if any caller had ever
   triggered it (verified: zero callers across `src/`, `tests/`,
   `alembic/`).
+
+### Note
+- The companion repository `pumacp/puma-community` gains 7 new Wiki
+  pages in parallel covering mission, submission flow, privacy, and
+  maintainer operations.
 
 ## [2.7.0] — 2026-05-16
 
