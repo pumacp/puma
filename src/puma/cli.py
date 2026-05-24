@@ -6,6 +6,7 @@ from typing import Any
 
 import typer
 
+from puma.community._community_app import community_app
 from puma.community.auth_cli import auth_app
 from puma.community.share_cli import share_results_app
 
@@ -1013,5 +1014,9 @@ def generate_plots_cmd(
 
 app.add_typer(auth_app, name="auth")
 app.add_typer(share_results_app, name="share-results")
+# The four community verbs self-register on community_app via decorators when
+# their modules are imported (puma.community.__init__ imports all four).
+app.add_typer(community_app, name="community")
+
 if __name__ == "__main__":
     app()
