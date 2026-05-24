@@ -14,7 +14,7 @@ results, and releases.
 
 ## Project status
 
-**Current version**: v2.7.0 (released 2026-05-16)
+**Current version**: v3.0.0 (released 2026-05-20)
 
 | Phase | Description | Status |
 |-------|-------------|--------|
@@ -22,10 +22,17 @@ results, and releases.
 | B | Multi-model evaluation + comparative analysis | ✓ COMPLETE |
 | C | Professional dashboard (Streamlit) | ✓ COMPLETE (Sprint 4 core + Sprint 6 polish) |
 | D | Technical depth (calibration, statistics, bias) | ✓ ~95% (Sprints 1, 2, 3, 5 closed; ROCm n/a) |
-| E | Documentation and release consolidation | ✓ COMPLETE (v2.0.0–v2.7.0) |
+| E | Documentation and release consolidation | ✓ COMPLETE (v2.0.0–v3.0.0) |
 | F | Hardening (post-v2.4.0 inconsistencies I5–I10) | ✓ COMPLETE (Sprint 8, v2.5.0) |
 | G | Apple Silicon M3/M4/M5 support — detection + native mode | ✓ INFRASTRUCTURE COMPLETE (Sprint 9, v2.6.0); empirical validation pending Mac hardware |
 | H | Catalog expansion — Qwen3 dense + MoE | ✓ INFRASTRUCTURE COMPLETE (Sprint 10, v2.7.0); empirical validation pending gpu-high hardware |
+
+**v2.7.0-academic** is a local-only Git tag that freezes the
+repository state used as the academic snapshot for the TFG
+memoria. It is deliberately not pushed to `origin`. Do not
+delete; restore via
+`git rev-list -n 1 v2.7.0-academic`
+if recovery is ever needed.
 
 ## Releases
 
@@ -59,7 +66,7 @@ PUMA is organized in modular layers under `src/puma/`:
 | Sustainability | `sustainability/` | CodeCarbon integration (CPU + RAM + GPU energy) |
 | Perturbations | `perturbations/` | Surface and semantic perturbations (typos, case, gender_swap_prefix, register_shift) |
 | Preflight | `preflight/` | Hardware detection, profile selection, model catalog SoT |
-| Dashboard | `dashboard/` | Streamlit interface (7 views) |
+| Dashboard | `dashboard/` | Streamlit interface (9 views) |
 | Reporting | `reporting/` | Markdown / PDF report generation |
 
 ## Documentation
