@@ -30,6 +30,7 @@ dependencies = [
     "jsonschema>=4.23.0",
     "tomli-w>=1.0.0",
     "PyGithub>=2.4,<3",
+    "gradio-client>=1.5,<2.0",
 ]
 
 [project.optional-dependencies]
