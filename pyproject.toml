@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "puma"
-version = "2.1.0-dev"
+version = "3.1.0"
 description = "Local, reproducible benchmarking of open LLMs on project management tasks"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -30,6 +30,7 @@ dependencies = [
     "jsonschema>=4.23.0",
     "tomli-w>=1.0.0",
     "PyGithub>=2.4,<3",
+    "gradio-client>=1.5,<2.0",
 ]
 
 [project.optional-dependencies]

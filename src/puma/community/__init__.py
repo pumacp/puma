@@ -16,6 +16,7 @@ canonical hardware-profile catalog once (used by the schema's profile_id
 validator).
 """
 
+from puma.community.browse_cli import browse
 from puma.community.builder import (
     CommunityError,
     ExcludedModelError,
@@ -50,6 +51,7 @@ from puma.community.integrity import (
     compute_predictions_hash,
     verify_predictions_hash,
 )
+from puma.community.pull_cli import pull
 from puma.community.ratelimit import LocalRateLimiter
 from puma.community.runs_query import (
     ShareableRunSummary,
@@ -66,12 +68,14 @@ from puma.community.schema import (
     Sustainability,
     validate_no_pii,
 )
+from puma.community.validate_cli import validate
 from puma.community.validator import (
     is_safe_to_publish,
     sweep_pii,
     validate_submission_dict,
     validate_submission_file,
 )
+from puma.community.verify_cli import verify_hash
 
 SCHEMA_VERSION = "1.0.0"
 
@@ -107,16 +111,20 @@ __all__ = [
     "Sustainability",
     "UnknownScenarioError",
     "UnknownStrategyError",
+    "browse",
     "build_submission_from_run",
     "compute_predictions_hash",
     "get_run_summary",
     "is_safe_to_publish",
     "list_shareable_runs",
     "mask_token",
+    "pull",
     "save_dry_run",
     "sweep_pii",
+    "validate",
     "validate_no_pii",
     "validate_submission_dict",
     "validate_submission_file",
+    "verify_hash",
     "verify_predictions_hash",
 ]
