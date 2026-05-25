@@ -16,6 +16,67 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+## [3.1.0] — 2026-05-25
+
+Sprint 11' — Post-v3.0.0 reconciliation, community CLI completion, wiki +
+Verifier minimal repairs, docs cleanup. 12 in-repo commits plus 3 companion
+PRs on `pumacp/puma-community` and 1 commit on the HF Spaces Verifier
+(`pumaproject/puma-verifier`).
+
+### Added
+- `puma community` Typer subgroup with four subcommands: `browse`, `pull`,
+  `verify-hash`, `validate` (Anexo F F.16.5-F.16.8; implemented in S11'.2).
+  Coverage 80-89% across the four modules. [#15]
+- `docs/RELEASES/v3.1.0.md` with release notes.
+
+### Changed
+- `pyproject.toml`: version 3.0.0 → 3.1.0.
+- `pyproject.toml`: added `gradio-client` dependency for
+  `verify-hash --remote`. [#15]
+- `tests/unit/test_dashboard_smoke.py`: docstring 7→8 views to match the
+  actual user-facing view module count since v3.0.0. [#15]
+- `docs/community/00-inventory.md`: added historical-note header clarifying
+  pre-v3.0.0 "federation" terminology; body preserved verbatim as a planning
+  artifact. [#15]
+- `INDEX.md`, `docs/overview.md`: dashboard view count corrected 9 → 8
+  (off-by-one from earlier audit: `_base.py` is shared helper, not a view).
+  [#15]
+
+### Fixed
+- `.github/workflows/wiki-sync.yml`: granted `contents: write` so the wiki
+  push succeeds. Both /wiki render HTTP 200 after the fix. [#15]
+
+### Documented
+- `docs/known_debt.md`: documented deuda técnica D23 — Verifier Space hash
+  algorithm (2-field JSONL) does not match the client hash algorithm
+  (4-field CSV from DB), deferred to v4.x with schema decision. [#15]
+- `docs/RELEASES/v3.0.0.md`: added (was missing for the prior release,
+  reconstructed in S11'.1). [#15]
+- `CHANGELOG.md`: consolidated two prior [Unreleased] blocks under
+  [3.0.0] - 2026-05-20 (Keep-a-Changelog hygiene). [#15]
+- `INDEX.md`: v2.7.0-academic local-only snapshot note. [#15]
+
+### Companion repositories (not in this repo's git log)
+- `pumacp/puma-community#2`: HF dataset namespace canonicalization (7 HF refs
+  `pumacp/` → `pumaproject/` across 5 files; 6 Kaggle refs intentionally
+  preserved per P10, Kaggle has no organizations).
+- `pumacp/puma-community#3`: `wiki-sync.yml` same one-line `contents: write`
+  fix as the main repo.
+- `pumacp/puma-community#4`: Kaggle mirror hardening (`--dir-mode zip`,
+  robust create-vs-version, CC-BY-4.0 license, title within 50-char limit,
+  post-publish HEAD verification); 4 of 5 root causes fixed. The 5th (slug
+  soft-delete grace period) is operational, not technical; resolves
+  automatically when Kaggle releases the slug.
+- `pumaproject/puma-verifier` HF Space @ commit d8a4ffd: `fix(verify)`: strip
+  `sha256:` prefix to match schema v1.0.0 `^[a-f0-9]{64}$`; algorithm
+  mismatch (D23) deferred.
+
+### Sprint methodology notes
+Discovery-before-write captures recorded during execution (see Anexo G of the
+academic memoria for full enumeration). The post-publish HEAD verification
+added during S11'.6 caught an upstream-CLI false-success at runtime,
+validating the defensive-engineering pattern empirically.
+
 ## [3.0.0] — 2026-05-20
 
 First public release. Consolidates two threads of work previously tracked
