@@ -65,7 +65,7 @@ class Runner:
                 run_id=self.run_id,
                 spec_hash=self.spec.spec_hash(),
                 spec_yaml=json.dumps(self.spec.model_dump(), default=str),
-                profile=self.spec.profile_required,
+                profile=_resolve_run_profile(self.spec),
                 started_at=datetime.now(UTC),
                 status="running",
             )
@@ -521,6 +521,36 @@ def _flatten_metrics(metrics: dict[str, Any], prefix: str = "") -> list[tuple[st
         elif isinstance(v, dict):
             result.extend(_flatten_metrics(v, prefix=full_key))
     return result
+
+
+def _resolve_run_profile(spec: RunSpec) -> str | None:
+    """Resolve the profile id to persist on ``Run.profile`` (D24).
+
+    Canonical baseline specs do not declare ``profile_required``, which
+    previously left ``Run.profile`` NULL and caused the share-results builder
+    to reject the run (``builder.py:320-321``). When the spec omits
+    ``profile_required`` we fall back to the existing hardware auto-detection
+    (``select_profile``) so the run still records a profile id. Specs that
+    declare ``profile_required`` keep precedence (unchanged behaviour).
+    """
+    if spec.profile_required:
+        return spec.profile_required
+    try:
+        from puma.preflight.detect import detect_capabilities
+        from puma.preflight.profile import select_profile
+
+        profile = select_profile(detect_capabilities())
+    except Exception as exc:
+        # Detection failure must not abort the run; preserve the old
+        # NULL-profile behaviour and surface the reason in the log.
+        logger.warning("run.profile_autodetect_failed", error=str(exc))
+        return None
+    logger.info(
+        "run.profile_autodetected",
+        profile=profile.name,
+        reason="spec omitted profile_required",
+    )
+    return profile.name
 
 
 def _collect_profile_extra() -> dict[str, Any]:
