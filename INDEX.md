@@ -77,7 +77,7 @@ PUMA is organized in modular layers under `src/puma/`:
 |------|---------|
 | [README.md](README.md) | Entry point, quickstart, model catalog |
 | [docs/overview.md](docs/overview.md) | Project overview: architecture, scenarios, model catalog, hardware profiles, storage schema, success criteria |
-| [docs/anexo_F_cli_reference.md](docs/anexo_F_cli_reference.md) | Anexo F: CLI command catalog (implemented + proposed extensions) |
+| [docs/cli_reference.md](docs/cli_reference.md) | CLI command catalog (implemented + proposed extensions) |
 | [CHANGELOG.md](CHANGELOG.md) | Version history (Keep-a-Changelog format) |
 | [docs/HARDWARE.md](docs/HARDWARE.md) | Reference hardware specification + gpu-entry tolerance bands |
 | [docs/MACOS_NOTES.md](docs/MACOS_NOTES.md) | macOS operational notes — Docker (CPU) vs native Ollama (Metal) |
