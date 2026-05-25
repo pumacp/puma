@@ -11,7 +11,7 @@ Está estructurado en dos partes:
 
 La distinción está marcada explícitamente en cada subsección. La
 versión completa del Anexo F (con extensiones propuestas detalladas)
-está disponible en la memoria del TFG.
+está disponible en la documentación del proyecto.
 
 ## Sección A — Comandos implementados
 
@@ -180,7 +180,7 @@ parsea la salida tabular de Ollama y la reformatea como Rich table.
 Los siguientes comandos están documentados como propuesta de diseño
 para gestión profesional completa de la plataforma. Su especificación
 detallada (sintaxis, flags, exit codes) se encuentra en la versión
-completa del Anexo F entregada con la memoria del TFG.
+completa del Anexo F entregada con la documentación del proyecto.
 
 **Scripts auxiliares Bash propuestos:**
 - `stop_puma.sh`, `restart_puma.sh`, `clean_puma.sh`, `status_puma.sh`,
