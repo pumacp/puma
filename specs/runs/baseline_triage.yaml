@@ -17,5 +17,5 @@ metrics:
   - f1_macro
   - latency_p95
 sustainability:
-  codecarbon: false
+  codecarbon: true
 repeat: 1
