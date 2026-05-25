@@ -106,6 +106,104 @@ field was absent. The limitation is purely algorithmic, not a missing field.
 Both directions require a decision on which canonical artifact the Verifier
 consumes; neither is attempted in Sprint 11'.
 
+### D24 — Canonical baseline specs missing `profile_required` (since v1.0.0)
+
+**Status:** open. Discovered: 2026-05-25 (Sprint 11' E2E demo attempt,
+S11'.10.a). Scheduled for resolution: future Sprint.
+**Severity:** medium — blocks the publication pipeline on canonical runs out
+of the box.
+
+**Description.** The shipped specs under `specs/runs/baseline_*.yaml` do not
+declare the `profile_required` field. The runner
+(`src/puma/orchestrator/runner.py:68`) populates `Run.profile` only from
+`spec.profile_required`. The publication pipeline builder
+(`src/puma/community/builder.py:320-321`) requires `Run.profile` to be
+non-NULL. Therefore, no run produced by a canonical spec can be turned into a
+shareable submission.
+
+**Impact.** All canonical runs in the Sprint 11' DB at v3.1.0 release time
+have `Run.profile = NULL` and cannot feed `share-results`.
+
+**Detection.** S11'.10.a attempted to produce a real demo submission and was
+blocked at the builder precondition. A one-off untracked demo spec
+(`specs/runs/demo_triage_s11p.yaml`) was used to bridge the gap locally
+(adding `profile_required: gpu-entry`); the run's F1 stayed 0.5831 bit-exact,
+confirming the field is metadata, not an inference parameter. The broader fix
+is to add `profile_required` as a declared field in canonical specs.
+
+**Path to resolution.** Two viable approaches:
+(a) Add `profile_required` to each canonical baseline spec with a sensible
+    default (e.g. `auto-detect` resolved at run time).
+(b) Make `runner.py:68` fall back to the auto-detected profile when the spec
+    does not declare `profile_required`.
+Either approach is a small code or spec change in a future Sprint.
+
+### D25 — Canonical baseline specs disable codecarbon (since v1.0.0)
+
+**Status:** open. Discovered: 2026-05-25 (Sprint 11' E2E demo attempt,
+S11'.10.a). Scheduled for resolution: future Sprint (likely paired with D24).
+**Severity:** medium — blocks the publication pipeline on canonical runs (same
+flow as D24).
+
+**Description.** The canonical baseline specs ship with
+`sustainability.codecarbon: false`. As a result, no emissions record is created
+in the DB. The publication pipeline builder
+(`src/puma/community/builder.py:330`) requires an emissions record to exist.
+Therefore, even with D24 bridged (`Run.profile` set), the absence of an
+emissions record blocks `share-results` on canonical runs — empirically the
+second precondition hit during S11'.10.a, after D24 was bridged.
+
+**Impact.** Same scope as D24: canonical runs are not publishable directly.
+
+**Path to resolution.** Default `sustainability.codecarbon` to `true` in
+canonical specs (cheap to enable; minor overhead). Alternative: relax the
+builder requirement to allow runs without emissions records, with a clear
+warning.
+
+### D26 — `runner.py` never populates `ProfileSnapshot.extra` (since v1.0.0)
+
+**Status:** open. Discovered: 2026-05-25 (Sprint 11' E2E demo attempt,
+S11'.10.a). Scheduled for resolution: future Sprint.
+**Severity:** medium-high — the hard blocker preventing any canonical run from
+feeding `share-results`. Unlike D24 and D25, this is **not** spec-fixable; it
+requires a code change.
+
+**Description.** `src/puma/orchestrator/runner.py:526`
+(`_add_profile_snapshot`) constructs a `ProfileSnapshot` without ever setting
+the `extra` field, so `extra` is empty for every run. The publication pipeline
+builder (`src/puma/community/builder.py:365`) requires
+`ProfileSnapshot.extra['cpu_cores']` to be present. Therefore, even with
+D24 + D25 bridged via spec, the runner output still fails the builder's snapshot
+completeness check. (The same function also hardcodes a stale
+`puma_version="2.0.0-dev"`.)
+
+**Why this gap remained latent until S11'.10.a.** The `share-results` and
+`puma community *` subcommand test fixtures (e.g.
+`tests/community/conftest.py:218`) hand-craft full `ProfileSnapshot` records
+including `extra['cpu_cores']`. Because no test exercised the runner → builder
+integration end-to-end, the gap between what the runner produces and what the
+builder requires remained invisible. Unit tests at 80-89% coverage on the
+community CLI did not catch it.
+
+**Impact.** Combined with D24 + D25, no canonical run can be turned into a
+publishable submission. The community CLI subcommands implemented in
+Sprint 11'.2 (`validate`, `verify-hash`, `browse`, `pull`) are architecturally
+complete and unit-tested, but the upstream pipeline that feeds them with real
+artifacts cannot operate on canonical inputs.
+
+**Path to resolution.** Populate `ProfileSnapshot.extra` in
+`_add_profile_snapshot` with at minimum `cpu_cores` (via `os.cpu_count()` or
+`psutil`), plus a `puma_version` derived dynamically from the package version
+(instead of the hardcoded `"2.0.0-dev"`). Estimated effort: < 1 day including
+a small integration test that exercises the full pipeline from `puma run`
+through to a validated submission.
+
+**Methodological note.** This gap is a textbook case where component-level unit
+testing (which passes at high coverage) does NOT substitute for end-to-end
+integration testing with real artifacts. Future Sprints should add a single
+end-to-end integration test that runs the full pipeline on a fresh, real
+submission to catch this class of regression.
+
 ## Resolved technical debt
 
 Items previously tracked as open technical debt that have been fully
