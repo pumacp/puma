@@ -1,3 +1,12 @@
+> **Historical note (preserved verbatim from pre-v3.0.0).** This
+> document was authored during the planning phase under the
+> working name "Federation". The feature was renamed to "PUMA
+> Community" (and "federated" → "community-published") in v3.0.0;
+> current product surface uses the renamed terminology per Sprint
+> 11' P4. The body of this inventory is preserved unchanged as a
+> historical planning artifact, not because the older terminology
+> is current.
+
 # PUMA Community v1 — Inventory (Prompt 0)
 
 **Generated:** 2026-05-18
