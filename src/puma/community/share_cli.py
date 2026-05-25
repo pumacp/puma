@@ -35,6 +35,7 @@ from puma.community.github_client import (
     ConflictError,
     GitHubError,
 )
+from puma.community.integrity import export_predictions_jsonl
 from puma.community.ratelimit import LocalRateLimiter
 from puma.community.runs_query import (
     ShareableRunSummary,
@@ -333,9 +334,20 @@ def share_results(
     # Step 7 — execute
     if dry_run:
         path = save_dry_run(payload=payload)
+        # D27: emit the canonical predictions JSONL alongside the submission
+        # JSON. The file uses integrity._COLUMNS and hashes (via
+        # verify_cli.hash_predictions_jsonl) to the submission's declared
+        # predictions_summary_hash, so verify-hash --predictions verifies it.
+        preds_path = path.parent / f"{path.stem}.predictions.jsonl"
+        with session_scope() as session:
+            n_preds = export_predictions_jsonl(
+                session=session, run_id=summary.run_id, target=preds_path
+            )
+        log.info("share_results: exported %d predictions to %s", n_preds, preds_path)
         console.print(
             Panel(
-                f"Saved dry-run submission to:\n[bold]{path}[/bold]",
+                f"Saved dry-run submission to:\n[bold]{path}[/bold]\n"
+                f"Predictions JSONL ({n_preds} records):\n[bold]{preds_path}[/bold]",
                 title="[green]share-results --dry-run[/green]",
                 border_style="green",
             )
