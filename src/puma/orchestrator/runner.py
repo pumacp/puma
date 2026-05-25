@@ -523,9 +523,76 @@ def _flatten_metrics(metrics: dict[str, Any], prefix: str = "") -> list[tuple[st
     return result
 
 
+def _collect_profile_extra() -> dict[str, Any]:
+    """Collect flat host-system facts for ``ProfileSnapshot.extra`` (D26).
+
+    The share-results builder requires ``extra['cpu_cores']``
+    (``builder.py:365``); without it every canonical run is rejected at the
+    snapshot-completeness check. Values are flat scalars (str / int / bool) —
+    no nested objects — to keep the JSON column schema-simple. Degrades
+    gracefully when psutil or torch are unavailable.
+    """
+    import os
+    import platform
+
+    cpu_cores: int = 0
+    cpu_physical_cores: int = 0
+    memory_total_gb: int = 0
+    try:
+        import psutil
+
+        cpu_cores = int(psutil.cpu_count(logical=True) or os.cpu_count() or 0)
+        cpu_physical_cores = int(psutil.cpu_count(logical=False) or 0)
+        memory_total_gb = int(psutil.virtual_memory().total // (1024**3))
+    except Exception:
+        # psutil is a dependency via codecarbon, but degrade defensively.
+        cpu_cores = int(os.cpu_count() or 0)
+
+    has_cuda: bool = False
+    cuda_device_name: str = ""
+    try:
+        import torch
+
+        has_cuda = bool(torch.cuda.is_available())
+        if has_cuda:
+            cuda_device_name = str(torch.cuda.get_device_name(0))
+    except Exception:
+        # torch is optional and not a declared dependency.
+        has_cuda = False
+        cuda_device_name = ""
+
+    return {
+        "cpu_cores": cpu_cores,
+        "cpu_physical_cores": cpu_physical_cores,
+        "memory_total_gb": memory_total_gb,
+        "platform": platform.platform(),
+        "python_version": platform.python_version(),
+        "has_cuda": has_cuda,
+        "cuda_device_name": cuda_device_name,
+    }
+
+
+def _resolve_runner_puma_version() -> str:
+    """Resolve the installed PUMA distribution version dynamically (D26).
+
+    Replaces the previously hardcoded ``"2.0.0-dev"``. Falls back to
+    ``"0.0.0-unknown"`` when the distribution is not installed (a bare
+    source tree without an editable install). The pyproject distribution
+    name is ``puma``.
+    """
+    from importlib.metadata import PackageNotFoundError, version
+
+    try:
+        return version("puma")
+    except PackageNotFoundError:
+        return "0.0.0-unknown"
+
+
 def _add_profile_snapshot(db: Session, run_id: str) -> None:
     from puma.storage.models import ProfileSnapshot
 
+    puma_version = _resolve_runner_puma_version()
+    extra = _collect_profile_extra()
     try:
         from puma.preflight.detect import detect_capabilities
 
@@ -539,8 +606,15 @@ def _add_profile_snapshot(db: Session, run_id: str) -> None:
                 gpu=caps.gpu_name,
                 vram_gb=caps.gpu_vram_gb,
                 ollama_version=caps.ollama_version,
-                puma_version="2.0.0-dev",
+                puma_version=puma_version,
+                extra=extra,
             )
         )
     except Exception:
-        db.add(ProfileSnapshot(run_id=run_id, puma_version="2.0.0-dev"))
+        db.add(
+            ProfileSnapshot(
+                run_id=run_id,
+                puma_version=puma_version,
+                extra=extra,
+            )
+        )
