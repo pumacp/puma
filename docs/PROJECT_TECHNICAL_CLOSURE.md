@@ -1,7 +1,7 @@
 # Project technical state — closure at v2.7.0
 
 This document formalises the closure of the PUMA project's planned
-technical implementation scope for the TFG defence cycle.
+technical implementation scope for the project release cycle.
 
 ## Releases published (8)
 
@@ -64,7 +64,7 @@ future empirical work when validation hardware becomes available:
 
 The 6-step testing protocol for closing H0-H3 is documented.
 
-## Empirical validation pending (post-defence work)
+## Empirical validation pending (post-release work)
 
 The following infrastructure is shipped in v2.7.0 awaiting hardware
 for empirical validation:
@@ -111,7 +111,7 @@ The following were considered within scope but explicitly deferred:
     variants, scope discipline
   - Multi-language scenario variants (ES/DE/FR/ZH): 2-3 weeks
     effort, future work paper opportunity
-  - REST API (FastAPI): 2 weeks effort, post-defence
+  - REST API (FastAPI): 2 weeks effort, post-release
   - Jira/Linear/GitHub Issues connectors: Tier 3 vision
 
 ## Rationale for closure at v2.7.0
@@ -126,10 +126,10 @@ the four most recent releases.
 Further technical work would introduce risk of regression on 407
 passing tests without empirical contrapartida on the validation
 hardware available to the project. The marginal value of further
-infrastructure work is now exceeded by the marginal value of memoria
-redaction for the TFG defence cycle.
+infrastructure work is now exceeded by the marginal value of documentation
+finalization for the project release cycle.
 
 The project is prepared for empirical extension when hardware
 becomes available. Future Sprints will close H0-H3 hypotheses and
 validate the catalogued models empirically. These constitute
-post-defence work outside the TFG scope.
+post-release work outside the project scope.
