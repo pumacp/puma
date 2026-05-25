@@ -13,12 +13,9 @@ all three immediately; this is that test.
 Marked ``@pytest.mark.ollama`` + ``@pytest.mark.e2e`` so it is excluded from the
 default ``-m "not ollama"`` suite and selectable via ``-m e2e``.
 
-Note: the runner persists predictions to the database but no current code path
-exports them to the JSONL that ``verify-hash`` consumes. This test exports that
-JSONL from the DB using the same canonical columns as
-``puma.community.integrity.compute_predictions_hash`` — i.e. it stands in for
-the pipeline's (currently missing) predictions exporter so the integrity round
-trip can be exercised against a real artifact.
+The predictions JSONL that ``verify-hash`` consumes is produced by
+``share-results --dry-run`` itself (the D27 exporter, closed in S12.2), so this
+test consumes the real artifacts end-to-end with no DB stand-in.
 """
 
 from __future__ import annotations
@@ -84,47 +81,6 @@ def _assert_ok(proc: subprocess.CompletedProcess, label: str) -> None:
     )
 
 
-def _export_predictions_jsonl(run_id: str, target: Path) -> int:
-    """Export a run's predictions to JSONL using the canonical hash columns.
-
-    Mirrors the SELECT in ``integrity.compute_predictions_hash`` so the file's
-    recomputed hash agrees bit-for-bit with the submission's declared hash.
-    """
-    from sqlalchemy import select
-
-    from puma.storage.db import init_db, session_scope
-    from puma.storage.models import Instance, Prediction
-
-    init_db(Path("data/puma.db"))
-    with session_scope() as session:
-        rows = session.execute(
-            select(
-                Instance.instance_id,
-                Prediction.parsed_label,
-                Prediction.confidence,
-                Prediction.prompt_hash,
-            )
-            .join(Instance, Prediction.instance_id == Instance.instance_id)
-            .where(Prediction.run_id == run_id)
-            .order_by(Instance.instance_id.asc())
-        ).all()
-    assert rows, f"no predictions found in DB for run_id {run_id!r}"
-    with target.open("w", encoding="utf-8") as fh:
-        for instance_id, predicted_label, predicted_value, prompt_hash in rows:
-            fh.write(
-                json.dumps(
-                    {
-                        "instance_id": instance_id,
-                        "predicted_label": predicted_label,
-                        "predicted_value": predicted_value,
-                        "prompt_hash": prompt_hash,
-                    }
-                )
-                + "\n"
-            )
-    return len(rows)
-
-
 @pytest.mark.ollama
 @pytest.mark.e2e
 def test_e2e_publication_pipeline(tmp_path):
@@ -146,7 +102,8 @@ def test_e2e_publication_pipeline(tmp_path):
     assert run_ids, f"could not parse run_id from puma run output:\n{combined}"
     run_id = run_ids[-1]
 
-    # 3. share-results --dry-run -> submission JSON in an isolated temp dir.
+    # 3. share-results --dry-run -> BOTH the submission JSON and the predictions
+    #    JSONL (the D27 exporter) in an isolated temp dir.
     submissions_dir = tmp_path / "submissions"
     env = {
         **os.environ,
@@ -166,10 +123,11 @@ def test_e2e_publication_pipeline(tmp_path):
     )
     submission_path = submissions[0]
 
-    # 4. Export the predictions JSONL next to the submission (the pipeline's
-    #    missing exporter), so verify-hash and validate --strict can consume it.
+    # 4. The D27 exporter wrote the predictions JSONL next to the submission.
     preds_path = submission_path.parent / f"{submission_path.stem}.predictions.jsonl"
-    n_exported = _export_predictions_jsonl(run_id, preds_path)
+    assert preds_path.is_file(), (
+        f"share-results did not emit {preds_path.name}\n--- stdout ---\n{share_proc.stdout}"
+    )
 
     # 5. Schema validation (strict also checks filename + n_instances vs rows).
     validate_proc = _run_cli(
@@ -202,7 +160,10 @@ def test_e2e_publication_pipeline(tmp_path):
         "D25: sustainability emissions must be present"
     )
     assert payload["puma_version"] != "2.0.0-dev", "D26: puma_version must be dynamic"
-    assert n_exported == int(payload["run_metadata"]["n_instances"]), (
-        f"exported {n_exported} predictions but submission declares "
+
+    # The D27 exporter's JSONL row count matches the declared n_instances.
+    n_jsonl = sum(1 for line in preds_path.read_text(encoding="utf-8").splitlines() if line.strip())
+    assert n_jsonl == int(payload["run_metadata"]["n_instances"]), (
+        f"predictions JSONL has {n_jsonl} rows but submission declares "
         f"n_instances={payload['run_metadata']['n_instances']}"
     )
