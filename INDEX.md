@@ -14,7 +14,7 @@ results, and releases.
 
 ## Project status
 
-**Current version**: v2.7.0 (released 2026-05-16)
+**Current version**: v3.1.0 (released 2026-05-25)
 
 | Phase | Description | Status |
 |-------|-------------|--------|
@@ -22,15 +22,24 @@ results, and releases.
 | B | Multi-model evaluation + comparative analysis | ✓ COMPLETE |
 | C | Professional dashboard (Streamlit) | ✓ COMPLETE (Sprint 4 core + Sprint 6 polish) |
 | D | Technical depth (calibration, statistics, bias) | ✓ ~95% (Sprints 1, 2, 3, 5 closed; ROCm n/a) |
-| E | Documentation and release consolidation | ✓ COMPLETE (v2.0.0–v2.7.0) |
+| E | Documentation and release consolidation | ✓ COMPLETE (v2.0.0–v3.1.0) |
 | F | Hardening (post-v2.4.0 inconsistencies I5–I10) | ✓ COMPLETE (Sprint 8, v2.5.0) |
 | G | Apple Silicon M3/M4/M5 support — detection + native mode | ✓ INFRASTRUCTURE COMPLETE (Sprint 9, v2.6.0); empirical validation pending Mac hardware |
 | H | Catalog expansion — Qwen3 dense + MoE | ✓ INFRASTRUCTURE COMPLETE (Sprint 10, v2.7.0); empirical validation pending gpu-high hardware |
+
+**v2.7.0-academic** is a local-only Git tag that freezes the
+repository state used as the academic snapshot for the TFG
+memoria. It is deliberately not pushed to `origin`. Do not
+delete; restore via
+`git rev-list -n 1 v2.7.0-academic`
+if recovery is ever needed.
 
 ## Releases
 
 | Tag | Date | Highlights |
 |-----|------|------------|
+| [v3.1.0](https://github.com/pumacp/puma/releases/tag/v3.1.0) | 2026-05-25 | Sprint 11' — post-v3.0.0 reconciliation + `puma community` CLI (browse/pull/verify-hash/validate) + wiki/Verifier minimal repairs + docs cleanup; deuda técnica D23 documented (deferred to v4.x) |
+| [v3.0.0](https://github.com/pumacp/puma/releases/tag/v3.0.0) | 2026-05-20 | First public release — public documentation overhaul (Wiki + README + sync workflow) + mypy remediation from 104 errors to zero |
 | [v2.7.0](https://github.com/pumacp/puma/releases/tag/v2.7.0) | 2026-05-16 | Catalog expansion (Sprint 10) — `qwen3:30b` dense + `qwen3:30b-a3b` MoE at gpu-high; Kimi K2.6 formally excluded after 13-tag Ollama registry probe; schema preserved at 8 fields; 407 tests; empirical validation pending gpu-high hardware |
 | [v2.6.0](https://github.com/pumacp/puma/releases/tag/v2.6.0) | 2026-05-16 | Apple Silicon M3/M4/M5 (Sprint 9) — 9 profile identifiers, detection module, `--native` mode, macOS CodeCarbon, cross-arch docs; 402 tests; empirical validation pending Mac hardware |
 | [v2.5.0](https://github.com/pumacp/puma/releases/tag/v2.5.0) | 2026-05-16 | Hardening (Sprint 8) — I5–I10 resolved; macOS modes, gpu-entry tolerance, versioned catalog, CI Ollama job, validate-baseline MAE, coverage breakdown; 354 tests |
@@ -59,7 +68,7 @@ PUMA is organized in modular layers under `src/puma/`:
 | Sustainability | `sustainability/` | CodeCarbon integration (CPU + RAM + GPU energy) |
 | Perturbations | `perturbations/` | Surface and semantic perturbations (typos, case, gender_swap_prefix, register_shift) |
 | Preflight | `preflight/` | Hardware detection, profile selection, model catalog SoT |
-| Dashboard | `dashboard/` | Streamlit interface (7 views) |
+| Dashboard | `dashboard/` | Streamlit interface (8 views) |
 | Reporting | `reporting/` | Markdown / PDF report generation |
 
 ## Documentation

@@ -163,9 +163,9 @@ def test_each_view_module_exposes_render() -> None:
 
 @pytest.mark.unit
 def test_app_router_exposes_views_dict() -> None:
-    """The router registers exactly 7 views, one per module."""
+    """The router registers exactly 8 views, one per module."""
     src = APP_PATH.read_text(encoding="utf-8")
-    # Quick textual check: 7 emoji-prefixed view labels
+    # Quick textual check: 8 emoji-prefixed view labels
     expected = [
         "📊 Overview",
         "🆚 Model Comparison",
@@ -174,6 +174,7 @@ def test_app_router_exposes_views_dict() -> None:
         "⚖️ Fairness",
         "🌱 Sustainability Frontier",
         "🔍 Instance Drill-down",
+        "🤝 Community",
     ]
     for label in expected:
         assert label in src, f"View label {label!r} not registered in router"
