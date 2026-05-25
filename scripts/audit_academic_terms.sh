@@ -58,7 +58,10 @@ done
 # include hidden files (needed for .github), no colour. .gitignore is honoured
 # (skips docs/internal/, data/, results/, …); explicit excludes reinforce it.
 RG_COMMON=(-i -P --no-heading --line-number --with-filename --color never --hidden
-    -g '!.git/**' -g '!docs/internal/**' -g '!**/__pycache__/**' -g '!**/*.pyc')
+    -g '!.git/**' -g '!docs/internal/**' -g '!**/__pycache__/**' -g '!**/*.pyc'
+    # Exclude this audit's own report: it quotes every match verbatim, so
+    # leaving it in scope would make the detector recursively match itself.
+    -g '!docs/sprints/Sprint-12-Academic-Audit.md')
 
 TOTAL=0
 CATEGORIES_WITH_HITS=0
@@ -76,7 +79,11 @@ run_category() {
                 gsub(/\t/, " ", text)
                 if (length(text) > 100) text = substr(text, 1, 100)
                 print file, line, text, cat, cls
-            }')"
+            }' |
+        { iconv -c -f UTF-8 -t UTF-8 2>/dev/null || cat; })"
+    # iconv -c drops any invalid byte left by truncating a match excerpt mid
+    # multibyte char, so the report appendix stays valid UTF-8; falls back to
+    # cat if iconv is unavailable.
     if [ -z "$out" ]; then
         echo "(no matches)"
     else
