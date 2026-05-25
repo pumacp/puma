@@ -31,9 +31,9 @@ model) and surfaced in a submission's `sustainability` block
 split-container architecture the model runs in a separate Ollama container, so
 whole-machine accounting attributes the GPU/CPU/RAM energy of the inference host
 correctly; a process-scoped mode would miss the GPU work entirely (this was the
-substance of the earlier GPU-attribution fix, D15).
+substance of the earlier GPU-attribution work).
 
-**Coverage.** Since Sprint 12 (debt item D25), the canonical baseline specs ship
+**Coverage.** In the current PUMA release, the canonical baseline specs ship
 with `sustainability.codecarbon: true`, so **every** canonical run produces an
 emissions record by default. Attribution is per-run, not per-instance: one
 emissions row summarises the whole run.
@@ -47,7 +47,7 @@ elsewhere should override it to match their own grid; the energy figure
 **Hardware coverage.** PUMA defines five baseline hardware profiles in
 `config/profiles.yaml`: `cpu-lite`, `cpu-standard`, `gpu-entry`, `gpu-mid`, and
 `gpu-high` (plus Apple-Silicon variants, not covered here). All five were
-verified **structurally** in Sprint 12 — each loads, declares no per-profile
+verified **structurally** in the current PUMA release — each loads, declares no per-profile
 codecarbon override (the settings are global, so measurement is identical across
 profiles), and is accepted by the runner when requested via a spec. **Empirical**
 measurement was performed on the host's auto-detected profile, `gpu-entry`;
@@ -111,7 +111,7 @@ PUMA measures a slice of the footprint, not the whole world. Specifically:
 The canonical specs that produce the reference figures are
 `specs/runs/baseline_triage.yaml` and
 `specs/runs/baseline_estimation_canonical.yaml`; both enable codecarbon by
-default since Sprint 12. Re-run and validate them with:
+default in the current PUMA release. Re-run and validate them with:
 
 ```bash
 puma validate-baseline --spec specs/runs/baseline_triage.yaml --expected-f1 0.5867
@@ -127,12 +127,11 @@ Each run writes an emissions row to the `emissions` table; `puma share-results
   (`src/puma/community/schema_data/submission.v1.json`) and the `Sustainability`
   model in `src/puma/community/schema.py`.
 - The `Emission` model docstring in `src/puma/storage/models.py`.
-- `docs/sprints/Sprint-12-Closure.md` (when published) for the Sprint 12
-  verification record.
+- the project's release notes (`CHANGELOG.md`) for the verification record.
 
 ---
 
 *Reference note: this document cites Strubell et al. (2019) for the motivation
 to treat inference compute as a reported metric. Broader carbon-accounting
-references are informational here and are deferred to the final memoria
-write-up, where they will be bibliographically anchored.*
+references are informational here and are deferred to future project
+documentation, where they will be bibliographically anchored.*
