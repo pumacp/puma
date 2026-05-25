@@ -415,7 +415,7 @@ def report(
         raise typer.Exit(1) from exc
 
 
-# ── Sprint 7 — CLI completeness (Anexo F § A.2) ───────────────────────────────
+# ── Sprint 7 — CLI completeness ───────────────────────────────
 
 
 @app.command(name="list-runs")
@@ -431,7 +431,7 @@ def list_runs(
     ),
     json_output: bool = typer.Option(False, "--json", help="Emit JSON instead of a table"),
 ) -> None:
-    """List runs registered in the database with their headline metrics (Anexo F § A.2.5)."""
+    """List runs registered in the database with their headline metrics."""
     import json as _json
     import re
     import sqlite3
@@ -543,7 +543,7 @@ def list_runs(
 def list_ollama_models(
     json_output: bool = typer.Option(False, "--json", help="Emit JSON instead of a table"),
 ) -> None:
-    """List models effectively present in the Ollama volume (Anexo F § A.2.6)."""
+    """List models effectively present in the Ollama volume."""
     import json as _json
     import re
     import subprocess
@@ -617,7 +617,7 @@ def prepare_datasets(
         False, "--verify", help="Print SHA-256 of resulting CSVs for manual verification"
     ),
 ) -> None:
-    """Prepare canonical datasets (jira_balanced_200, tawos, prioritization) — Anexo F § A.2.1.
+    """Prepare canonical datasets (jira_balanced_200, tawos, prioritization).
 
     Thin wrapper over ``scripts/prepare_datasets.py``. ``--force-redownload``
     removes the existing CSVs first so the script regenerates them.
@@ -685,7 +685,7 @@ def wilcoxon_cmd(
         None, "--output", help="Write Markdown report to this path (default: stdout only)"
     ),
 ) -> None:
-    """Wilcoxon signed-rank pairwise comparison of two runs (Anexo F § A.2.2)."""
+    """Wilcoxon signed-rank pairwise comparison of two runs."""
     import math
     import sqlite3
     from pathlib import Path as _Path
@@ -813,7 +813,7 @@ def bias_analysis_cmd(
         "docs/results/bias_evaluation.md", "--output", help="Output Markdown path"
     ),
 ) -> None:
-    """Bias analysis from perturbed runs already in DB (Anexo F § A.2.3)."""
+    """Bias analysis from perturbed runs already in DB."""
     from pathlib import Path as _Path
 
     from puma.dashboard.data import load_predictions_with_gold
@@ -973,7 +973,7 @@ def generate_plots_cmd(
     ),
     fmt: str = typer.Option("png", "--format", help="Output format: png | pdf | svg | all"),
 ) -> None:
-    """Generate consolidated plots from runs in the DB (Anexo F § A.2.4)."""
+    """Generate consolidated plots from runs in the DB."""
     import subprocess
     import sys
     from pathlib import Path as _Path
