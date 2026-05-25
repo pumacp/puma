@@ -63,7 +63,7 @@ Canonical statement: `docs/RELEASES/v3.1.0.md`.
 | Schema v1.0.0 | unchanged (P3) |
 | Federation refs in code | 0 (P4) |
 
-## Discovery-before-write episodes (14 substantive P1 captures + 1 benign expectation correction)
+## Discovery-before-write episodes (15 substantive P1 captures + 1 benign expectation correction)
 
 Each episode is a case where empirical reality contradicted a plan assumption and was resolved **before** any write reached the remote. No P1 capture escaped to remote — zero wrong commits pushed.
 
@@ -97,7 +97,27 @@ Each episode is a case where empirical reality contradicted a plan assumption an
 
 15. **`-X theirs` cannot reproduce a restructured file** (E.nov Step 11, iteration 3). A 3-way merge preserves non-conflicting hunks from both sides, producing a hybrid CHANGELOG (S11'.1 had restructured it). Resolution: use direct **tree replacement** (`git checkout origin/develop -- .`), not a merge. The tree-equality guard caught the hybrid before any commit.
 
-**Total: 14 substantive P1 captures + 1 benign expectation correction (#14).** The post-publish HEAD verification (episode 6) and the tree-equality / parent-FF guards (episodes 11-15) each caught a defect at runtime, validating the defensive-engineering patterns empirically.
+**Total: 15 substantive P1 captures + 1 benign expectation correction (#14).** Episodes 1-15 are enumerated above (14 substantive + the benign #14); the 16th episode — the 15th substantive, S11'.10.a's integration-gap discovery — spawned three debt items (D24/D25/D26) and is detailed in its own section below. The post-publish HEAD verification (episode 6) and the tree-equality / parent-FF guards (episodes 11-15) each caught a defect at runtime, validating the defensive-engineering patterns empirically.
+
+## S11'.10.a discovery: end-to-end integration gaps (episode 16)
+
+The Sprint 11'.10 attempt to perform a live publication demo (canonical runner → `share-results` → community-CLI publication pipeline) surfaced three latent integration gaps that no unit test exercised:
+
+- **D24** (`docs/known_debt.md`): canonical specs do not declare `profile_required`, so `Run.profile` is NULL (`builder.py:320-321`).
+- **D25** (`docs/known_debt.md`): canonical specs disable codecarbon, so no emissions record is produced (`builder.py:330`).
+- **D26** (`docs/known_debt.md`): `src/puma/orchestrator/runner.py:526` never populates `ProfileSnapshot.extra`; the publication builder requires `extra['cpu_cores']` (`builder.py:365`).
+
+D24 and D25 are spec-level (configuration); both were bridged locally during S11'.10.a via an untracked one-off demo spec (`specs/runs/demo_triage_s11p.yaml`, `profile_required: gpu-entry`, F1 stayed 0.5831 bit-exact). D26 is src/-level (code change required) and was therefore the hard blocker under S11'.10.a's no-src-edit constraint: `share-results` cannot consume any run this runner produces.
+
+These gaps remained latent through v3.1.0 release because all test fixtures (e.g. `tests/community/conftest.py:218`) hand-craft `Run.profile` and `ProfileSnapshot.extra`, never exercising the full pipeline with runner output. Unit tests at 80-89% coverage on the community CLI did not catch them.
+
+### Methodological insight
+
+Component-level testing at high coverage does not substitute for end-to-end integration exercise with real artifacts. The gap only surfaced when the actual end-to-end flow was attempted with the v3.1.0 product. Rather than fabricate the missing emissions/snapshot metadata to force a demo artifact — which would be academically dishonest — the live demo was halted and the gaps documented.
+
+### Resolution
+
+Sprint 11'.10 was re-scoped from "live publication demo" to "documented integration-gap analysis + CLI smoke proof" (`docs/sprints/Sprint-11p-CLI-Smoke.md`, confirming the community CLI is operational on the available placeholder fixture). The live publication demo is deferred to a future Sprint that fixes D26 in code and refines the canonical specs for D24/D25. Estimated effort to unblock the end-to-end demo: < 1 day plus a small integration test to prevent regression.
 
 ## Deferred work
 
