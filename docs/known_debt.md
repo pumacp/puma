@@ -108,8 +108,8 @@ consumes; neither is attempted in Sprint 11'.
 
 ### D24 — Canonical baseline specs missing `profile_required` (since v1.0.0)
 
-**Status:** open. Discovered: 2026-05-25 (Sprint 11' E2E demo attempt,
-S11'.10.a). Scheduled for resolution: future Sprint.
+**Status:** RESOLVED in v4.0.0 (Sprint 12 S12.1). Discovered: 2026-05-25
+(Sprint 11' E2E demo attempt, S11'.10.a).
 **Severity:** medium — blocks the publication pipeline on canonical runs out
 of the box.
 
@@ -138,10 +138,17 @@ is to add `profile_required` as a declared field in canonical specs.
     does not declare `profile_required`.
 Either approach is a small code or spec change in a future Sprint.
 
+**Resolution (Sprint 12 S12.1).** Implemented approach (b): `runner.py` now
+resolves `Run.profile` via `_resolve_run_profile`, which returns
+`spec.profile_required` when declared and otherwise falls back to the existing
+`select_profile(detect_capabilities())` auto-detection, logging an INFO line
+(`run.profile_autodetected`). Commit `54fd53e`. Empirically bit-exact (F1
+triage 0.5831) and covered by `tests/unit/test_runner_profile_fallback.py`.
+
 ### D25 — Canonical baseline specs disable codecarbon (since v1.0.0)
 
-**Status:** open. Discovered: 2026-05-25 (Sprint 11' E2E demo attempt,
-S11'.10.a). Scheduled for resolution: future Sprint (likely paired with D24).
+**Status:** RESOLVED in v4.0.0 (Sprint 12 S12.1). Discovered: 2026-05-25
+(Sprint 11' E2E demo attempt, S11'.10.a).
 **Severity:** medium — blocks the publication pipeline on canonical runs (same
 flow as D24).
 
@@ -160,10 +167,17 @@ canonical specs (cheap to enable; minor overhead). Alternative: relax the
 builder requirement to allow runs without emissions records, with a clear
 warning.
 
+**Resolution (Sprint 12 S12.1).** Flipped `sustainability.codecarbon` from
+`false` to `true` in `specs/runs/baseline_triage.yaml` and
+`specs/runs/baseline_estimation_canonical.yaml`, so canonical runs now produce
+the emissions record `builder.py:330` requires. Commit `6a2c812`. Empirically
+verified the flip does not affect inference: F1 triage stays 0.5831 (within
+±0.01) and MAE estimation stays 5.7150 bit-exact.
+
 ### D26 — `runner.py` never populates `ProfileSnapshot.extra` (since v1.0.0)
 
-**Status:** open. Discovered: 2026-05-25 (Sprint 11' E2E demo attempt,
-S11'.10.a). Scheduled for resolution: future Sprint.
+**Status:** RESOLVED in v4.0.0 (Sprint 12 S12.1). Discovered: 2026-05-25
+(Sprint 11' E2E demo attempt, S11'.10.a).
 **Severity:** medium-high — the hard blocker preventing any canonical run from
 feeding `share-results`. Unlike D24 and D25, this is **not** spec-fixable; it
 requires a code change.
@@ -203,6 +217,17 @@ testing (which passes at high coverage) does NOT substitute for end-to-end
 integration testing with real artifacts. Future Sprints should add a single
 end-to-end integration test that runs the full pipeline on a fresh, real
 submission to catch this class of regression.
+
+**Resolution (Sprint 12 S12.1).** `_add_profile_snapshot` now populates
+`ProfileSnapshot.extra` via `_collect_profile_extra` (`cpu_cores`,
+`cpu_physical_cores`, `memory_total_gb`, `platform`, `python_version`,
+`has_cuda`, `cuda_device_name`) and derives `puma_version` dynamically via
+`importlib.metadata.version("puma")` (`_resolve_runner_puma_version`),
+replacing the hardcoded `"2.0.0-dev"`. Commit `a76bec9`. Covered by
+`tests/unit/test_profile_snapshot.py`. The methodological note's recommendation
+was acted on: `tests/integration/test_e2e_publication.py` (US-12.5) now
+exercises the full runner → share-results → community CLI pipeline end-to-end,
+the regression test that would have caught D24/D25/D26 immediately.
 
 ## Resolved technical debt
 
