@@ -106,6 +106,42 @@ field was absent. The limitation is purely algorithmic, not a missing field.
 Both directions require a decision on which canonical artifact the Verifier
 consumes; neither is attempted in Sprint 11'.
 
+**Deferral rationale (S12.2 empirical confirmation, 2026-05-25).** A controlled
+discovery session in Sprint 12 S12.2 attempted the client-side alignment and
+HALTED before any edit, confirming D23 is schema-decision work, not a
+mechanical fix. Four blockers were identified empirically:
+1. The Sprint 12 plan assumed a `src/puma/community/hashing.py` with a
+   `_compute_summary_hash` function; neither exists. The real producer is
+   `integrity.compute_predictions_hash`, a 4-field CSV hash. The plan was
+   working from a stale model of the code.
+2. **Schema vs Verifier prefix contradiction.** The schema mandates
+   `predictions_summary_hash` match `^[a-f0-9]{64}$` (plain 64-hex, no prefix,
+   `schema_data/submission.v1.json:78-81`) and is immutable (P3). The Verifier
+   emits `sha256:<hex>`. Cross-service string equality cannot be reached by
+   editing only the client hash; it needs a Verifier-side prefix strip
+   (FORBIDDEN + the Space is not git-accessible) or a `verify_cli` `--remote`
+   comparison change (separate scope).
+3. **"prediction" is semantically undefined for PUMA.** The 4-field canonical
+   deliberately carries both `predicted_label` (triage_jira / prioritization_jira)
+   and `predicted_value` (estimation_tawos). A single 2-field
+   `(instance_id, prediction)` requires ratifying what "prediction" maps to per
+   scenario.
+4. **Unverifiable in isolation.** The Verifier Space source is not on GitHub
+   (`pumacp/puma-verifier` and `pumaproject/puma-verifier` both 404) and
+   `HF_TOKEN` was unavailable, so no 2-field implementation could be confirmed
+   byte-for-byte against the live Space. A wrong guess would pass local
+   `verify-hash` (client agrees with itself) while breaking production silently.
+
+**Three open decisions D23 closure requires.** (a) Which side adapts — client
+to Verifier, Verifier to client, or a third shared canonical. (b) How to
+reconcile the `sha256:` prefix with the immutable schema (`verify_cli --remote`
+comparison logic vs Verifier-side strip). (c) What "prediction" maps to per
+scenario if the chosen canonical is 2-field. **Target: a schema-decision Sprint
+after v4.0.0.** Cross-references: S12.2 HALT report; D27 (the exporter, RESOLVED
+in S12.2, which productizes the *existing* 4-field canonical and is decoupled
+from this decision); `schema_data/submission.v1.json:78-81` (the immutable
+constraint).
+
 ### D24 — Canonical baseline specs missing `profile_required` (since v1.0.0)
 
 **Status:** RESOLVED in v4.0.0 (Sprint 12 S12.1). Discovered: 2026-05-25
@@ -238,6 +274,36 @@ for academic traceability. Sprint 1 closures remain inline in the
 following entries document the more involved resolutions from Sprint 2
 onward, where the fix touched multiple files and had measurable
 empirical impact.
+
+### D27 — Predictions JSONL exporter missing in `share-results` (since v3.0.0)
+
+**Status:** RESOLVED in v4.0.0 (Sprint 12 S12.2).
+**Discovered:** Sprint 12 S12.1 (2026-05-25), while implementing the E2E
+publication test — `share-results --dry-run` emitted only the submission JSON,
+so the `<id>.predictions.jsonl` that `puma community verify-hash` and
+`validate --strict` consume had no producer. The S12.1 E2E test worked around
+this by exporting the JSONL directly from the database via `integrity._COLUMNS`.
+
+**Resolution.** Commit `76c0ce1` — `integrity.export_predictions_jsonl` writes
+the predictions JSONL using the existing 4-field canonical column list
+(`integrity._COLUMNS`: `instance_id`, `predicted_label`, `predicted_value`,
+`prompt_hash`), and `share-results --dry-run` now emits
+`<submission_id>.predictions.jsonl` next to `<submission_id>.json`. Because
+`verify_cli.hash_predictions_jsonl` is byte-identical to
+`compute_predictions_hash` for that 4-field format, the on-disk JSONL hashes to
+the value the submission declares — verified by the smoke check
+(`verify-hash` → `verified`), by `tests/unit/test_predictions_exporter.py`
+(the byte-equality contract test), and by the refactored E2E test (`0617a16`),
+which now consumes the real artifact instead of the DB stand-in.
+
+**Scope note.** This is a productizing step with no change to the hash
+semantics, the schema, or the Verifier. It is deliberately decoupled from D23
+(Verifier 2-field alignment): the 4-field format is the existing canonical that
+both `compute_predictions_hash` and `hash_predictions_jsonl` already share. If
+D23's eventual schema decision selects a different canonical format, the
+exporter updates atomically with that change. The live-publish path
+(`raw_predictions_url` upload) is not wired here; it belongs to the live
+publication demo (S12.12) alongside the D23 resolution.
 
 ### D15 — CodeCarbon GPU detection inside container
 
