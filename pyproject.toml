@@ -97,6 +97,7 @@ markers = [
     "ollama: Tests that require Ollama running",
     "smoke: End-to-end smoke tests",
     "requires_gpu: Tests that require an NVIDIA GPU passthrough into the runner container",
+    "e2e: end-to-end integration tests (runs full pipeline against real Ollama; slow but high-signal)",
 ]
 
 [tool.isort]
