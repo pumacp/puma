@@ -1,7 +1,7 @@
 # Publishing Your Results
 
 PUMA can publish run results to [PUMA Community](https://github.com/pumacp/puma-community),
-a public federation hub where users of the PUMA benchmarking tool share their
+a PUMA Community public registry where users of the PUMA benchmarking tool share their
 verified results. Publishing is opt-in, anonymous by default, and entirely
 PR-based — no central server, no account except GitHub itself.
 
