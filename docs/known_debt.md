@@ -353,6 +353,48 @@ existing YAML catalog, and drop `pull` (read-only phase per S12.9 FORBIDDEN);
 docs-sync tracked here as D30. Third coordinator-level prompt drift of Sprint 12
 (after P1-S12.2-COORD-01 and P1-S12.7b-COORD-01).
 
+### D31 — Estimation MAE baseline drift in the current Ollama runtime (since v4.0.0)
+
+**Status:** TRACKED — environment/reproducibility finding; investigate under D3
+(Ollama/CUDA determinism) and F2 (cold-vs-warm drift).
+**Discovered:** Sprint 12 / S12.9 baseline re-validation (2026-05-26).
+
+**Finding.** The canonical estimation baseline
+(`specs/runs/baseline_estimation_canonical.yaml`, `qwen2.5:3b`,
+`temperature=0.0`, `seed=42`) now produces `mae=6.3150`, a +0.6000 shift from
+the P2 reference `5.7150` (outside the ±0.01 gate). The triage baseline F1 in
+the same session is `0.5891` (+0.0060, within ±0.01).
+
+**Isolation (not caused by S12.9).**
+- Reproduces identically (`6.3150`) on pristine `origin/develop` @ `6f09b2d`
+  with no S12.9 code present; the estimation code path is byte-identical there.
+  S12.9 adds only read-only discovery commands and removes two legacy CLI
+  commands — it touches no inference/estimation code.
+- Stable across three runs (two warm, back-to-back) — a deterministic shift,
+  not sampling noise.
+- Model unchanged: `qwen2.5:3b` digest `357c53fb659c`, modified 6 days prior,
+  quant `Q4_K_M`; Ollama `0.21.0`. The model was not re-pulled.
+- The Ollama container had been restarted ~20 min before the session, so the
+  warm runtime state differs from when `5.7150` was last captured (S12.8).
+
+**Likely cause.** Ollama runtime nondeterminism across container/runtime
+restarts (GPU kernel scheduling / batching) — the same class as F2 (cold-vs-warm
+drift ≤0.006 on F1) and D3 (untuned CUDA determinism flags). Estimation MAE is
+numerically more sensitive than categorical triage F1, so the same runtime
+perturbation moves MAE well beyond the ±0.01 window while F1 stays within it.
+
+**Resolution path.** (1) Characterize the drift across N warm runs to establish
+the current-environment MAE distribution; (2) apply and document the D3
+determinism configuration (`CUBLAS_WORKSPACE_CONFIG`, `OLLAMA_*` flags) and
+re-measure; (3) if the shift persists as a stable environment property, re-pin
+the canonical estimation MAE reference (with its supporting run set) and update
+the reproducibility docs (D5). Until then, the estimation MAE gate must be
+interpreted against the current runtime, not the historical `5.7150`.
+
+**Scope note.** Does not block S12.9 (read-only discovery, no inference path);
+recorded here so the failing MAE gate during S12.9 re-validation is traceable
+and not mistaken for an S12.9 regression.
+
 ## Resolved technical debt
 
 Items previously tracked as open technical debt that have been fully
