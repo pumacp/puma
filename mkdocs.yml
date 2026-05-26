@@ -3,7 +3,7 @@ site_description: "Local LLM benchmarks for project management tasks"
 site_url: "https://pumacp.github.io/puma/"
 repo_url: "https://github.com/pumacp/puma"
 repo_name: "pumacp/puma"
-edit_uri: ""
+edit_uri: "edit/develop/docs/"
 
 theme:
   name: material
