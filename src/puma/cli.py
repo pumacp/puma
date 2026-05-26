@@ -13,8 +13,21 @@ from puma.community.share_cli import share_results_app
 app = typer.Typer(
     name="puma",
     help="PUMA — Local LLM benchmarking for project management tasks.",
-    no_args_is_help=True,
 )
+
+
+@app.callback(invoke_without_command=True)
+def _main(ctx: typer.Context) -> None:
+    """PUMA — Local LLM benchmarking for project management tasks."""
+    # When invoked with no subcommand, show the retro banner above the help
+    # text (replaces the previous no_args_is_help behaviour). Subcommands are
+    # unaffected: the callback returns immediately when one is given.
+    if ctx.invoked_subcommand is None:
+        from puma.ui.banner import print_banner
+
+        print_banner()
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
 
 
 @app.command()
