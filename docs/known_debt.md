@@ -305,6 +305,54 @@ prompt asserted hash-level determinism as a mandatory gate, but the actual P2
 invariants are metric-level. The gate was over-strict; the metric invariants
 (F1 = 0.5831 ±0.01, MAE = 5.7150 bit-exact) are upheld in this phase.
 
+### D30 — Docs sync for the new `models` subcommand structure (since v4.0.0)
+
+**Status:** TRACKED — defer to a focused docs-sync phase or fold into S12.17 (mkdocs).
+**Discovered:** Sprint 12 / S12.9 discovery pass (2026-05-26).
+
+**Finding.** S12.9 replaced the legacy `puma models` (catalog-print + `ollama
+pull` via subprocess) and `puma list-ollama-models` (docker-exec subprocess
+wrapper) with a read-only `puma models` Typer sub-group (`list` / `show` /
+`recommended`). Several docs still reference the removed command forms.
+
+**Affected docs.**
+- `docs/user_guide.md` — `puma models list`, `puma models pull qwen2.5:3b`
+- `docs/troubleshooting.md` — `puma models pull qwen2.5:3b`, `puma models list`
+- `docs/adding_models.md` — `puma models pull`, `puma models list`
+- `README.md` — the `puma models` one-line description
+- `docs/cli_reference.md` — locked this phase (S12.9 FORBIDDEN); regeneration
+  needs its lock lifted in the docs-sync phase.
+
+**What changed.**
+- `puma models list` (catalog YAML print) → `puma models recommended` (themed
+  table with local availability)
+- `puma models pull <tag>` → `ollama pull <tag>` (use the Ollama CLI directly;
+  `puma doctor` already hints `ollama pull <name>` for missing models, so the
+  guidance stays consistent)
+- `puma list-ollama-models` → `puma models list` (httpx `/api/tags`, themed)
+
+**Field-gap note (curated catalog).** `config/models_catalog.yaml` does not
+encode `validated_for` / `status` / `rationale`; `puma models recommended`
+derives them with conservative defaults (`validated_for={triage, estimation}`,
+`status=experimental`, `rationale` from the catalog `notes`). The YAML is NOT
+modified this phase. Adding these fields to the catalog schema is the natural
+complement to this docs-sync work.
+
+**Resolution path.** In the next docs-focused phase (or S12.17), update each
+affected doc to reference the new commands and regenerate
+`docs/cli_reference.md` (its lock lifted there).
+
+**P1 capture (P1-S12.9-COORD-01).** Coordinator-level prompt drift: the S12.9
+prompt assumed `puma models` was greenfield, but a legacy
+`@app.command(name="models")` plus a separate `puma list-ollama-models`
+already existed, and `config/models_catalog.yaml` already contained the
+17-entry curated registry the prompt was about to hardcode in Python. Detected
+by the executor's discovery pass before branching (audit-before-write).
+Resolution: re-scoped to REPLACE legacy with the new sub-group, reuse the
+existing YAML catalog, and drop `pull` (read-only phase per S12.9 FORBIDDEN);
+docs-sync tracked here as D30. Third coordinator-level prompt drift of Sprint 12
+(after P1-S12.2-COORD-01 and P1-S12.7b-COORD-01).
+
 ## Resolved technical debt
 
 Items previously tracked as open technical debt that have been fully
