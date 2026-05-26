@@ -50,6 +50,7 @@ plugins:
 nav:
   - Home: index.md
   - CLI Reference: cli_reference.md
+  - Publication workflow: publication_workflow.md
   - Sustainability: sustainability.md
   - Known Debt: known_debt.md
   - Releases:
