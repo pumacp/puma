@@ -53,6 +53,7 @@ nav:
   - Publication workflow: publication_workflow.md
   - Sustainability: sustainability.md
   - Known Debt: known_debt.md
+  - Knowledge graph: knowledge_graph.md
   - Releases:
       - "v3.1.0": RELEASES/v3.1.0.md
 
