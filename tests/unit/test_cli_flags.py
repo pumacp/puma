@@ -22,6 +22,28 @@ def _all_output(result) -> str:
     return text
 
 
+_MINI_SPEC = "id: e5b_cli\nscenario: triage_jira\nmodels:\n  - qwen2.5:3b\nsample_size: 2\n"
+
+
+def _invoke_run(monkeypatch, tmp_path, flags):
+    """Invoke ``puma <flags> run <spec> --dry-run`` with Runner stubbed,
+    returning (result, captured-Runner-kwargs)."""
+    captured: dict[str, object] = {}
+
+    class _FakeRunner:
+        def __init__(self, spec, **kwargs):
+            captured.update(kwargs)
+
+        def run(self):
+            return {"run_id": "fake", "n_predictions": 0, "metrics": {}}
+
+    monkeypatch.setattr("puma.orchestrator.runner.Runner", _FakeRunner)
+    spec_path = tmp_path / "spec.yaml"
+    spec_path.write_text(_MINI_SPEC, encoding="utf-8")
+    result = runner.invoke(app, [*flags, "run", str(spec_path), "--dry-run"])
+    return result, captured
+
+
 @pytest.mark.unit
 class TestCliFlags:
     def test_bare_puma_prints_banner(self, monkeypatch):
@@ -54,3 +76,20 @@ class TestCliFlags:
         result = runner.invoke(app, ["--theme", "purple"])
         assert result.exit_code == 2
         assert "Unknown theme" in _all_output(result)
+
+    def test_quiet_flag_stored_in_ctx_obj(self, monkeypatch, tmp_path):
+        monkeypatch.delenv("PUMA_THEME", raising=False)
+        result, captured = _invoke_run(monkeypatch, tmp_path, ["--quiet"])
+        assert result.exit_code == 0
+        assert captured.get("quiet") is True
+
+    def test_quiet_and_no_banner_independent(self, monkeypatch, tmp_path):
+        monkeypatch.delenv("PUMA_THEME", raising=False)
+        # --quiet alone does NOT suppress the banner.
+        bare = runner.invoke(app, ["--quiet"])
+        assert bare.exit_code == 0
+        assert "_|_|" in bare.output
+        # --no-banner alone does NOT enable quiet (progress stays on).
+        result, captured = _invoke_run(monkeypatch, tmp_path, ["--no-banner"])
+        assert result.exit_code == 0
+        assert captured.get("quiet") is False
