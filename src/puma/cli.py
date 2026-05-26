@@ -1086,6 +1086,46 @@ def generate_plots_cmd(
         raise typer.Exit(1)
 
 
+@app.command("doctor")
+def doctor(ctx: typer.Context) -> None:
+    """Run read-only environment health checks (OK/WARN/FAIL); exit 1 on any failure."""
+    import os
+    from pathlib import Path
+
+    from rich.console import Console
+
+    from puma.diagnostics.checks import run_all_checks
+    from puma.ui.diagnostics_view import render_doctor_table
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    endpoint = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+    results = run_all_checks(ollama_endpoint=endpoint, db_path=Path("data/puma.db"))
+    Console().print(render_doctor_table(theme, results))
+    if any(r.status == "fail" for r in results):
+        raise typer.Exit(code=1)
+
+
+@app.command("env")
+def env_command(ctx: typer.Context) -> None:
+    """Print the resolved PUMA environment (version, platform, theme, profile, paths)."""
+    import os
+    from pathlib import Path
+
+    from rich.console import Console
+
+    from puma.diagnostics.env import collect_environment
+    from puma.ui.diagnostics_view import render_env_table
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    endpoint = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+    env_info = collect_environment(theme, endpoint, Path("data/puma.db"))
+    Console().print(render_env_table(theme, env_info))
+
+
 app.add_typer(auth_app, name="auth")
 app.add_typer(share_results_app, name="share-results")
 # The four community verbs self-register on community_app via decorators when
