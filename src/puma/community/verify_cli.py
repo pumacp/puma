@@ -38,6 +38,7 @@ from rich.table import Table
 
 from puma.community._community_app import community_app
 from puma.community.integrity import _COLUMNS, _serialize_value
+from puma.ui.themes import Theme, get_theme
 
 log = logging.getLogger("puma.community.verify_cli")
 console = Console()
@@ -98,48 +99,53 @@ def _call_verifier(*, url: str, declared_hash: str, token: str) -> dict[str, Any
     return dict(result)
 
 
-def _render_local(declared: str, computed: str, verdict: str) -> None:
+def _render_local(declared: str, computed: str, verdict: str, theme: Theme | None = None) -> None:
+    t = theme or get_theme(None)
     table = Table(title="verify-hash (local)", show_lines=False)
-    table.add_column("field", style="cyan")
+    table.add_column("field", style=t.accent)
     table.add_column("value", overflow="fold")
     table.add_row("declared_hash", declared)
     table.add_row("computed_hash", computed)
-    style = "green" if verdict.startswith("verified") else "red"
+    style = t.success if verdict.startswith("verified") else t.error
     table.add_row("verdict", f"[{style}]{verdict}[/{style}]")
     console.print(table)
 
 
 @community_app.command(name="verify-hash")
 def verify_hash(
+    ctx: typer.Context,
     submission_path: Path = _SUBMISSION_ARG,
     predictions_path: Path | None = _PREDICTIONS_OPT,
     remote: bool = typer.Option(False, "--remote", help="Also query the Verifier Space (D23)."),
 ) -> None:
     """Recompute the predictions hash locally and compare to the declared value."""
+    theme = (ctx.obj or {}).get("theme") or get_theme(None)
     try:
         payload: dict[str, Any] = json.loads(submission_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
-        console.print(f"[red]Cannot read submission JSON: {exc}[/red]")
+        console.print(f"[{theme.error}]Cannot read submission JSON: {exc}[/{theme.error}]")
         raise typer.Exit(code=2) from exc
 
     integrity = payload.get("integrity", {}) or {}
     declared = str(integrity.get("predictions_summary_hash", ""))
     if not declared:
-        console.print("[red]Submission has no integrity.predictions_summary_hash.[/red]")
+        console.print(
+            f"[{theme.error}]Submission has no integrity.predictions_summary_hash.[/{theme.error}]"
+        )
         raise typer.Exit(code=2)
 
     preds = _resolve_predictions_path(submission_path, predictions_path)
     if preds is None:
         console.print(
-            "[red]Predictions JSONL not found.[/red] Pass --predictions PATH or place "
-            f"{submission_path.stem}.predictions.jsonl next to the submission."
+            f"[{theme.error}]Predictions JSONL not found.[/{theme.error}] Pass --predictions PATH "
+            f"or place {submission_path.stem}.predictions.jsonl next to the submission."
         )
         raise typer.Exit(code=2)
 
     computed = hash_predictions_jsonl(preds)
     local_ok = computed == declared.lower()
     local_verdict = "verified" if local_ok else "mismatch"
-    _render_local(declared, computed, local_verdict)
+    _render_local(declared, computed, local_verdict, theme)
     local_exit = 0 if local_ok else 1
 
     if not remote:
@@ -172,11 +178,15 @@ def verify_hash(
 
     remote_status = str(remote_result.get("status", "error"))
     if not local_ok:
-        console.print("[red]verdict: mismatch (local hash does not match)[/red]")
+        console.print(
+            f"[{theme.error}]verdict: mismatch (local hash does not match)[/{theme.error}]"
+        )
         raise typer.Exit(code=1)
 
     if remote_status == "verified":
-        console.print("[green]verdict: verified (local + remote agree)[/green]")
+        console.print(
+            f"[{theme.success}]verdict: verified (local + remote agree)[/{theme.success}]"
+        )
         raise typer.Exit(code=0)
 
     # local verified but remote disagrees -> the expected D23 outcome.
@@ -186,7 +196,7 @@ def verify_hash(
         "técnica D23 (the Verifier hashes a different input shape and prefixes 'sha256:'); "
         "see docs/known_debt.md. Local verification is canonical. Treating as VERIFIED."
     )
-    console.print("[green]verdict: verified-local-only (D23 warned)[/green]")
+    console.print(f"[{theme.success}]verdict: verified-local-only (D23 warned)[/{theme.success}]")
     raise typer.Exit(code=0)
 
 
