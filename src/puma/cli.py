@@ -25,6 +25,7 @@ def _main(
         "--theme",
         help="Color theme: amber (default) or green. Overrides PUMA_THEME env var.",
     ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress display."),
 ) -> None:
     """PUMA — Local LLM benchmarking for project management tasks."""
     from rich.console import Console
@@ -41,9 +42,10 @@ def _main(
         Console(stderr=True).print(str(exc), style=THEMES["amber"].error)
         raise typer.Exit(code=2) from exc
 
-    # Make the resolved theme available to downstream subcommands.
+    # Make the resolved theme + quiet flag available to downstream subcommands.
     ctx.ensure_object(dict)
     ctx.obj["theme"] = resolved_theme
+    ctx.obj["quiet"] = quiet
 
     # When invoked with no subcommand, show the help (with the banner above it
     # unless suppressed). Subcommands return from here and run as before.
@@ -182,6 +184,7 @@ def cache(
 
 @app.command()
 def run(
+    ctx: typer.Context,
     spec: str = typer.Argument(..., help="Path to run-spec YAML"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Build prompts without calling Ollama"),
     ollama_host: str = typer.Option(
@@ -199,7 +202,15 @@ def run(
         typer.secho(f"[ERROR] Invalid run-spec: {exc}", fg=typer.colors.RED, err=True)
         raise typer.Exit(1) from exc
 
-    runner = Runner(run_spec, db_path=db_path, ollama_host=ollama_host, dry_run=dry_run)
+    obj = ctx.obj or {}
+    runner = Runner(
+        run_spec,
+        db_path=db_path,
+        ollama_host=ollama_host,
+        dry_run=dry_run,
+        theme=obj.get("theme"),
+        quiet=bool(obj.get("quiet", False)),
+    )
     try:
         summary = runner.run()
         typer.echo(f"\nRun complete: {summary['run_id']}")
