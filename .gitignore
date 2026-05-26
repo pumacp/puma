@@ -85,10 +85,18 @@ docs/internal/
 # GitNexus operational artifacts (auto-generated graph images, etc.)
 assets/img/*GitNexus*
 
-# Agent / AI tooling artifacts (environment, not project sources)
+# Local-only AI coding-assistant tooling (not in public remote).
+# AGENTS.md is intentionally NOT listed here — it is tracked as the public,
+# tool-neutral agent-context file.
 .claude/
-AGENTS.md
 CLAUDE.md
+.mcp.json
+.mcp/
+.cursor/
+.windsurf/
+.aider/
+.continue/
+.cody/
 
 # mkdocs build output
 site/
