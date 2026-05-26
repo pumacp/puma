@@ -13,6 +13,12 @@
   <a href="https://github.com/pumacp/puma/actions/workflows/lint-and-test.yml">
     <img src="https://github.com/pumacp/puma/actions/workflows/lint-and-test.yml/badge.svg" alt="Lint and test">
   </a>
+  <a href="https://github.com/pumacp/puma/actions/workflows/docs.yml">
+    <img src="https://github.com/pumacp/puma/actions/workflows/docs.yml/badge.svg?branch=develop" alt="Docs CI">
+  </a>
+  <a href="https://pumacp.github.io/puma/">
+    <img src="https://img.shields.io/badge/docs-pumacp.github.io%2Fpuma-blue" alt="Documentation">
+  </a>
   <img src="https://img.shields.io/badge/python-3.11+-blue" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT">
   <img src="https://img.shields.io/badge/runs%20on-Docker-2496ED?logo=docker&logoColor=white" alt="Runs on Docker">
