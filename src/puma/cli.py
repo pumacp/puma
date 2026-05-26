@@ -117,45 +117,6 @@ def preflight(
         raise typer.Exit(code=1)
 
 
-@app.command(name="models")
-def models_cmd(
-    action: str = typer.Argument("list", help="Action: list | pull"),
-    model: str | None = typer.Argument(None, help="Model tag (for pull)"),
-) -> None:
-    """List available models for the current profile, or pull a specific model."""
-    if action == "list":
-        from pathlib import Path
-
-        import yaml
-
-        catalog_path = Path("config/models_catalog.yaml")
-        if not catalog_path.exists():
-            typer.echo("models_catalog.yaml not found in config/")
-            raise typer.Exit(1)
-        with open(catalog_path) as fh:
-            data = yaml.safe_load(fh)
-        typer.echo(f"{'Model':<30} {'Params':>8}  {'Size':>8}  {'Profiles'}")
-        typer.echo("-" * 75)
-        for m in data["models"]:
-            profiles = ", ".join(m.get("profiles_compatible", []))
-            typer.echo(
-                f"{m['ollama_tag']:<30} {m['params_b']:>6}B  "
-                f"{m['gguf_size_gb']:>5.1f} GB  {profiles}"
-            )
-    elif action == "pull":
-        if not model:
-            typer.echo("Specify a model tag to pull, e.g.: puma models pull qwen2.5:3b")
-            raise typer.Exit(1)
-        import subprocess
-
-        typer.echo(f"Pulling {model}...")
-        result = subprocess.run(["ollama", "pull", model])
-        raise typer.Exit(result.returncode)
-    else:
-        typer.echo(f"Unknown action: {action!r}. Use 'list' or 'pull'.")
-        raise typer.Exit(1)
-
-
 @app.command()
 def datasets(
     action: str = typer.Argument("verify", help="Action: verify"),
@@ -613,70 +574,6 @@ def list_runs(
     Console().print(table)
 
 
-@app.command(name="list-ollama-models")
-def list_ollama_models(
-    json_output: bool = typer.Option(False, "--json", help="Emit JSON instead of a table"),
-) -> None:
-    """List models effectively present in the Ollama volume."""
-    import json as _json
-    import re
-    import subprocess
-
-    from rich.console import Console
-    from rich.table import Table
-
-    result = subprocess.run(
-        ["docker", "exec", "puma_ollama", "ollama", "list"],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        typer.secho(
-            f"[ERROR] Ollama did not respond (exit {result.returncode}): "
-            f"{result.stderr.strip() or 'no stderr'}",
-            fg=typer.colors.RED,
-            err=True,
-        )
-        raise typer.Exit(1)
-
-    lines = [ln for ln in result.stdout.splitlines() if ln.strip()]
-    if not lines or not lines[0].lower().startswith("name"):
-        typer.secho(
-            "[ERROR] Unexpected `ollama list` output (no header found)",
-            fg=typer.colors.RED,
-            err=True,
-        )
-        raise typer.Exit(1)
-
-    records: list[dict[str, Any]] = []
-    for ln in lines[1:]:
-        # Ollama list uses variable whitespace; collapse to single splits
-        parts = re.split(r"\s{2,}", ln.strip())
-        if len(parts) < 4:
-            continue
-        records.append(
-            {
-                "model_tag": parts[0],
-                "id": parts[1],
-                "size": parts[2],
-                "modified": parts[3],
-            }
-        )
-
-    if json_output:
-        typer.echo(_json.dumps(records, indent=2))
-        return
-
-    table = Table(title=f"Ollama models present in volume ({len(records)})")
-    table.add_column("model_tag")
-    table.add_column("ID")
-    table.add_column("size", justify="right")
-    table.add_column("modified")
-    for r in records:
-        table.add_row(r["model_tag"], r["id"], r["size"], r["modified"])
-    Console().print(table)
-
-
 @app.command(name="prepare-datasets")
 def prepare_datasets(
     dataset: str | None = typer.Option(
@@ -1124,6 +1021,91 @@ def env_command(ctx: typer.Context) -> None:
     endpoint = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
     env_info = collect_environment(theme, endpoint, Path("data/puma.db"))
     Console().print(render_env_table(theme, env_info))
+
+
+models_app = typer.Typer(
+    help="Discover and inspect Ollama models available to PUMA (read-only).",
+    no_args_is_help=True,
+)
+app.add_typer(models_app, name="models")
+
+_DEFAULT_OLLAMA_ENDPOINT = "http://localhost:11434"
+
+
+@models_app.command("list")
+def models_list(ctx: typer.Context) -> None:
+    """List models pulled locally in Ollama (read-only; via /api/tags)."""
+    import os
+
+    from rich.console import Console
+
+    from puma.models.client import OllamaUnreachable, list_local_models
+    from puma.ui.errors import print_error
+    from puma.ui.models_view import render_models_list_table
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    verbose = bool(obj.get("verbose", False))
+    endpoint = os.environ.get("OLLAMA_HOST", _DEFAULT_OLLAMA_ENDPOINT)
+    try:
+        models = list_local_models(endpoint=endpoint)
+    except OllamaUnreachable as exc:
+        print_error(Console(stderr=True), theme, exc, show_traceback=verbose)
+        raise typer.Exit(code=1) from exc
+    Console().print(render_models_list_table(theme, models))
+
+
+@models_app.command("show")
+def models_show(
+    ctx: typer.Context,
+    name: str = typer.Argument(..., help="Ollama model name (e.g., qwen2.5:3b)"),
+) -> None:
+    """Show details for one locally-pulled Ollama model (read-only; via /api/show)."""
+    import os
+
+    from rich.console import Console
+
+    from puma.models.client import ModelNotFound, OllamaUnreachable, show_local_model
+    from puma.ui.errors import print_error
+    from puma.ui.models_view import render_model_show_panel
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    verbose = bool(obj.get("verbose", False))
+    endpoint = os.environ.get("OLLAMA_HOST", _DEFAULT_OLLAMA_ENDPOINT)
+    try:
+        model = show_local_model(endpoint=endpoint, name=name)
+    except (ModelNotFound, OllamaUnreachable) as exc:
+        print_error(Console(stderr=True), theme, exc, show_traceback=verbose)
+        raise typer.Exit(code=1) from exc
+    Console().print(render_model_show_panel(theme, model))
+
+
+@models_app.command("recommended")
+def models_recommended(ctx: typer.Context) -> None:
+    """Show the curated PUMA catalog with current local availability (read-only)."""
+    import os
+
+    from rich.console import Console
+
+    from puma.models.catalog import load_curated, merge_with_local
+    from puma.models.client import OllamaUnreachable, list_local_models
+    from puma.ui.models_view import render_recommended_table
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    endpoint = os.environ.get("OLLAMA_HOST", _DEFAULT_OLLAMA_ENDPOINT)
+    try:
+        local = list_local_models(endpoint=endpoint)
+    except OllamaUnreachable:
+        # Graceful degradation: render the curated table with Local? all "—"
+        # rather than failing the whole command when Ollama is down.
+        local = []
+    pairs = merge_with_local(load_curated(), local)
+    Console().print(render_recommended_table(theme, pairs))
 
 
 app.add_typer(auth_app, name="auth")
