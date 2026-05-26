@@ -31,6 +31,9 @@ def _main(
     ),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress display."),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show full traceback on errors."),
+    no_summary: bool = typer.Option(
+        False, "--no-summary", help="Suppress the post-run summary table."
+    ),
 ) -> None:
     """PUMA — Local LLM benchmarking for project management tasks."""
     from rich.console import Console
@@ -59,6 +62,7 @@ def _main(
     ctx.obj["theme"] = resolved_theme
     ctx.obj["quiet"] = quiet
     ctx.obj["verbose"] = verbose
+    ctx.obj["no_summary"] = no_summary
 
     # When invoked with no subcommand, show the help (with the banner above it
     # unless suppressed). Subcommands return from here and run as before.
@@ -231,6 +235,7 @@ def run(
         dry_run=dry_run,
         theme=obj.get("theme"),
         quiet=bool(obj.get("quiet", False)),
+        summary=not bool(obj.get("no_summary", False)),
     )
     try:
         summary = runner.run()
