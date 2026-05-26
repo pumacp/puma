@@ -21,3 +21,12 @@ puma run specs/runs/baseline_triage.yaml # run a baseline benchmark
 - **[Sustainability](sustainability.md)** — emissions-tracking methodology and energy results.
 - **[Known Debt](known_debt.md)** — tracked findings (the D-series) and P1 captures.
 - **Releases** — release notes, starting with the current `v3.1.0`.
+
+## How this site is built
+
+This documentation is built with [MkDocs](https://www.mkdocs.org/) and the
+Material theme, and published automatically to GitHub Pages on every push to
+`develop`. A [GitHub Actions workflow](https://github.com/pumacp/puma/blob/develop/.github/workflows/docs.yml)
+builds the site with `mkdocs build --strict` — which fails on broken links or
+nav issues — and deploys the result to the `gh-pages` branch. To preview the
+site locally, run `bash scripts/serve_docs.sh` and open <http://127.0.0.1:8000>.
