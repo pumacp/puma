@@ -1111,8 +1111,39 @@ def models_recommended(ctx: typer.Context) -> None:
 app.add_typer(auth_app, name="auth")
 app.add_typer(share_results_app, name="share-results")
 # The four community verbs self-register on community_app via decorators when
-# their modules are imported (puma.community.__init__ imports all four).
+# their modules are imported (puma.community.__init__ imports all four). The two
+# read-only visibility commands below register on the same group.
 app.add_typer(community_app, name="community")
+
+
+@community_app.command("status")
+def community_status(ctx: typer.Context) -> None:
+    """Show local PUMA Community status (auth, last submission, channels)."""
+    from rich.console import Console
+
+    from puma.community.channels import CHANNELS, enrich_with_local_state
+    from puma.community.status import collect_status
+    from puma.ui.community_view import render_status_panel
+    from puma.ui.themes import get_theme
+
+    theme = (ctx.obj or {}).get("theme") or get_theme(None)
+    channels = enrich_with_local_state(CHANNELS)
+    status = collect_status(tuple(channels))
+    Console().print(render_status_panel(theme, status))
+
+
+@community_app.command("channels")
+def community_channels(ctx: typer.Context) -> None:
+    """List the PUMA Community distribution channels and their local config."""
+    from rich.console import Console
+
+    from puma.community.channels import CHANNELS, enrich_with_local_state
+    from puma.ui.community_view import render_channels_table
+    from puma.ui.themes import get_theme
+
+    theme = (ctx.obj or {}).get("theme") or get_theme(None)
+    channels = enrich_with_local_state(CHANNELS)
+    Console().print(render_channels_table(theme, channels))
 
 
 def main() -> None:
