@@ -1,0 +1,22 @@
+# DEMO-ONLY spec (S12.12 / E5 publication-flow demo). NOT a baseline.
+#
+# A small triage subset used solely to exercise the end-to-end publication flow
+# (puma run -> share-results --dry-run -> verify-hash) quickly. Its metrics are
+# NOT PUMA results and must not be cited as such — use
+# specs/runs/baseline_triage.yaml for the canonical triage baseline.
+id: demo_publication_v1
+description: "Demo-only: triage_jira x qwen2.5:3b x zero-shot, 15 instances, publication-flow demo (S12.12). Not a baseline."
+scenario: triage_jira
+sample_size: 15
+models:
+  - qwen2.5:3b
+adaptation:
+  strategy: [zero-shot]
+inference:
+  temperature: 0.0
+  seed: 42
+metrics:
+  - f1_macro
+sustainability:
+  codecarbon: true
+repeat: 1
