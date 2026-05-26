@@ -14,11 +14,13 @@ from typing import TYPE_CHECKING, Any
 import structlog
 
 from puma.orchestrator.runspec import RunSpec
+from puma.runtime.retry import DEFAULT_POLICY, RetryPolicy, retry_call
 
 if TYPE_CHECKING:
     import pandas as pd
     from sqlalchemy.orm import Session
 
+    from puma.runtime.client import GenerationResult, OllamaClient
     from puma.scenarios.base import Scenario
     from puma.ui.themes import Theme
 
@@ -40,6 +42,7 @@ class Runner:
         theme: Theme | None = None,
         quiet: bool = False,
         summary: bool = True,
+        retry_policy: RetryPolicy | None = None,
     ) -> None:
         self.spec = spec
         self.db_path = Path(db_path)
@@ -51,6 +54,10 @@ class Runner:
         self._theme = theme
         self.quiet = quiet
         self.summary = summary
+        # Bounded, deterministic retry for transient inference failures only.
+        # Defaults never fire in a healthy environment, so baselines are
+        # unaffected; see puma.runtime.retry.
+        self._retry_policy = retry_policy if retry_policy is not None else DEFAULT_POLICY
         self.run_id = f"{spec.id}__{spec.spec_hash()}__{_ts()}"
 
     # ------------------------------------------------------------------
@@ -247,6 +254,34 @@ class Runner:
     # Internal helpers
     # ------------------------------------------------------------------
 
+    def _infer_one(self, client: OllamaClient, model: str, prompt: str) -> GenerationResult:
+        """Run one inference call with bounded, deterministic retry.
+
+        Retries only transient failures (see ``puma.runtime.retry``); a call
+        that succeeds is never retried. ``model``/``prompt``/``client`` are
+        method parameters here (not loop variables), so the retry closures are
+        safe and carry no per-iteration aliasing. The transient-error recovery
+        is the only new behavior; output on success is unchanged.
+        """
+        return retry_call(
+            lambda: client.generate_sync(
+                model=model,
+                prompt=prompt,
+                temperature=self.spec.inference.temperature,
+                seed=self.spec.inference.seed,
+                max_tokens=self.spec.inference.max_tokens,
+                logprobs=self.spec.inference.logprobs,
+                top_logprobs=self.spec.inference.top_logprobs,
+            ),
+            self._retry_policy,
+            on_retry=lambda n, e: logger.warning(
+                "inference.retry",
+                model=model,
+                attempt=n,
+                error=f"{type(e).__name__}: {e}",
+            ),
+        )
+
     def _execute_inferences(self, results_dir: Path) -> list[dict[str, Any]]:
         from puma.adaptation.strategies import get_strategy
         from puma.runtime.cache import InferenceCache
@@ -306,22 +341,23 @@ class Runner:
                             else:
                                 t0 = time.time()
                                 try:
-                                    result = client.generate_sync(
-                                        model=model,
-                                        prompt=prompt,
-                                        temperature=self.spec.inference.temperature,
-                                        seed=self.spec.inference.seed,
-                                        max_tokens=self.spec.inference.max_tokens,
-                                        logprobs=self.spec.inference.logprobs,
-                                        top_logprobs=self.spec.inference.top_logprobs,
-                                    )
+                                    # Transient inference failures are retried
+                                    # inside _infer_one (deterministic, bounded); a
+                                    # call that succeeds is never retried, so output
+                                    # is unchanged in a healthy environment.
+                                    result = self._infer_one(client, model, prompt)
                                     raw_response = result.response
                                     latency_ms = (time.time() - t0) * 1000
                                     tokens_in = result.prompt_eval_count
                                     tokens_out = result.eval_count
                                     logprobs_raw = result.logprobs
                                 except Exception as exc:
-                                    logger.warning("inference.error", model=model, error=str(exc))
+                                    logger.warning(
+                                        "inference.error",
+                                        model=model,
+                                        attempts=self._retry_policy.max_attempts,
+                                        error=str(exc),
+                                    )
                                     raw_response = ""
                                     latency_ms = (time.time() - t0) * 1000
                                     tokens_in = tokens_out = 0
