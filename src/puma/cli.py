@@ -17,15 +17,39 @@ app = typer.Typer(
 
 
 @app.callback(invoke_without_command=True)
-def _main(ctx: typer.Context) -> None:
+def _main(
+    ctx: typer.Context,
+    no_banner: bool = typer.Option(False, "--no-banner", "-B", help="Suppress the startup banner."),
+    theme: str | None = typer.Option(
+        None,
+        "--theme",
+        help="Color theme: amber (default) or green. Overrides PUMA_THEME env var.",
+    ),
+) -> None:
     """PUMA — Local LLM benchmarking for project management tasks."""
-    # When invoked with no subcommand, show the retro banner above the help
-    # text (replaces the previous no_args_is_help behaviour). Subcommands are
-    # unaffected: the callback returns immediately when one is given.
-    if ctx.invoked_subcommand is None:
-        from puma.ui.banner import print_banner
+    from rich.console import Console
 
-        print_banner()
+    from puma.ui.banner import print_banner
+    from puma.ui.themes import THEMES, get_theme
+
+    # Resolve the theme for every invocation (precedence: --theme > PUMA_THEME
+    # > amber). On an unknown theme, report on stderr and exit 2. The requested
+    # theme is invalid here, so the error is styled with the default theme.
+    try:
+        resolved_theme = get_theme(theme)
+    except ValueError as exc:
+        Console(stderr=True).print(str(exc), style=THEMES["amber"].error)
+        raise typer.Exit(code=2) from exc
+
+    # Make the resolved theme available to downstream subcommands.
+    ctx.ensure_object(dict)
+    ctx.obj["theme"] = resolved_theme
+
+    # When invoked with no subcommand, show the help (with the banner above it
+    # unless suppressed). Subcommands return from here and run as before.
+    if ctx.invoked_subcommand is None:
+        if not no_banner:
+            print_banner(Console(), resolved_theme)
         typer.echo(ctx.get_help())
         raise typer.Exit()
 
