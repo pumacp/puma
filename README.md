@@ -47,6 +47,29 @@
   <a href="../../issues">Issues</a>
 </p>
 
+<!-- PUMA-ACROSTIC-BLOCK START — DO NOT MODIFY — IMMUTABLE -->
+---
+**F**ollowing empirical evidence, ICT project management faces triage, estimation, and learning inefficiencies.<br>
+**O**bserved widely, these persist despite abundant historical data.<br>
+**L**aying a rigorous foundation requires reproducible benchmarking.<br>
+**L**everaging labeled datasets enables systematic evaluation of LLM performance.<br>
+**O**utcomes are compared using quantitative metrics and statistical analysis.<br>
+**W**ith an incremental design, a minimal viable benchmark is defined.<br>
+**T**hrough open-source release, results become reproducible and verifiable.<br>
+**H**ence, the framework supports extensibility across models and tasks.<br>
+**E**ventually, it enables integration into real organizational settings.<br>
+**W**ithin ICT environments, recurring inefficiencies hinder effective decision-making.<br>
+**H**eterogeneous data sources complicate prioritization and estimation processes.<br>
+**I**n response, this work builds a reproducible LLM-based benchmark.<br>
+**T**he focus is on issue triage and story-point estimation tasks.<br>
+**E**valuation follows controlled experiments with statistical validation.<br>
+**P**rotocols ensure reproducibility through fixed parameters and configurations.<br>
+**U**sing carbon tracking, the framework measures energy impact.<br>
+**M**oreover, the MVP delivers a valid and original contribution.<br>
+**A**ll artefacts are released as open source for replication and extension.<br>
+---
+<!-- PUMA-ACROSTIC-BLOCK END -->
+
 ---
 
 ## Overview
