@@ -124,3 +124,27 @@ class TestCliFlags:
         result = runner.invoke(app, ["--no-banner", "--quiet", "run", "/no/such.yaml"])
         assert result.exit_code == 1
         assert captured.get("show_traceback") is False
+
+    def test_no_summary_flag_stored_in_ctx_obj(self, monkeypatch, tmp_path):
+        monkeypatch.delenv("PUMA_THEME", raising=False)
+        result, captured = _invoke_run(monkeypatch, tmp_path, ["--no-summary"])
+        assert result.exit_code == 0
+        assert captured.get("summary") is False
+
+    def test_no_summary_independent_of_quiet_and_no_banner(self, monkeypatch, tmp_path):
+        monkeypatch.delenv("PUMA_THEME", raising=False)
+        # default: summary on, quiet off.
+        _, cap_default = _invoke_run(monkeypatch, tmp_path, [])
+        assert cap_default.get("summary") is True
+        assert cap_default.get("quiet") is False
+        # --no-summary alone: summary off, quiet still off (independent).
+        _, cap_ns = _invoke_run(monkeypatch, tmp_path, ["--no-summary"])
+        assert cap_ns.get("summary") is False
+        assert cap_ns.get("quiet") is False
+        # --quiet alone: quiet on, summary still on (independent).
+        _, cap_q = _invoke_run(monkeypatch, tmp_path, ["--quiet"])
+        assert cap_q.get("quiet") is True
+        assert cap_q.get("summary") is True
+        # --no-summary alone does NOT suppress the banner.
+        bare = runner.invoke(app, ["--no-summary"])
+        assert "_|_|" in bare.output
