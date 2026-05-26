@@ -39,15 +39,18 @@ class Runner:
         dry_run: bool = False,
         theme: Theme | None = None,
         quiet: bool = False,
+        summary: bool = True,
     ) -> None:
         self.spec = spec
         self.db_path = Path(db_path)
         self.ollama_host = ollama_host
         self.dry_run = dry_run
-        # Display-only: theme/quiet style the progress bar; they never affect
-        # the data path. theme=None resolves to the default at run time.
+        # Display-only: theme/quiet/summary style the progress bar and the
+        # end-of-run summary; they never affect the data path. theme=None
+        # resolves to the default at run time.
         self._theme = theme
         self.quiet = quiet
+        self.summary = summary
         self.run_id = f"{spec.id}__{spec.spec_hash()}__{_ts()}"
 
     # ------------------------------------------------------------------
@@ -67,12 +70,13 @@ class Runner:
 
         logger.info("run.start", run_id=self.run_id, spec_hash=self.spec.spec_hash())
 
+        resolved_profile = _resolve_run_profile(self.spec)
         with session_scope() as db:
             run_record = Run(
                 run_id=self.run_id,
                 spec_hash=self.spec.spec_hash(),
                 spec_yaml=json.dumps(self.spec.model_dump(), default=str),
-                profile=_resolve_run_profile(self.spec),
+                profile=resolved_profile,
                 started_at=datetime.now(UTC),
                 status="running",
             )
@@ -177,7 +181,67 @@ class Runner:
             duration_s=round(duration_s, 1),
             n_predictions=len(predictions),
         )
+        if self.summary:
+            self._emit_summary(
+                predictions=predictions,
+                metrics=metrics,
+                profile=resolved_profile,
+                duration_s=duration_s,
+                emissions_data=emissions_data,
+            )
         return {"run_id": self.run_id, "metrics": metrics, "n_predictions": len(predictions)}
+
+    def _emit_summary(
+        self,
+        *,
+        predictions: list[dict[str, Any]],
+        metrics: dict[str, Any],
+        profile: str | None,
+        duration_s: float,
+        emissions_data: Any,
+    ) -> None:
+        """Render the themed end-of-run summary to stderr (terminal only).
+
+        Read-only and defensive: auto-suppressed on a non-terminal stderr
+        (mirrors progress), and any rendering failure is logged at debug rather
+        than failing an otherwise-successful run.
+        """
+        from rich.console import Console
+
+        from puma.ui.summary import print_run_summary
+        from puma.ui.themes import get_theme
+
+        console = Console(stderr=True)
+        if not console.is_terminal:
+            return
+        try:
+            theme = self._theme if self._theme is not None else get_theme(None)
+            succeeded = sum(1 for p in predictions if p.get("parsed_label") is not None)
+            flat = dict(_flatten_metrics(metrics))
+            metric_name = next(
+                (m for m in self.spec.metrics if m in flat),
+                next(iter(flat), "metric"),
+            )
+            emissions_g = float(emissions_data.emissions) * 1000.0 if emissions_data else None
+            print_run_summary(
+                console,
+                theme,
+                run_id=self.run_id,
+                task=self.spec.scenario,
+                model=", ".join(self.spec.models),
+                profile=profile or "—",
+                samples_total=len(predictions),
+                samples_succeeded=succeeded,
+                samples_failed=len(predictions) - succeeded,
+                primary_metric_name=metric_name,
+                primary_metric_value=float(flat.get(metric_name, float("nan"))),
+                runtime_seconds=duration_s,
+                emissions_g_co2=emissions_g,
+                predictions_path=None,
+            )
+        except Exception as exc:
+            # A display nicety must never fail an otherwise-successful run.
+            logger.debug("run.summary_failed", run_id=self.run_id, error=str(exc))
 
     # ------------------------------------------------------------------
     # Internal helpers
