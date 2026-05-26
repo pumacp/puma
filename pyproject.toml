@@ -44,6 +44,11 @@ dev = [
     "mypy>=1.10",
     "pre-commit>=3.7",
 ]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "pymdown-extensions>=10.7",
+]
 
 [project.scripts]
 puma = "puma.cli:main"
