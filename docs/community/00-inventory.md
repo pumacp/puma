@@ -24,7 +24,7 @@ implementation plan. **No source file was modified.** This file is the only addi
 
 ```
 .
-├── .claude/                       # Claude Code config (gitignored)
+├── .agents/                       # the AI coding assistant config (gitignored)
 ├── .git/
 ├── .githooks/                     # Project-managed commit-msg hooks
 ├── .github/
@@ -61,7 +61,7 @@ implementation plan. **No source file was modified.** This file is the only addi
     └── conftest.py                # Single top-level pytest fixture file
 ```
 
-Top-level files at repo root: `AGENTS.md`, `CLAUDE.md`, `CHANGELOG.md` (1100+ lines),
+Top-level files at repo root: `AGENTS.md`, `CHANGELOG.md` (1100+ lines),
 `CONTRIBUTING.md`, `INDEX.md`, `README.md`, `Makefile`, `Dockerfile`,
 `docker-compose.yml`, `pyproject.toml`, `pytest.ini`, `requirements.txt`,
 `requirements-dev.txt`, `alembic.ini`, `start_puma.sh`, `stop_puma_native.sh`,
