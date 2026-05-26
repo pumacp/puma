@@ -131,6 +131,8 @@ class TestShowLocalModel:
 
 @pytest.mark.unit
 def test_local_model_is_frozen():
+    from dataclasses import FrozenInstanceError
+
     m = LocalModel(name="x", size_bytes=1, digest="d", modified_at="m")
-    with pytest.raises(Exception):
+    with pytest.raises(FrozenInstanceError):
         m.name = "y"  # type: ignore[misc]

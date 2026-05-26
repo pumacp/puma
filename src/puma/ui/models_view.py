@@ -20,8 +20,7 @@ if TYPE_CHECKING:
     from puma.models.client import LocalModel
 
 _RECOMMENDED_FOOTER = (
-    "Local? column reflects current Ollama state; "
-    "`ollama pull <name>` to fetch missing models."
+    "Local? column reflects current Ollama state; `ollama pull <name>` to fetch missing models."
 )
 
 
@@ -116,9 +115,7 @@ def render_recommended_table(
     table.add_column("Rationale")
     for curated, local in pairs:
         local_cell = (
-            Text("✓", style=theme.success)
-            if local is not None
-            else Text("—", style=theme.muted)
+            Text("✓", style=theme.success) if local is not None else Text("—", style=theme.muted)
         )
         table.add_row(
             curated.name,
