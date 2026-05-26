@@ -342,6 +342,17 @@ complement to this docs-sync work.
 affected doc to reference the new commands and regenerate
 `docs/cli_reference.md` (its lock lifted there).
 
+**Update (S12.11, 2026-05-26).** mkdocs scaffolding is in place (Material theme,
+`mkdocs build --strict` green). The published site is intentionally MINIMAL —
+nav surfaces only `index`, `cli_reference`, `sustainability`, `known_debt`, and
+`RELEASES/v3.1.0`; every other doc is held out of the build via `exclude_docs`
+(kept on disk, not deleted). The stale user-facing docs (`user_guide`,
+`troubleshooting`, `adding_models`), the remaining reference docs, the older
+release notes, and `RELEASES/v3.0.0.md` (its `../../CHANGELOG.md` link aborts
+strict and the file is locked) are all queued for the S12.17 content sync, which
+will fix their links/content and add them to the nav. `overview.md` also has
+broken `../CONTRIBUTING.md` / `../CHANGELOG.md` links to repair in S12.17.
+
 **P1 capture (P1-S12.9-COORD-01).** Coordinator-level prompt drift: the S12.9
 prompt assumed `puma models` was greenfield, but a legacy
 `@app.command(name="models")` plus a separate `puma list-ollama-models`
