@@ -6,6 +6,7 @@
 # Local-only AI coding-assistant tooling
 .claude/
 CLAUDE.md
+AGENTS.md
 .mcp.json
 .mcp/
 .cursor/
