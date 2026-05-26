@@ -433,6 +433,35 @@ greenfield assumption, P1-S12.9-COORD-02 bit-exact assumption). All four share
 the same upstream root cause: coordinator prompts over-asserting determinism in
 an LLM-local stochastic system.
 
+#### P1-S12.12-COORD-01 — Coordinator prompt assumed wrong CLI surface for share-results / verify-hash
+
+Scope: the S12.12 prompt scripted `puma share-results --output-dir … --spec …`
+and `puma verify-hash <file>` as if they were top-level subcommands with those
+flag names. The actual CLI surface is:
+
+- `puma share-results --dry-run --run-id <id> --yes` (output dir via env `PUMA_DRY_RUN_DIR`)
+- `puma community verify-hash <submission> --predictions <jsonl>`
+- run_id parsed from `puma run` stdout line: `Run complete: <run_id>`
+
+Plus: no small demo spec existed in `specs/runs/`, so
+`specs/runs/demo_publication.yaml` had to be created in-phase (the single
+justified `specs/runs/` exception per the S12.12 prompt).
+
+Detected by: executor's discovery pass (read `share_cli.py` + `verify_cli.py`
+before scripting the demo).
+
+Resolution: prompt-time assumptions corrected in-place via the executor's
+discovery → adapt loop; demo script and tests use the real surface. Future
+Sprint 12 prompts that wire existing CLI commands must REQUIRE a discovery step
+before scripting flags (already the pattern; reinforce in the next phases).
+
+Pattern: fifth coordinator-level prompt drift of Sprint 12 (P1-S12.2-COORD-01
+nonexistent module, P1-S12.7b-COORD-01 hash-level gate, P1-S12.9-COORD-01
+greenfield assumption, P1-S12.9-COORD-02 bit-exact MAE assumption,
+P1-S12.12-COORD-01 CLI surface assumption). Root cause across all five:
+coordinator (chat-side) prompts under-grounded in current repo state; mitigated
+each time by the executor's audit-before-write discipline.
+
 ## Resolved technical debt
 
 Items previously tracked as open technical debt that have been fully
