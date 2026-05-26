@@ -86,10 +86,11 @@ docs/internal/
 assets/img/*GitNexus*
 
 # Local-only AI coding-assistant tooling (not in public remote).
-# AGENTS.md is intentionally NOT listed here — it is tracked as the public,
-# tool-neutral agent-context file.
+# AGENTS.md is auto-regenerated locally by GitNexus; untracked to avoid the
+# re-neutralization friction on every index refresh.
 .claude/
 CLAUDE.md
+AGENTS.md
 .mcp.json
 .mcp/
 .cursor/
