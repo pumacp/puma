@@ -46,7 +46,7 @@ dev = [
 ]
 
 [project.scripts]
-puma = "puma.cli:app"
+puma = "puma.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
