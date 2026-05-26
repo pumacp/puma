@@ -89,3 +89,6 @@ assets/img/*GitNexus*
 .claude/
 AGENTS.md
 CLAUDE.md
+
+# mkdocs build output
+site/
