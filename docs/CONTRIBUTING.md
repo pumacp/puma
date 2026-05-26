@@ -60,7 +60,7 @@ acceptance criteria.
 
 The repository's `core.hooksPath` is set to `.githooks/`. The
 `commit-msg` hook automatically strips `Co-authored-by:`,
-`Signed-off-by: Claude`, and `Generated-by:` trailers from commit
+`Signed-off-by:`, and `Generated-by:` trailers from commit
 messages. Commits are attributed exclusively to the git identity
 configured in `~/.gitconfig` (or the per-repository config).
 

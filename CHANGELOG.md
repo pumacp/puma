@@ -1016,7 +1016,7 @@ Sprint 6:
   to reflect actual behavior (it processes a local TAWOS SQL dump, does
   not download). References updated across `src/puma/datasets/tawos.py`,
   `data/README.md`, `docs/user_guide.md`, `docs/troubleshooting.md`, and
-  the future Phase D directives in `docs/internal/claude-code-prompts/PROMPT-D-tecnico.md`.
+  the future Phase D directives in `docs/internal/agent-prompts/PROMPT-D-tecnico.md`.
   Historical mentions retained in `docs/known_debt.md` (F4) and
   `docs/baseline_inventory.md` (pre-Phase-0 snapshot). Closes debt D13.
 - `pyproject.toml` version bumped from `2.0.0-dev` to `2.1.0-dev` —
@@ -1220,7 +1220,7 @@ Sprint 6:
 - `puma db` CLI: refactored from single argument-dispatch (`db <action>`) to sub-Typer with explicit `migrate`, `downgrade`, `history`, `status` subcommands (decision S1: `status` preserved as subcommand)
 - Datasets: small processed CSVs (`jira_balanced_200.csv`, `tawos_clean.csv`, `tawos_raw.csv`, ~12 MB total) tracked in repo; SQL dumps and large artifacts remain gitignored
 - Repository hygiene: removed build artifacts and legacy prototype code from versioning (~31k lines deleted): `__pycache__/`, `*.pyc`, `agents/`, `src/{cleanup,data_prep,evaluate_*,history,rag_index,statistical_analysis}.py`, `reports/`
-- Internal operational documents (`CLAUDE_CODE_INSTRUCTIONS.md`, audit reports) relocated to `docs/internal/` (gitignored)
+- Internal operational documents (`AGENT_INSTRUCTIONS.md`, audit reports) relocated to `docs/internal/` (gitignored)
 - `README.md` updated with positive independence statement asserting that PUMA is a self-contained benchmarking framework with evaluation methodology developed independently
 
 ### Fixed
