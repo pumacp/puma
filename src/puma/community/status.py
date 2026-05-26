@@ -67,7 +67,7 @@ def _detect_authentication() -> tuple[bool, str | None]:
         from puma.community.credentials import CredentialStore
 
         token = CredentialStore().get(_GITHUB_SERVICE)
-    except Exception as exc:  # noqa: BLE001 — status must never raise
+    except Exception as exc:  # status must never raise — degrade to unauthenticated
         log.debug("auth detection failed, treating as unauthenticated: %s", exc)
         return False, None
     return bool(token), None
