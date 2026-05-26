@@ -1,0 +1,105 @@
+site_name: "PUMA"
+site_description: "Local LLM benchmarks for project management tasks"
+site_url: "https://pumacp.github.io/puma/"
+repo_url: "https://github.com/pumacp/puma"
+repo_name: "pumacp/puma"
+edit_uri: ""
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep orange
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: "Switch to dark mode"
+    - scheme: slate
+      primary: deep orange
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: "Switch to light mode"
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - CLI Reference: cli_reference.md
+  - Sustainability: sustainability.md
+  - Known Debt: known_debt.md
+  - Releases:
+      - "v3.1.0": RELEASES/v3.1.0.md
+
+# This is the v4.0.0 MINIMAL site: the build contains ONLY the curated
+# current-and-correct pages above. Every other doc is excluded from the build
+# (not deleted — it stays on disk for the S12.17 content sync, D30). exclude_docs
+# is used rather than not_in_nav because `mkdocs build --strict` still
+# link-checks built-but-unlinked pages, and several excluded docs contain links
+# that strict mode rejects (see notes below).
+#
+# Excluded and why:
+#   - internal/ ............. gitignored project-internal prompts/notes; must
+#                            never be published.
+#   - sprints/, community/, decisions/, maintenance/, results/ .. internal
+#                            project records, not user-facing.
+#   - RELEASES/v2.*.md, v3.0.0.md .. historical release notes; v3.0.0.md links
+#                            to ../../CHANGELOG.md (outside docs/), which aborts
+#                            strict and lives in a file locked this phase — so
+#                            v3.0.0 is held out of nav too, pending S12.17.
+#   - user_guide / troubleshooting / adding_models .. STALE (D30), reference
+#                            removed commands; queued for the S12.17 sync.
+#   - overview.md ........... broken ../CONTRIBUTING.md and ../CHANGELOG.md links.
+#   - remaining reference docs (architecture, metrics_reference, ...) .. valid
+#                            but out of the minimal v4.0.0 scope; surfaced in S12.17.
+exclude_docs: |
+  internal/
+  sprints/
+  community/
+  decisions/
+  maintenance/
+  results/
+  RELEASES/v2.*.md
+  RELEASES/v3.0.0.md
+  adding_models.md
+  adding_scenarios.md
+  architecture.md
+  baseline_inventory.md
+  baseline_references.md
+  CATALOG_HISTORY.md
+  CONTRIBUTING.md
+  CROSS_ARCH_REPRODUCIBILITY.md
+  HARDWARE.md
+  MACOS_NOTES.md
+  metrics_reference.md
+  open_questions.md
+  overview.md
+  PROJECT_TECHNICAL_CLOSURE.md
+  scenarios_reference.md
+  TESTING.md
+  troubleshooting.md
+  user_guide.md
