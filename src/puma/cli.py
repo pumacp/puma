@@ -15,6 +15,10 @@ app = typer.Typer(
     help="PUMA — Local LLM benchmarking for project management tasks.",
 )
 
+# Resolved CLI state (theme + verbose) recorded by the root callback so the
+# top-level main() wrapper can render errors with the same theme/verbosity.
+_CLI_STATE: dict[str, Any] = {}
+
 
 @app.callback(invoke_without_command=True)
 def _main(
@@ -26,26 +30,35 @@ def _main(
         help="Color theme: amber (default) or green. Overrides PUMA_THEME env var.",
     ),
     quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress display."),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show full traceback on errors."),
 ) -> None:
     """PUMA — Local LLM benchmarking for project management tasks."""
     from rich.console import Console
 
     from puma.ui.banner import print_banner
+    from puma.ui.errors import format_error_panel, install_themed_traceback
     from puma.ui.themes import THEMES, get_theme
 
     # Resolve the theme for every invocation (precedence: --theme > PUMA_THEME
-    # > amber). On an unknown theme, report on stderr and exit 2. The requested
-    # theme is invalid here, so the error is styled with the default theme.
+    # > amber). On an unknown theme there is no valid theme to style with, so
+    # the panel uses the default theme; exit 2 is unchanged.
     try:
         resolved_theme = get_theme(theme)
     except ValueError as exc:
-        Console(stderr=True).print(str(exc), style=THEMES["amber"].error)
+        Console(stderr=True).print(format_error_panel(THEMES["amber"], "Unknown theme", str(exc)))
         raise typer.Exit(code=2) from exc
 
-    # Make the resolved theme + quiet flag available to downstream subcommands.
+    # Install the themed Rich traceback handler for any uncaught path, and
+    # record state for the top-level main() wrapper.
+    install_themed_traceback(resolved_theme, show_locals=False)
+    _CLI_STATE["theme"] = resolved_theme
+    _CLI_STATE["verbose"] = verbose
+
+    # Make the resolved theme + flags available to downstream subcommands.
     ctx.ensure_object(dict)
     ctx.obj["theme"] = resolved_theme
     ctx.obj["quiet"] = quiet
+    ctx.obj["verbose"] = verbose
 
     # When invoked with no subcommand, show the help (with the banner above it
     # unless suppressed). Subcommands return from here and run as before.
@@ -193,16 +206,24 @@ def run(
     db_path: str = typer.Option("data/puma.db", "--db"),
 ) -> None:
     """Execute a benchmark run-spec."""
+    from rich.console import Console
+
     from puma.orchestrator.runner import Runner
     from puma.orchestrator.runspec import RunSpec
+    from puma.ui.errors import print_error
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    verbose = bool(obj.get("verbose", False))
+    err_console = Console(stderr=True)
 
     try:
         run_spec = RunSpec.from_yaml(spec)
     except Exception as exc:
-        typer.secho(f"[ERROR] Invalid run-spec: {exc}", fg=typer.colors.RED, err=True)
+        print_error(err_console, theme, exc, show_traceback=verbose)
         raise typer.Exit(1) from exc
 
-    obj = ctx.obj or {}
     runner = Runner(
         run_spec,
         db_path=db_path,
@@ -219,7 +240,7 @@ def run(
             if isinstance(v, int | float):
                 typer.echo(f"  {k}: {v:.4f}")
     except Exception as exc:
-        typer.secho(f"[ERROR] Run failed: {exc}", fg=typer.colors.RED, err=True)
+        print_error(err_console, theme, exc, show_traceback=verbose)
         raise typer.Exit(1) from exc
 
 
@@ -1066,5 +1087,48 @@ app.add_typer(share_results_app, name="share-results")
 # their modules are imported (puma.community.__init__ imports all four).
 app.add_typer(community_app, name="community")
 
+
+def main() -> None:
+    """Console-script entry point with themed, exit-code-preserving errors.
+
+    Runs the Typer app with Click's ``standalone_mode=False`` so this wrapper
+    controls rendering and exit codes (all preserved from prior behavior):
+      - ``typer.Exit(code)`` / ``--help`` -> app returns the code; we exit it.
+      - usage errors (``ClickException``) -> Click's own message, exit 2.
+      - ``KeyboardInterrupt`` (Click delivers it as ``Abort``) -> themed
+        "Interrupted." panel, exit 130.
+      - expected / unexpected errors -> themed panel (+ traceback if --verbose),
+        exit 1.
+    Theme/verbosity come from the state the root callback recorded.
+    """
+    import click
+    from rich.console import Console
+
+    from puma.ui.errors import format_error_panel, print_error
+    from puma.ui.themes import get_theme
+
+    console = Console(stderr=True)
+    try:
+        exit_code = app(standalone_mode=False)
+    except click.exceptions.Exit as exc:  # defensive; Click usually returns the code
+        raise SystemExit(exc.exit_code) from None
+    except (click.exceptions.Abort, KeyboardInterrupt):
+        theme = _CLI_STATE.get("theme") or get_theme(None)
+        console.print(format_error_panel(theme, "Interrupted.", "Operation cancelled by user."))
+        raise SystemExit(130) from None
+    except click.ClickException as exc:  # usage errors, bad parameters, etc.
+        exc.show()
+        raise SystemExit(exc.exit_code) from None
+    except SystemExit:
+        raise
+    except BaseException as exc:
+        theme = _CLI_STATE.get("theme") or get_theme(None)
+        verbose = bool(_CLI_STATE.get("verbose", False))
+        print_error(console, theme, exc, show_traceback=verbose)
+        raise SystemExit(1) from None
+    if exit_code:
+        raise SystemExit(exit_code)
+
+
 if __name__ == "__main__":
-    app()
+    main()
