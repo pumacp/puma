@@ -462,6 +462,29 @@ P1-S12.12-COORD-01 CLI surface assumption). Root cause across all five:
 coordinator (chat-side) prompts under-grounded in current repo state; mitigated
 each time by the executor's audit-before-write discipline.
 
+#### P1-S12.13-COORD-01 — Coordinator prompt assumed wrong auth surface
+
+Scope: the S12.13 prompt asked for a `puma auth whoami` username read and an
+`authenticated_as: str | None` field populated with the local GitHub username.
+The actual auth surface is `puma auth login/status/logout` with token-only
+storage at `~/.config/puma/credentials.toml`; there is no `whoami` and no
+locally-cached username (resolving the username would require api.github.com,
+which is forbidden this phase).
+
+Detected by: executor's discovery pass on src/puma/community/_community_app.py
+and the auth module before scripting status.
+
+Resolution: implemented `authenticated = local-credential-presence-check` (no
+HTTP), `authenticated_as = None` always (with a doc note explaining why). The
+status renderer shows "✓ authenticated" without a username — accurate to what
+the local state can determine without network.
+
+Pattern: sixth coordinator-level prompt drift of Sprint 12 (P1-S12.2-COORD-01,
+P1-S12.7b-COORD-01, P1-S12.9-COORD-01, P1-S12.9-COORD-02, P1-S12.12-COORD-01,
+P1-S12.13-COORD-01). All six share the same upstream root cause: coordinator
+(chat-side) prompts under-grounded in current repo surface state; mitigated each
+time by the executor's audit-before-write discipline.
+
 ## Resolved technical debt
 
 Items previously tracked as open technical debt that have been fully
