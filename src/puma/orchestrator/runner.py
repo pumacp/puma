@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from sqlalchemy.orm import Session
 
     from puma.scenarios.base import Scenario
+    from puma.ui.themes import Theme
 
 logger = structlog.get_logger(__name__)
 
@@ -36,11 +37,17 @@ class Runner:
         db_path: Path | str = "data/puma.db",
         ollama_host: str = "http://localhost:11434",
         dry_run: bool = False,
+        theme: Theme | None = None,
+        quiet: bool = False,
     ) -> None:
         self.spec = spec
         self.db_path = Path(db_path)
         self.ollama_host = ollama_host
         self.dry_run = dry_run
+        # Display-only: theme/quiet style the progress bar; they never affect
+        # the data path. theme=None resolves to the default at run time.
+        self._theme = theme
+        self.quiet = quiet
         self.run_id = f"{spec.id}__{spec.spec_hash()}__{_ts()}"
 
     # ------------------------------------------------------------------
@@ -177,14 +184,14 @@ class Runner:
     # ------------------------------------------------------------------
 
     def _execute_inferences(self, results_dir: Path) -> list[dict[str, Any]]:
-        from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
-
         from puma.adaptation.strategies import get_strategy
         from puma.runtime.cache import InferenceCache
         from puma.runtime.client import client_for_model
         from puma.scenarios.estimation_tawos import EstimationTawosScenario
         from puma.scenarios.prioritization_jira import PrioritizationJiraScenario
         from puma.scenarios.triage_jira import TriageJiraScenario
+        from puma.ui.progress import make_progress
+        from puma.ui.themes import get_theme
 
         scenario_map: dict[str, Callable[[], Scenario]] = {
             "triage_jira": TriageJiraScenario,
@@ -207,14 +214,9 @@ class Runner:
         rows = df.to_dict("records")
         total_tasks = len(rows) * len(self.spec.models) * len(self.spec.adaptation.strategy)
 
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TextColumn("{task.completed}/{task.total}"),
-            TimeElapsedColumn(),
-        ) as progress:
-            task_id = progress.add_task(f"[cyan]{self.run_id}", total=total_tasks)
+        theme = self._theme if self._theme is not None else get_theme(None)
+        with make_progress(theme, enabled=not self.quiet) as progress:
+            task_id = progress.add_task(self.run_id, total=total_tasks)
 
             for model in self.spec.models:
                 client = client_for_model(model, base_url=self.ollama_host)
