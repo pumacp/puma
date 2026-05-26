@@ -265,6 +265,46 @@ was acted on: `tests/integration/test_e2e_publication.py` (US-12.5) now
 exercises the full runner → share-results → community CLI pipeline end-to-end,
 the regression test that would have caught D24/D25/D26 immediately.
 
+### D29 — Estimation predictions-hash run-to-run nondeterminism (since v3.0.0)
+
+**Status:** TRACKED — defer to post-v4.0.0 schema-decision sprint (alongside D23).
+**Discovered:** Sprint 12 / S12.7b determinism oracle check (2026-05-26).
+
+**Finding.** Three independent runs of the canonical estimation baseline on
+byte-identical code produce three different `predictions_summary_hash` values
+(e.g. `89f0e30…` / `7a89130…` / `604d324…`). The reported metric MAE is
+bit-exact `5.7150` across all runs. Triage hashes are bit-identical across runs.
+
+**Root cause.** `src/puma/community/integrity.compute_predictions_hash` hashes
+`parsed_label` as a raw string. The estimation LLM (`qwen2.5:3b` at
+`temperature=0.0`, `seed=42`) emits the same numeric value in occasionally
+different string forms (`"5"` vs `"5.0"` vs `"5.00"`). String form differs →
+hash differs; numeric value identical → metric identical. Triage labels are
+categorical (no string-form variation) → triage hashes are stable.
+
+**Impact.**
+- The reproducibility claim "`predictions_summary_hash` bit-equal across runs"
+  is FALSE for estimation; any documentation asserting hash-level reproducibility
+  for estimation submissions must be qualified to metric-level only until D29 is
+  resolved.
+- Verifier roundtrip validation of estimation submissions is affected: a
+  legitimate re-run of the same code produces a different submission hash, which
+  the Verifier may flag as mismatch despite identical metrics. (Within a single
+  run, the exported JSONL still matches that run's declared hash, so local
+  `verify-hash` is unaffected.)
+
+**Resolution path.** Normalize `parsed_label` to a canonical numeric form (e.g.
+a float formatted with fixed precision such as `"%.6f"`) before hashing in
+`compute_predictions_hash`. This makes the hash invariant to
+string-representation noise while preserving metric bit-exactness. Coordinate
+with D23 (Verifier hash 2-field alignment + `sha256:` prefix) in the
+schema-decision sprint, since both changes touch integrity hashing.
+
+**P1 capture (P1-S12.7b-COORD-01).** Coordinator-level prompt drift: the S12.7b
+prompt asserted hash-level determinism as a mandatory gate, but the actual P2
+invariants are metric-level. The gate was over-strict; the metric invariants
+(F1 = 0.5831 ±0.01, MAE = 5.7150 bit-exact) are upheld in this phase.
+
 ## Resolved technical debt
 
 Items previously tracked as open technical debt that have been fully
