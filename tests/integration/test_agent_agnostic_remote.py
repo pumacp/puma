@@ -1,5 +1,5 @@
 """Assert the public remote is free of the AI-assistant brand and that the
-GitNexus / AGENTS.md surface is present and tool-neutral.
+GitNexus tooling surface is present and tool-neutral.
 
 The forbidden brand token is assembled from fragments at runtime so this file
 itself contains no literal occurrence of it — keeping the entire tracked tree
@@ -43,24 +43,25 @@ class TestAgentAgnosticRemote:
     def test_no_brand_md_tracked(self):
         assert _git(["ls-files", _BRAND_MD]).stdout.strip() == ""
 
-    def test_agents_md_tracked(self):
-        assert _git(["ls-files", "AGENTS.md"]).stdout.strip() == "AGENTS.md"
-
-    def test_agents_md_brand_free(self):
-        text = (_REPO_ROOT / "AGENTS.md").read_text(encoding="utf-8").lower()
-        assert _BRAND not in text
+    def test_agents_md_not_tracked(self):
+        # AGENTS.md is auto-regenerated locally by GitNexus and intentionally not
+        # tracked (friction-driven untrack).
+        assert _git(["ls-files", "AGENTS.md"]).stdout.strip() == ""
 
     def test_gitignore_excludes_brand_tooling(self):
         active = _active_lines(_REPO_ROOT / ".gitignore")
         assert _BRAND_DIR in active
         assert _BRAND_MD in active
-        # AGENTS.md must NOT be an active ignore rule (it is tracked).
-        assert "AGENTS.md" not in active
+        # AGENTS.md is now an active ignore rule (untracked; regenerated locally).
+        assert "AGENTS.md" in active
 
     def test_gitnexusignore_present_and_excludes_brand_tooling(self):
         gni = _REPO_ROOT / ".gitnexusignore"
         assert gni.is_file()
         assert _BRAND_DIR in _active_lines(gni)
+
+    def test_gitnexusignore_excludes_agents_md(self):
+        assert "AGENTS.md" in _active_lines(_REPO_ROOT / ".gitnexusignore")
 
     def test_knowledge_graph_doc_present_and_brand_free(self):
         doc = _REPO_ROOT / "docs" / "knowledge_graph.md"
