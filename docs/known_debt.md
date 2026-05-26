@@ -395,6 +395,33 @@ interpreted against the current runtime, not the historical `5.7150`.
 recorded here so the failing MAE gate during S12.9 re-validation is traceable
 and not mistaken for an S12.9 regression.
 
+### P1 captures (Sprint 12)
+
+Coordinator-level prompt-drift captures. Earlier captures are embedded in the
+debt entry they relate to (P1-S12.7b-COORD-01 in D29; P1-S12.9-COORD-01 in
+D30); later captures are collected here.
+
+#### P1-S12.9-COORD-02 — Coordinator prompt over-strict MAE gate
+
+Scope: the S12.9 prompt (and all prior phase prompts) specified "MAE = 5.7150
+bit-exact" as a P2 invariant. The actual property that holds is "MAE = 5.7150
+bit-exact WITHIN a warm Ollama session"; across container restarts, MAE can
+drift > bit-exact tolerance without any code regression, as demonstrated by
+D31's pristine-develop reproduction (three identical 6.3150 runs).
+
+Detected by: executor's baseline re-validation with rigorous isolation in S12.9
+(run #3 on pristine develop @ 6f09b2d reproduced 6.3150).
+
+Resolution: from S12.10 onward, phase prompts specify the MAE gate as
+"5.7150 ± 1.0" rather than "bit-exact 5.7150". Bit-exactness is reserved for
+within-session re-validation only. F1 ± 0.01 unchanged.
+
+Pattern: fourth coordinator-level prompt drift of Sprint 12 (P1-S12.2-COORD-01
+nonexistent module, P1-S12.7b-COORD-01 hash-level gate, P1-S12.9-COORD-01
+greenfield assumption, P1-S12.9-COORD-02 bit-exact assumption). All four share
+the same upstream root cause: coordinator prompts over-asserting determinism in
+an LLM-local stochastic system.
+
 ## Resolved technical debt
 
 Items previously tracked as open technical debt that have been fully
