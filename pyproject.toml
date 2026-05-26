@@ -26,6 +26,7 @@ dependencies = [
     "langdetect>=1.0.9",
     "structlog>=24.1",
     "rich>=13.7",
+    "pyfiglet>=1.0",
     "requests>=2.31",
     "jsonschema>=4.23.0",
     "tomli-w>=1.0.0",
