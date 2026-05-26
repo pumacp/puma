@@ -102,4 +102,4 @@ def render_channels_table(theme: Theme, channels: list[Channel]) -> RenderableTy
     )
 
 
-__all__ = ["render_status_panel", "render_channels_table"]
+__all__ = ["render_channels_table", "render_status_panel"]
