@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.panel import Panel
 
 from puma.ui import banner
+from puma.ui.themes import get_theme
 
 
 def _render_to_text() -> str:
@@ -47,3 +48,17 @@ class TestBanner:
         with console.capture() as cap:
             banner.print_banner(console)
         assert cap.get().strip()
+
+    def test_render_banner_amber_uses_orange3(self):
+        panel = banner.render_banner(theme=get_theme("amber"))
+        assert isinstance(panel, Panel)
+        assert "orange3" in str(panel.border_style)
+        span_styles = " ".join(str(s.style) for s in panel.renderable.spans)
+        assert "orange3" in span_styles
+
+    def test_render_banner_green_uses_green3(self):
+        panel = banner.render_banner(theme=get_theme("green"))
+        assert isinstance(panel, Panel)
+        assert "green3" in str(panel.border_style)
+        span_styles = " ".join(str(s.style) for s in panel.renderable.spans)
+        assert "green3" in span_styles
