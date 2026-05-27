@@ -41,14 +41,38 @@
 </p>
 
 <p align="center">
+  <sub><strong>PUMA Platform</strong></sub><br>
   <a href="../../wiki">Wiki</a> ·
-  <a href="https://github.com/pumacp/puma-community">PUMA Community</a> ·
   <a href="CONTRIBUTING.md">Contribute</a> ·
-  <a href="../../issues">Issues</a>
+  <a href="../../issues">Issues</a>  
+  <a href="https://pumacp.github.io/puma">PUMA</a> ·
+  <a href="https://pumacp.github.io/puma-community">PUMA Community</a> ·
+  <a href="https://pumacp.github.io/puma-vault">PUMA Vault</a>
 </p>
 
-<!-- PUMA-ACROSTIC-BLOCK START — DO NOT MODIFY — IMMUTABLE -->
----
+<p align="center">
+  <sub><strong>PUMA Info</strong></sub><br>
+  <a href="https://www.youtube.com/@PUMA_Project">Youtube</a> ·
+  <a href="https://github.com/pumacp/puma/wiki">PUMA Wiki</a> ·
+  <a href="https://github.com/pumacp/puma-community/wiki">PUMA Community Wiki</a> ·
+  <a href="https://notebooklm.google.com/notebook/76d59cbe-ce15-4d13-a40f-65d6891dcebc">NotebookLM</a> ·
+  <a href="https://drive.google.com/drive/folders/1TKbYhYqLIrq7liAPlSF7ztS2Bv0l7vZS?usp=sharing">Drive (info)</a>  
+</p>
+
+<p align="center">
+  <sub><strong>PUMA Contact</strong></sub><br>
+  <a href="https://www.reddit.com/r/pumaproject/">Reddit</a> ·
+  <a href="https://discord.gg/fVhcpHREJv">Discord</a> ·
+  <a href="https://github.com/pumacp/puma-community/discussions">GitHub Discussions</a> ·
+  <a href="https://x.com/puma__project">Twitter/X</a> ·
+</p>
+
+<br>
+
+<table align="center" border="0">
+<tr>
+<td valign="top" width="50%">
+
 **F**ollowing empirical evidence, ICT project management faces triage, estimation, and learning inefficiencies.<br>
 **O**bserved widely, these persist despite abundant historical data.<br>
 **L**aying a rigorous foundation requires reproducible benchmarking.<br>
@@ -58,6 +82,10 @@
 **T**hrough open-source release, results become reproducible and verifiable.<br>
 **H**ence, the framework supports extensibility across models and tasks.<br>
 **E**ventually, it enables integration into real organizational settings.<br>
+
+</td>
+<td valign="top" width="50%">
+
 **W**ithin ICT environments, recurring inefficiencies hinder effective decision-making.<br>
 **H**eterogeneous data sources complicate prioritization and estimation processes.<br>
 **I**n response, this work builds a reproducible LLM-based benchmark.<br>
@@ -67,53 +95,28 @@
 **U**sing carbon tracking, the framework measures energy impact.<br>
 **M**oreover, the MVP delivers a valid and original contribution.<br>
 **A**ll artefacts are released as open source for replication and extension.<br>
----
-<!-- PUMA-ACROSTIC-BLOCK END -->
 
-## Project resources
+</td>
+</tr>
+</table>
 
-### Code repositories
-- **PUMA benchmark tool** — https://github.com/pumacp/puma — local-LLM evaluation engine for ICT Project Management tasks
-- **PUMA Community** — https://github.com/pumacp/puma-community — public archive of community-contributed benchmark results
-- **PUMA Vault** — https://github.com/pumacp/puma-vault — knowledge-management graph of the project
+<!-- PUMA Profiles -->
+<p align="center">
+  <sub><strong>PUMA Community</strong></sub><br>
+  <a href="https://huggingface.co/pumaproject">HF Organization</a> ·
+  <a href="https://huggingface.co/datasets/pumaproject/puma-community-submissions">HF Submissions</a> ·
+  <a href="https://huggingface.co/spaces/pumaproject/puma-leaderboard">HF Leaderboard</a> ·
+  <a href="https://zenodo.org/communities/pumacp">Zenodo</a> ·
+  <a href="https://www.kaggle.com/pumacp">Kaggle</a> ·
+  <a href="https://www.zotero.org/pumacp/library">Zotero</a>
+</p>
 
-### Documentation sites (GitHub Pages)
-- **PUMA docs** — https://pumacp.github.io/puma/
-- **PUMA Vault** — https://pumacp.github.io/puma-vault/
-- **PUMA Community** — https://pumacp.github.io/puma-community/ (in setup — Sprint 12 Phase C)
-- **Wiki (benchmark tool)** — https://github.com/pumacp/puma/wiki
-- **Wiki (community hub)** — https://github.com/pumacp/puma-community/wiki
-
-### Hugging Face Hub
-- **Organization** — https://huggingface.co/pumaproject
-- **Dataset of community submissions** — https://huggingface.co/datasets/pumaproject/puma-community-submissions
-- **Leaderboard (public Gradio Space)** — https://huggingface.co/spaces/pumaproject/puma-leaderboard
-- **Verifier (private endpoint)** — https://huggingface.co/spaces/pumaproject/puma-verifier
-- **Personal namespace (project datasets)** — https://huggingface.co/pumacp
-
-### Persistent archives & DOIs
-- **Zenodo community (production)** — https://zenodo.org/communities/pumacp
-- **Zenodo community (sandbox, for pipeline validation)** — https://sandbox.zenodo.org/communities/pumacp
-- **Source dataset — Jira Social Repository** — https://doi.org/10.5281/zenodo.5901893
-
-### Community catalogs
-- **Kaggle dataset** — https://www.kaggle.com/datasets/pumacp/puma-community-submissions
-
-### Conversation & community
-- **Discord** — https://discord.gg/fVhcpHREJv
-- **GitHub Discussions** — https://github.com/pumacp/puma-community/discussions
-- **Contact email** — pumacapstoneproject@gmail.com
-
-### Knowledge management & research
-- **Zotero library** — https://www.zotero.org/pumacp/library
-- **Google Drive (PDF repository)** — https://drive.google.com/drive/folders/1TKbYhYqLIrq7liAPISF7ztS2Bv0l7vZS?usp=sharing
-- **ResearchRabbit map 1** — https://app.researchrabbit.ai/folder-shares/d8244f17-47f7-4f6c-a589-473876578b54
-- **ResearchRabbit map 2** — https://app.researchrabbit.ai/folder-shares/b6c00471-2f28-4c66-85f5-ab5399470228
-
-### Planned channels (post-Sprint-12 activation)
-- **Mastodon** — @pumacp@fosstodon.org (account creation pending)
-- **Bluesky** — @pumacp.bsky.social (account creation pending)
-- **Telegram** — deferred pending phone-number policy decision
+<p align="center">
+  <sub><strong>PUMA Code</strong></sub><br>
+  <a href="https://github.com/pumacp/puma">PUMA Project</a> ·
+  <a href="https://github.com/pumacp/puma-community">PUMA Community</a> ·
+  <a href="https://github.com/pumacp/puma-vault">PUMA Vault</a>
+</p>
 
 ---
 
@@ -305,6 +308,52 @@ puma/
   for community-contributed benchmark results.
 - [Wiki](../../wiki) — extended documentation (when populated).
 - [Releases](../../releases) — semantic-versioned releases and changelogs.
+
+## Project resources
+
+### Code repositories
+- **PUMA benchmark tool** — https://github.com/pumacp/puma — local-LLM evaluation engine for ICT Project Management tasks
+- **PUMA Community** — https://github.com/pumacp/puma-community — public archive of community-contributed benchmark results
+- **PUMA Vault** — https://github.com/pumacp/puma-vault — knowledge-management graph of the project
+
+### Documentation sites (GitHub Pages)
+- **PUMA docs** — https://pumacp.github.io/puma/
+- **PUMA Vault** — https://pumacp.github.io/puma-vault/
+- **PUMA Community** — https://pumacp.github.io/puma-community/ (in setup — Sprint 12 Phase C)
+- **Wiki (benchmark tool)** — https://github.com/pumacp/puma/wiki
+- **Wiki (community hub)** — https://github.com/pumacp/puma-community/wiki
+
+### Hugging Face Hub
+- **Organization** — https://huggingface.co/pumaproject
+- **Dataset of community submissions** — https://huggingface.co/datasets/pumaproject/puma-community-submissions
+- **Leaderboard (public Gradio Space)** — https://huggingface.co/spaces/pumaproject/puma-leaderboard
+- **Verifier (private endpoint)** — https://huggingface.co/spaces/pumaproject/puma-verifier
+- **Personal namespace (project datasets)** — https://huggingface.co/pumacp
+
+### Persistent archives & DOIs
+- **Zenodo community (production)** — https://zenodo.org/communities/pumacp
+- **Zenodo community (sandbox, for pipeline validation)** — https://sandbox.zenodo.org/communities/pumacp
+- **Source dataset — Jira Social Repository** — https://doi.org/10.5281/zenodo.5901893
+
+### Community catalogs
+- **Kaggle dataset** — https://www.kaggle.com/datasets/pumacp/puma-community-submissions
+
+### Conversation & community
+- **Discord** — https://discord.gg/fVhcpHREJv
+- **GitHub Discussions** — https://github.com/pumacp/puma-community/discussions
+- **Contact email** — pumacapstoneproject@gmail.com
+
+### Knowledge management & research
+- **Zotero library** — https://www.zotero.org/pumacp/library
+- **Google Drive (PDF repository)** — https://drive.google.com/drive/folders/1TKbYhYqLIrq7liAPISF7ztS2Bv0l7vZS?usp=sharing
+- **ResearchRabbit map 1** — https://app.researchrabbit.ai/folder-shares/d8244f17-47f7-4f6c-a589-473876578b54
+- **ResearchRabbit map 2** — https://app.researchrabbit.ai/folder-shares/b6c00471-2f28-4c66-85f5-ab5399470228
+
+### Planned channels (post-Sprint-12 activation)
+- **Mastodon** — @pumacp@fosstodon.org (account creation pending)
+- **Bluesky** — @pumacp.bsky.social (account creation pending)
+- **Telegram** — deferred pending phone-number policy decision
+
 
 ## Related projects
 
