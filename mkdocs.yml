@@ -7,29 +7,40 @@ edit_uri: "edit/develop/docs/"
 
 theme:
   name: material
+  logo: assets/img/PUMA.png
+  favicon: assets/img/PUMA.png
   palette:
-    - scheme: default
-      primary: deep orange
-      accent: amber
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: black
       toggle:
-        icon: material/weather-night
+        icon: material/brightness-7
         name: "Switch to dark mode"
-    - scheme: slate
-      primary: deep orange
-      accent: amber
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: white
       toggle:
-        icon: material/weather-sunny
+        icon: material/brightness-4
         name: "Switch to light mode"
+  font:
+    text: Inter
+    code: JetBrains Mono
   features:
     - navigation.tabs
     - navigation.sections
     - navigation.expand
     - navigation.top
     - content.code.copy
+    - content.tabs.link
     - search.suggest
     - search.highlight
   icon:
     repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css
 
 markdown_extensions:
   - admonition
