@@ -142,7 +142,14 @@ call.
 ## Quick start
 
 ```bash
-# 1. Install (a PyPI package is in progress; install from source today)
+# 1. Install — via pip (available with the v4.0.0 release)
+pip install puma-cp
+
+# ...or via Docker (available with the v4.0.0 release)
+docker pull ghcr.io/pumacp/puma:latest
+curl -O https://raw.githubusercontent.com/pumacp/puma/main/docker-compose.yml && docker compose up
+
+# ...or from source (works today)
 git clone https://github.com/pumacp/puma && cd puma
 pip install -e ".[dev]"
 
