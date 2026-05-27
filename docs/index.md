@@ -294,7 +294,6 @@ findings into a navigable web. Browse it at
 - **Organization** — <https://huggingface.co/pumaproject>
 - **Dataset of submissions** — <https://huggingface.co/datasets/pumaproject/puma-community-submissions>
 - **Leaderboard (Gradio Space)** — <https://huggingface.co/spaces/pumaproject/puma-leaderboard>
-- **Verifier (private endpoint)** — <https://huggingface.co/spaces/pumaproject/puma-verifier>
 - **Personal namespace** — <https://huggingface.co/pumacp>
 
 ### Persistent archives & catalogs
