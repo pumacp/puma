@@ -9,8 +9,13 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- Multi-model comparison view in the Streamlit dashboard: side-by-side metrics
+  with deltas (F1-macro for triage, MAE for estimation), bar charts (F1-macro,
+  MAE, p95 latency, carbon), a full metrics table, and a per-model reproducibility
+  fingerprint check. Reads persisted SQLite results only — no live inference.
 
 ### Changed
+- Dashboard theme switched to the monochrome corporate palette (`.streamlit/config.toml`).
 
 ### Removed
 
