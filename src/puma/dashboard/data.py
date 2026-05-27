@@ -7,6 +7,7 @@ using ``tmp_path`` are not affected by cached production data.
 
 from __future__ import annotations
 
+import hashlib
 from pathlib import Path
 from typing import Any
 
@@ -190,6 +191,107 @@ def load_sustainability(db_path: Path = _DEFAULT_DB) -> pd.DataFrame:
     if "co2_kg" in out.columns:
         out["co2_g"] = out["co2_kg"] * 1000.0
     return out
+
+
+_MULTI_MODEL_COLUMNS = [
+    "f1_macro",
+    "mae",
+    "accuracy",
+    "p50_latency_ms",
+    "p95_latency_ms",
+    "p99_latency_ms",
+    "total_carbon_gco2eq",
+    "predictions_summary_hash",
+    "run_count",
+]
+
+
+def _metric_mean(frame: pd.DataFrame, name: str) -> float:
+    """Mean of a single ``metric_name`` across the rows in ``frame`` (NaN if absent)."""
+    vals = frame.loc[frame["metric_name"] == name, "value"]
+    return float(vals.mean()) if not vals.empty else float("nan")
+
+
+def get_multi_model_results(
+    scenario_id: str,
+    model_ids: list[str],
+    db_path: Path = _DEFAULT_DB,
+) -> pd.DataFrame:
+    """Aggregate per-model results for a single scenario, for side-by-side comparison.
+
+    Reads persisted SQLite results only (no live inference). Returns a DataFrame
+    indexed by ``model`` (one row per requested model, preserving order) with the
+    columns in :data:`_MULTI_MODEL_COLUMNS`. A model with no runs for the scenario
+    yields a row of ``NaN``/``0`` (``run_count == 0``) rather than raising.
+
+    ``predictions_summary_hash`` is a per-run reproducibility fingerprint over the
+    ordered ``(instance_id, parsed_label)`` pairs: when every run of a model on the
+    scenario shares one fingerprint the value is that hash (deterministic); when
+    they diverge it is ``"varies (<n>)"``.
+    """
+    empty = pd.DataFrame(columns=_MULTI_MODEL_COLUMNS, index=pd.Index([], name="model"))
+    if not db_path.exists():
+        return empty
+
+    engine = _engine(db_path)
+    with engine.connect() as conn:
+        run_model = pd.read_sql(
+            "SELECT DISTINCT p.run_id, p.model FROM predictions p "
+            "JOIN instances i ON p.instance_id = i.instance_id WHERE i.dataset = :scn",
+            conn,
+            params={"scn": scenario_id},
+        )
+        metrics = pd.read_sql("SELECT run_id, metric_name, value FROM metrics", conn)
+        emissions = pd.read_sql("SELECT run_id, co2_kg FROM emissions", conn)
+        preds = pd.read_sql(
+            "SELECT p.run_id, p.instance_id, p.parsed_label FROM predictions p "
+            "JOIN instances i ON p.instance_id = i.instance_id WHERE i.dataset = :scn",
+            conn,
+            params={"scn": scenario_id},
+        )
+
+    def _fingerprint(run_id: str) -> str:
+        pr = preds[preds["run_id"] == run_id].sort_values("instance_id")
+        payload = "\n".join(
+            f"{a}|{b}" for a, b in zip(pr["instance_id"], pr["parsed_label"], strict=True)
+        )
+        return hashlib.sha256(payload.encode("utf-8")).hexdigest()[:16]
+
+    rows: list[dict[str, Any]] = []
+    for model in model_ids:
+        run_ids = run_model.loc[run_model["model"] == model, "run_id"].unique().tolist()
+        if not run_ids:
+            rows.append({"model": model, "run_count": 0, "predictions_summary_hash": None})
+            continue
+
+        mm = metrics[metrics["run_id"].isin(run_ids)]
+        carbon = emissions.loc[emissions["run_id"].isin(run_ids), "co2_kg"]
+        fingerprints = {_fingerprint(r) for r in run_ids}
+        fp = next(iter(fingerprints)) if len(fingerprints) == 1 else f"varies ({len(fingerprints)})"
+
+        rows.append(
+            {
+                "model": model,
+                "f1_macro": _metric_mean(mm, "f1_macro"),
+                "mae": _metric_mean(mm, "mae"),
+                "accuracy": _metric_mean(mm, "accuracy"),
+                "p50_latency_ms": _metric_mean(mm, "latency.p50"),
+                "p95_latency_ms": _metric_mean(mm, "latency.p95"),
+                "p99_latency_ms": _metric_mean(mm, "latency.p99"),
+                "total_carbon_gco2eq": (
+                    float(carbon.mean() * 1000.0) if not carbon.empty else float("nan")
+                ),
+                "predictions_summary_hash": fp,
+                "run_count": len(run_ids),
+            }
+        )
+
+    df = pd.DataFrame(rows).set_index("model")
+    # Guarantee all documented columns exist even if every model row was empty.
+    for col in _MULTI_MODEL_COLUMNS:
+        if col not in df.columns:
+            df[col] = pd.NA
+    return df[_MULTI_MODEL_COLUMNS]
 
 
 def run_summary(db_path: Path = _DEFAULT_DB) -> list[dict[str, Any]]:
