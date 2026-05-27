@@ -158,6 +158,13 @@ single CLI command.
 
 ## Quick start
 
+### Released packages (available with the v4.0.0 release)
+
+```bash
+pip install puma-cp                          # from PyPI
+docker pull ghcr.io/pumacp/puma:latest       # from GitHub Container Registry
+```
+
 ### Docker (recommended)
 
 ```bash
