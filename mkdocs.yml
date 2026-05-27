@@ -60,13 +60,14 @@ plugins:
 
 nav:
   - Home: index.md
-  - CLI Reference: cli_reference.md
-  - Publication workflow: publication_workflow.md
-  - Sustainability: sustainability.md
-  - Known Debt: known_debt.md
-  - Knowledge graph: knowledge_graph.md
-  - Releases:
-      - "v3.1.0": RELEASES/v3.1.0.md
+  - Get started:
+      - CLI reference: cli_reference.md
+  - Documentation:
+      - Publication workflow: publication_workflow.md
+      - Knowledge graph: knowledge_graph.md
+      - Sustainability: sustainability.md
+  - Project:
+      - Technical closure: PROJECT_TECHNICAL_CLOSURE.md
 
 # This is the v4.0.0 MINIMAL site: the build contains ONLY the curated
 # current-and-correct pages above. Every other doc is excluded from the build
@@ -96,8 +97,8 @@ exclude_docs: |
   decisions/
   maintenance/
   results/
-  RELEASES/v2.*.md
-  RELEASES/v3.0.0.md
+  RELEASES/
+  known_debt.md
   adding_models.md
   adding_scenarios.md
   architecture.md
@@ -111,7 +112,6 @@ exclude_docs: |
   metrics_reference.md
   open_questions.md
   overview.md
-  PROJECT_TECHNICAL_CLOSURE.md
   scenarios_reference.md
   TESTING.md
   troubleshooting.md
