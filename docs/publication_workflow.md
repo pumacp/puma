@@ -11,12 +11,32 @@ independently re-verify the result.
 
 ## Prerequisites
 
-- PUMA installed (`pip install -e .`).
-- Ollama running with the chosen model pulled (e.g. `ollama pull qwen2.5:3b`).
-- CodeCarbon available (ships with PUMA) for the sustainability section.
-- A run-spec — the demo uses `specs/runs/demo_publication.yaml` (a small,
-  demo-only triage subset); the canonical baseline is
-  `specs/runs/baseline_triage.yaml`.
+PUMA runs primarily in **Docker containers** (`puma_runner`, `puma_ollama`)
+defined in the project's `docker-compose.yml`. The containers ship with all
+required Python dependencies, the Ollama runtime, and the pre-pulled model
+weights for the supported benchmark configurations. **If you run PUMA via the
+standard Docker workflow you do not need to install anything on your host** — a
+container shell already has `puma`, Ollama, and CodeCarbon available:
+
+```bash
+docker compose up -d                         # start puma_runner + puma_ollama
+docker compose exec puma_runner puma doctor  # verify the environment
+```
+
+The only input you choose is a run-spec — the demo uses
+`specs/runs/demo_publication.yaml` (a small, demo-only triage subset); the
+canonical baseline is `specs/runs/baseline_triage.yaml`.
+
+### Local installation (advanced)
+
+To run PUMA outside Docker, install it from source and run Ollama yourself:
+
+```bash
+pip install -e .
+ollama pull qwen2.5:3b
+```
+
+This is the secondary path; the Docker workflow above is the supported default.
 
 ## Run the demo
 
