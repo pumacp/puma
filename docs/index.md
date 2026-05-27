@@ -234,6 +234,18 @@ puma share-results --dry-run --run-id <run_id> --yes
     Recomputes the predictions hash and compares it to the declared value —
     exit `0` means verified, exit `1` means the file does not match.
 
+=== "8 · Compare two models on the same task"
+
+    ```bash
+    puma run specs/runs/baseline_triage.yaml   # run each model you want to compare
+    puma dashboard                             # open http://localhost:8501
+    ```
+    In the dashboard, pick the **Multi-model** view, choose a scenario, and select
+    two or more models. You get headline metrics with deltas (F1-macro for triage,
+    MAE for estimation), bar charts for F1-macro / MAE / p95 latency / carbon, a
+    full metrics table, and a reproducibility check on each model's prediction
+    fingerprint. Everything reads from persisted results — no live inference.
+
 ## Use cases
 
 - **Academic research** — rigorously evaluate model capabilities for PMO tasks and publish the findings.
