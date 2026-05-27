@@ -1,0 +1,32 @@
+# Production image for ghcr.io/pumacp/puma — the `puma` CLI.
+# Separate from the repo-root Dockerfile (which is the docker-compose dev/runtime
+# container, kept as-is). Multi-stage + slim + non-root for a small, safe image.
+# Ollama is NOT bundled: run this alongside an Ollama service (see docker-compose.yml).
+
+# --- builder: produce a wheel ---
+FROM python:3.11-slim AS builder
+WORKDIR /build
+RUN pip install --no-cache-dir build
+COPY . .
+RUN python -m build --wheel --outdir /dist
+
+# --- final: clean install of the wheel + its dependencies ---
+FROM python:3.11-slim AS final
+LABEL org.opencontainers.image.title="PUMA" \
+      org.opencontainers.image.description="Local, reproducible benchmarking of open LLMs on project management tasks" \
+      org.opencontainers.image.source="https://github.com/pumacp/puma" \
+      org.opencontainers.image.documentation="https://pumacp.github.io/puma" \
+      org.opencontainers.image.licenses="MIT"
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+RUN useradd --create-home --uid 1000 puma
+COPY --from=builder /dist/*.whl /tmp/
+RUN pip install --no-cache-dir /tmp/*.whl && rm -f /tmp/*.whl
+
+USER puma
+WORKDIR /home/puma
+ENTRYPOINT ["puma"]
+CMD ["--help"]
