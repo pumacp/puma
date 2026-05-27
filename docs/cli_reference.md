@@ -130,6 +130,12 @@ Launch the Streamlit dashboard for interactive visualization of runs and metrics
 puma dashboard   # then open http://localhost:8501
 ```
 
+The dashboard includes a **Multi-model** view for comparing models on a single
+scenario side by side: headline metric with deltas (F1-macro for triage, MAE for
+estimation), per-metric bar charts (F1-macro, MAE, p95 latency, carbon), a full
+metrics table, and a reproducibility check on each model's prediction fingerprint.
+It reads only persisted results — no live inference.
+
 ## Community & sharing
 
 ### `puma auth`
