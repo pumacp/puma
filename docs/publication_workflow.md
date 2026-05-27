@@ -77,33 +77,13 @@ puma community verify-hash submission.json --predictions predictions.jsonl
     may not match the live Verifier byte-for-byte until D23 is resolved; `--remote`
     treats a local match as authoritative and warns when the Verifier disagrees.
 
-## Channels
-
-Once a submission is accepted into the PUMA Community public repository
-(`github.com/pumacp/puma-community`), GitHub Actions workflows there mirror it to
-external archives and announce it. PUMA does not call these services itself — it
-only surfaces them so you can see what a published submission feeds into.
-
-| Channel | Kind | Workflow (puma-community) | Local env var |
-|---|---|---|---|
-| Hugging Face Datasets | mirror | `mirror-huggingface.yml` | `HF_TOKEN` |
-| Zenodo | mirror | `mirror-zenodo.yml` | `ZENODO_TOKEN` |
-| Kaggle | mirror | `mirror-kaggle.yml` | `KAGGLE_KEY` |
-| Discord | notification | `notify-discord.yml` | `DISCORD_WEBHOOK` |
-| Telegram | notification | `notify-telegram.yml` | `TELEGRAM_BOT_TOKEN` |
-
-The workflows and their secrets live in the puma-community repository; see its
-[For-Maintainers wiki page](https://github.com/pumacp/puma-community/wiki/For-Maintainers)
-for the maintainer-side configuration. The env vars above are read locally only
-to report configuration state (next section) — PUMA never transmits them.
-
 ## Status quick-check
 
 Two read-only commands summarise the local publication surface:
 
 ```bash
 puma community status     # auth + last local submission + configured channel count
-puma community channels   # the channel table above, with local-config marks
+puma community channels   # the distribution channels, with local-config marks
 ```
 
 Example `puma community status` (no credentials, nothing configured):
@@ -125,25 +105,6 @@ commands exit `0`, make no network calls, and honour `--theme`.
 > The `Authenticated` row reflects whether a GitHub token is present in the local
 > credential store (`puma auth login github`); it does **not** resolve your GitHub
 > username, which would require a network call.
-
-## Configuring channels locally
-
-To drive a channel from your own environment (for example, to test a mirror
-before it runs in CI), export the corresponding variable:
-
-```bash
-export HF_TOKEN=...            # Hugging Face mirror
-export ZENODO_TOKEN=...        # Zenodo mirror
-export KAGGLE_KEY=...          # Kaggle mirror
-export DISCORD_WEBHOOK=...     # Discord notification
-export TELEGRAM_BOT_TOKEN=...  # Telegram notification
-```
-
-!!! warning "Secrets live in the environment only"
-    Set these as environment variables (or repository secrets in
-    puma-community). **Never commit a token to the repository.** PUMA reads the
-    variables solely to report configuration state in `puma community status` /
-    `channels`; it does not store or transmit them.
 
 ## Known caveats
 
