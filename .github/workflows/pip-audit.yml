@@ -1,0 +1,39 @@
+name: pip-audit
+
+# Dependency CVE scan. Reads requirements.txt (production deps only —
+# requirements-dev.txt is excluded so dev-only advisories do not block
+# the build for end users). Fails on HIGH or CRITICAL advisories per
+# pip-audit's default severity surfacing.
+#
+# Cadence: every push to develop / main, every PR, weekly Monday 06:00
+# UTC catch-up for advisories disclosed after the last push, and manual
+# workflow_dispatch for on-demand reruns.
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-audit
+        run: pip install --upgrade pip pip-audit
+
+      - name: Run pip-audit against production dependencies
+        run: pip-audit --strict --requirement requirements.txt
