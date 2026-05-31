@@ -303,7 +303,9 @@ puma/
 ## Documentation
 
 - [Contributing guide](CONTRIBUTING.md) — development setup, tests, commit
-  conventions, PR process.
+  conventions, PR process. The canonical procedural reference is
+  [`docs/development-workflow.md`](docs/development-workflow.md) (also at
+  <https://pumacp.github.io/puma/development-workflow/>).
 - [Code of Conduct](CODE_OF_CONDUCT.md) — Contributor Covenant v2.1.
 - [PUMA Community](https://github.com/pumacp/puma-community) — public hub
   for community-contributed benchmark results.
