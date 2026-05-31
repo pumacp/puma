@@ -306,6 +306,10 @@ puma/
   conventions, PR process. The canonical procedural reference is
   [`docs/development-workflow.md`](docs/development-workflow.md) (also at
   <https://pumacp.github.io/puma/development-workflow/>).
+- [Technical reference](docs/technical_reference.md) — consolidated
+  architecture + configuration + JSON Schema + ORM + CLI overview +
+  glossary + decisions timeline (also at
+  <https://pumacp.github.io/puma/technical_reference/>).
 - [Code of Conduct](CODE_OF_CONDUCT.md) — Contributor Covenant v2.1.
 - [PUMA Community](https://github.com/pumacp/puma-community) — public hub
   for community-contributed benchmark results.
