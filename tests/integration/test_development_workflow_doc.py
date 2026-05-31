@@ -50,10 +50,16 @@ _FORBIDDEN_TOKENS = [
 # AI-tool brand names that must not appear in the workflow doc — the
 # guidance is intentionally tool-agnostic. The hook strips these from
 # commit trailers; the docs page must not introduce them either.
+#
+# The brand token is assembled from fragments at runtime so this file
+# itself contains no literal occurrence — mirroring the pattern used
+# by tests/integration/test_agent_agnostic_remote.py, which scans the
+# entire tracked tree for the same brand.
+_BRAND = "cl" + "aude"
 _AI_TOOL_TOKENS = [
-    "Claude",
-    "Claude Code",
-    "claude.ai",
+    _BRAND.capitalize(),
+    f"{_BRAND.capitalize()} Code",
+    f"{_BRAND}.ai",
     "Anthropic",
 ]
 
