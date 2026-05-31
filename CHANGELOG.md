@@ -13,13 +13,47 @@ Versions follow [Semantic Versioning](https://semver.org/).
   with deltas (F1-macro for triage, MAE for estimation), bar charts (F1-macro,
   MAE, p95 latency, carbon), a full metrics table, and a per-model reproducibility
   fingerprint check. Reads persisted SQLite results only — no live inference.
+- mkdocs landing page (`docs/index.md`) mirrors the README header restructure
+  from PR #47: split badge groups (CI / properties / ecosystem), categorized
+  channel directory (Platform / Info / Contact / Community / Code), and the
+  FOLLOW THE WHITE PUMA acrostic laid out in a two-column table.
+- Dedicated D30 resolution test module
+  (`tests/integration/test_docs_s12_17_d30_resolution.py`, six tests)
+  asserting: no stale `puma models pull` / `puma list-ollama-models`
+  references in active docs; D30 marked RESOLVED with date in
+  `docs/known_debt.md`; every page S12.17 surfaced is wired into the
+  mkdocs nav; no cross-repo broken links in `overview.md` /
+  `RELEASES/v3.0.0.md`.
 
 ### Changed
 - Dashboard theme switched to the monochrome corporate palette (`.streamlit/config.toml`).
+- mkdocs site expanded from the v4.0.0 minimal 6-page surface to the full
+  24-page nav (six groups: Get started / Concepts / Guides / Reproducibility
+  / Releases / Project). `exclude_docs` reduced to four categories of
+  intentionally-unpublishable pages (internal/, project records, older
+  `RELEASES/v2.*.md`, `known_debt.md` + `CONTRIBUTING.md`).
+- Stale CLI references in `README.md`, `docs/user_guide.md`,
+  `docs/troubleshooting.md`, and `docs/adding_models.md` rewritten for the
+  v4.0.0 read-only `puma models` sub-group (`list` / `show` / `recommended`);
+  pulling now consistently delegated to `ollama pull <tag>` (or
+  `docker compose exec puma_ollama ollama pull <tag>` in the Compose flow).
+- `docs/overview.md` and `docs/RELEASES/v3.0.0.md` cross-repo links to
+  `../CONTRIBUTING.md` / `../../CHANGELOG.md` (which aborted
+  `mkdocs --strict`) rewritten as absolute GitHub URLs on the develop branch.
+- Public-docs audit set in `test_pages_content_audit.py` and
+  `test_pages_no_sensitive_content.py` expanded from 6 to 24 pages, matching
+  the new nav so Spanish / Anexo / sensitive-token regressions are caught
+  across the full public surface.
+- `docs/RELEASES/v3.1.0.md` sanitized to remove forbidden tokens that the
+  expanded audit surfaced (Anexo cross-references, `pumaproject/puma-verifier`
+  Space mentions, `memoria` reference, one Spanish phrase). The substantive
+  release content is preserved.
 
 ### Removed
 
 ### Fixed
+- D30 — Docs sync for the new `models` subcommand structure (since v4.0.0).
+  Marked RESOLVED in `docs/known_debt.md` (2026-05-31, S12.17).
 
 ## [3.1.0] — 2026-05-25
 
