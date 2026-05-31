@@ -501,6 +501,62 @@ expansion. Candidate for the post-Sprint-12 backlog, ideally before
 v4.0.0 ships so the published wheel is verified on the documented
 target platforms.
 
+### D38 — validate-submission workflow uses a non-existent action version (since S12-N1)
+
+**Status:** OPEN — owner: maintainer. Target: S12.19.
+**Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
+
+**File.** `.github/workflows/validate-submission.yml` in `pumacp/puma-community`.
+
+**Finding.** The workflow references
+`actions-ecosystem/action-add-labels@v1.4.0`, a version that was never
+published. On the inaugural submission (PR #8, 2026-05-31) the workflow failed
+at the "Prepare all required actions" step, before any validation logic ran.
+
+**Resolution path.** Pin the action to `@v1.3.0` (latest stable) or to a
+current commit SHA.
+
+### D39 — Verify submission integrity workflow broken by gradio_client API drift (since S12-N1)
+
+**Status:** OPEN — owner: maintainer. Target: S12.19.
+**Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
+
+**File.** `scripts/verify_submissions.py` in `pumacp/puma-community`, line 54.
+
+**Finding.** The script calls `Client(VERIFIER_SPACE, hf_token=token)`; the
+current `gradio_client` API expects `token=token` (without the `hf_` prefix).
+The inaugural submission triggered the verify workflow, which failed with
+`TypeError: Client.__init__() got an unexpected keyword argument 'hf_token'`.
+
+**Consequence.** The inaugural submission carries
+`integrity.verification_status="self-attested"` instead of `"verified"`. The
+PUMA Leaderboard Space appears to filter for verified submissions, so the
+inaugural row is not yet visible despite being correctly archived in the
+submissions dataset.
+
+**Resolution path.** Rename the `hf_token` kwarg to `token` in
+`scripts/verify_submissions.py`; re-run verification on the inaugural
+submission to upgrade its `verification_status`.
+
+### D40 — `puma share-results` CLI hangs after the Review panel (since S12-N1)
+
+**Status:** OPEN — owner: maintainer. Target: S12.19 (investigation) +
+post-Sprint-12 (full fix).
+**Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
+
+**File.** `src/puma/community/share_results.py` (likely) in `pumacp/puma`.
+
+**Finding.** After printing the Review submission panel with "Action: will open
+a PR against pumacp/puma-community", the CLI process either hangs indefinitely
+or completes silently without opening the PR; the `--yes` flag does not bypass
+whatever is blocking. Three attempts during the inaugural submission (S12-N1)
+all stopped at the same point; no PR was opened by the CLI. A manual
+`fork + push + gh pr create` was used as the workaround.
+
+**Investigation needed.** Instrument the post-review-panel code path with debug
+logging; verify the fork + push + PR-creation pipeline; check whether `--yes`
+is honored by all confirmation prompts in the chain.
+
 ### P1 captures (Sprint 12)
 
 Coordinator-level prompt-drift captures. Earlier captures are embedded in the
