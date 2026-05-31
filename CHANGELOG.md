@@ -38,6 +38,31 @@ Versions follow [Semantic Versioning](https://semver.org/).
   (`tests/integration/test_development_workflow_doc.py`, 13 tests)
   pinning the structural invariants of the CONTRIBUTING + workflow
   doc pairing.
+- **Security audit MVP** (S12-N2):
+  - `docs/security.md` (~330 lines) — comprehensive threat model and
+    security posture reference, covering determinism guarantees, the
+    no-outbound-telemetry default, submission integrity (SHA-256),
+    Phase Z-2 history sanitization, dependency / container / GitHub
+    Actions posture, brand-scanner enforcement, audit cadence, and
+    the known security debt (D32–D35).
+  - `.github/workflows/pip-audit.yml` — dependency CVE scan on every
+    push, every PR, and weekly Monday 06:00 UTC.
+  - `.github/workflows/bandit.yml` — Python SAST against `src/puma/`
+    on every push and PR (MEDIUM+ reported, HIGH fails).
+  - `.github/workflows/gitleaks.yml` — full-history secret scan on
+    every push and PR.
+  - Trivy scan inserted between build and push in
+    `.github/workflows/publish-docker.yml`; SARIF upload to the
+    GitHub Security tab; HIGH/CRITICAL CVEs block the publish.
+  - `tests/integration/test_security_doc.py` (14 tests) — pins the
+    SECURITY.md + docs/security.md content invariants and validates
+    the four new/modified security workflows.
+  - New **Security** entry in the Contributing nav alongside
+    `development-workflow.md`.
+  - `D32`–`D35` recorded in `docs/known_debt.md`: license-compat
+    automation, SBOM CycloneDX generation, mutation testing on
+    `integrity.py`, cross-platform install test — all right-sized
+    out of the MVP scope and queued for the post-Sprint-12 backlog.
 
 ### Changed
 - Dashboard theme switched to the monochrome corporate palette (`.streamlit/config.toml`).
