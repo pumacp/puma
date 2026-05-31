@@ -61,35 +61,55 @@ plugins:
 nav:
   - Home: index.md
   - Get started:
+      - Overview: overview.md
+      - User guide: user_guide.md
       - CLI reference: cli_reference.md
-  - Documentation:
+      - Troubleshooting: troubleshooting.md
+  - Concepts:
+      - Architecture: architecture.md
+      - Scenarios: scenarios_reference.md
+      - Metrics: metrics_reference.md
+      - Sustainability: sustainability.md
+  - Guides:
+      - Adding a model: adding_models.md
+      - Adding a scenario: adding_scenarios.md
       - Publication workflow: publication_workflow.md
       - Knowledge graph: knowledge_graph.md
-      - Sustainability: sustainability.md
+      - Testing: TESTING.md
+  - Reproducibility:
+      - Baseline inventory: baseline_inventory.md
+      - Baseline references: baseline_references.md
+      - Catalog history: CATALOG_HISTORY.md
+      - Cross-arch reproducibility: CROSS_ARCH_REPRODUCIBILITY.md
+      - Hardware: HARDWARE.md
+      - macOS notes: MACOS_NOTES.md
+  - Releases:
+      - v3.1.0: RELEASES/v3.1.0.md
+      - v3.0.0: RELEASES/v3.0.0.md
   - Project:
       - Technical closure: PROJECT_TECHNICAL_CLOSURE.md
+      - Open questions: open_questions.md
 
-# This is the v4.0.0 MINIMAL site: the build contains ONLY the curated
-# current-and-correct pages above. Every other doc is excluded from the build
-# (not deleted — it stays on disk for the S12.17 content sync, D30). exclude_docs
-# is used rather than not_in_nav because `mkdocs build --strict` still
-# link-checks built-but-unlinked pages, and several excluded docs contain links
-# that strict mode rejects (see notes below).
+# S12.17 (D30) — the v4.0.0 minimal site has been expanded into a full
+# content surface. Pages previously held out have been repaired and entered
+# the nav above. exclude_docs is reduced to pages that are intentionally
+# never publishable:
 #
 # Excluded and why:
 #   - internal/ ............. gitignored project-internal prompts/notes; must
 #                            never be published.
 #   - sprints/, community/, decisions/, maintenance/, results/ .. internal
 #                            project records, not user-facing.
-#   - RELEASES/v2.*.md, v3.0.0.md .. historical release notes; v3.0.0.md links
-#                            to ../../CHANGELOG.md (outside docs/), which aborts
-#                            strict and lives in a file locked this phase — so
-#                            v3.0.0 is held out of nav too, pending S12.17.
-#   - user_guide / troubleshooting / adding_models .. STALE (D30), reference
-#                            removed commands; queued for the S12.17 sync.
-#   - overview.md ........... broken ../CONTRIBUTING.md and ../CHANGELOG.md links.
-#   - remaining reference docs (architecture, metrics_reference, ...) .. valid
-#                            but out of the minimal v4.0.0 scope; surfaced in S12.17.
+#   - RELEASES/v2.*.md ...... older release notes that contain links into
+#                            internal/excluded directories (e.g.
+#                            results/phase_b_analysis.md) and into the
+#                            repo-root CONTRIBUTING.md; preserved on disk
+#                            for historical reference but kept out of the
+#                            built site to avoid extensive rewriting.
+#   - known_debt.md ......... maintainer-only debt tracker with D-numbered
+#                            internal entries; not user-facing.
+#   - CONTRIBUTING.md ....... canonical copy lives at the repository root;
+#                            kept out of the site to avoid duplication.
 exclude_docs: |
   internal/
   sprints/
@@ -97,22 +117,12 @@ exclude_docs: |
   decisions/
   maintenance/
   results/
-  RELEASES/
+  RELEASES/v2.1.0.md
+  RELEASES/v2.2.0.md
+  RELEASES/v2.3.0.md
+  RELEASES/v2.4.0.md
+  RELEASES/v2.5.0.md
+  RELEASES/v2.6.0.md
+  RELEASES/v2.7.0.md
   known_debt.md
-  adding_models.md
-  adding_scenarios.md
-  architecture.md
-  baseline_inventory.md
-  baseline_references.md
-  CATALOG_HISTORY.md
   CONTRIBUTING.md
-  CROSS_ARCH_REPRODUCIBILITY.md
-  HARDWARE.md
-  MACOS_NOTES.md
-  metrics_reference.md
-  open_questions.md
-  overview.md
-  scenarios_reference.md
-  TESTING.md
-  troubleshooting.md
-  user_guide.md
