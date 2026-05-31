@@ -89,6 +89,8 @@ nav:
   - Project:
       - Technical closure: PROJECT_TECHNICAL_CLOSURE.md
       - Open questions: open_questions.md
+  - Contributing:
+      - Development workflow: development-workflow.md
 
 # S12.17 (D30) — the v4.0.0 minimal site has been expanded into a full
 # content surface. Pages previously held out have been repaired and entered
@@ -108,8 +110,10 @@ nav:
 #                            built site to avoid extensive rewriting.
 #   - known_debt.md ......... maintainer-only debt tracker with D-numbered
 #                            internal entries; not user-facing.
-#   - CONTRIBUTING.md ....... canonical copy lives at the repository root;
-#                            kept out of the site to avoid duplication.
+#
+# (docs/CONTRIBUTING.md was removed in S12-N4 — its operational content
+#  was folded into docs/development-workflow.md, and the canonical
+#  entry-point copy lives at the repository root as CONTRIBUTING.md.)
 exclude_docs: |
   internal/
   sprints/
@@ -125,4 +129,3 @@ exclude_docs: |
   RELEASES/v2.6.0.md
   RELEASES/v2.7.0.md
   known_debt.md
-  CONTRIBUTING.md
