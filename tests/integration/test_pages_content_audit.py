@@ -16,13 +16,40 @@ _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DOCS = _REPO_ROOT / "docs"
 
 # The published nav set (see mkdocs.yml). These are the only "public" pages.
+# Expanded in S12.17 from the v4.0.0 minimal 6-page surface to the full
+# 24-page nav (D30 resolution): Get started / Concepts / Guides /
+# Reproducibility / Releases / Project sections.
 _PUBLIC_DOCS = [
     "index.md",
+    # Get started
+    "overview.md",
+    "user_guide.md",
     "cli_reference.md",
+    "troubleshooting.md",
+    # Concepts
+    "architecture.md",
+    "scenarios_reference.md",
+    "metrics_reference.md",
+    "sustainability.md",
+    # Guides
+    "adding_models.md",
+    "adding_scenarios.md",
     "publication_workflow.md",
     "knowledge_graph.md",
-    "sustainability.md",
+    "TESTING.md",
+    # Reproducibility
+    "baseline_inventory.md",
+    "baseline_references.md",
+    "CATALOG_HISTORY.md",
+    "CROSS_ARCH_REPRODUCIBILITY.md",
+    "HARDWARE.md",
+    "MACOS_NOTES.md",
+    # Releases
+    "RELEASES/v3.1.0.md",
+    "RELEASES/v3.0.0.md",
+    # Project
     "PROJECT_TECHNICAL_CLOSURE.md",
+    "open_questions.md",
 ]
 
 # Lowercase Spanish function words, matched as whole words, case-sensitively —
