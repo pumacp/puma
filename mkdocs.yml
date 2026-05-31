@@ -89,6 +89,8 @@ nav:
   - Project:
       - Technical closure: PROJECT_TECHNICAL_CLOSURE.md
       - Open questions: open_questions.md
+  - Reference:
+      - Technical reference: technical_reference.md
   - Contributing:
       - Development workflow: development-workflow.md
       - Security: security.md
