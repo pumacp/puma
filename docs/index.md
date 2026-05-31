@@ -4,24 +4,65 @@
 
 <p align="center"><strong>Local, reproducible, sustainable benchmarking for LLMs in ICT Project Management.</strong></p>
 
+<!-- CI / status badges -->
 <p align="center">
   <a href="https://github.com/pumacp/puma/actions/workflows/lint-and-test.yml"><img src="https://github.com/pumacp/puma/actions/workflows/lint-and-test.yml/badge.svg" alt="Lint and test"></a>
   <a href="https://github.com/pumacp/puma/actions/workflows/docs.yml"><img src="https://github.com/pumacp/puma/actions/workflows/docs.yml/badge.svg?branch=develop" alt="Docs CI"></a>
   <img src="https://img.shields.io/badge/python-3.11+-111111" alt="Python 3.11+">
   <img src="https://img.shields.io/badge/license-MIT-111111" alt="License: MIT">
   <img src="https://img.shields.io/badge/runs%20on-Docker-111111" alt="Runs on Docker">
-  <br>
+</p>
+
+<!-- Project property badges -->
+<p align="center">
   <img src="https://img.shields.io/badge/reproducible-seed%3D42-111111" alt="Reproducible">
   <img src="https://img.shields.io/badge/sustainability-CodeCarbon-111111" alt="CodeCarbon">
   <img src="https://img.shields.io/badge/inference-Ollama-111111" alt="Ollama">
-  <br>
+</p>
+
+<!-- Quick-access ecosystem badges -->
+<p align="center">
   <a href="https://huggingface.co/spaces/pumaproject/puma-leaderboard"><img src="https://img.shields.io/badge/%F0%9F%A4%97-Leaderboard-111111" alt="Leaderboard"></a>
   <a href="https://zenodo.org/communities/pumacp"><img src="https://img.shields.io/badge/Zenodo-DOI-111111" alt="Zenodo"></a>
   <a href="https://github.com/pumacp/puma-community"><img src="https://img.shields.io/badge/PUMA-Community-111111" alt="PUMA Community"></a>
+  <a href="https://discord.gg/fVhcpHREJv"><img src="https://img.shields.io/badge/Discord-Server-111111" alt="Discord"></a>
 </p>
 
-<!-- PUMA-ACROSTIC-BLOCK START — DO NOT MODIFY — IMMUTABLE -->
----
+<!-- PUMA Profiles -->
+<p align="center">
+  <sub><strong>PUMA Platform</strong></sub><br>
+  <a href="https://pumacp.github.io/puma">PUMA</a> ·
+  <a href="https://pumacp.github.io/puma-community">PUMA Community</a> ·
+  <a href="https://pumacp.github.io/puma-vault">PUMA Vault</a>
+</p>
+
+<p align="center">
+  <sub><strong>PUMA Info</strong></sub><br>
+  <a href="https://www.youtube.com/@PUMA_Project">Youtube</a> ·
+  <a href="https://github.com/pumacp/puma/wiki">PUMA Wiki</a> ·
+  <a href="https://github.com/pumacp/puma-community/wiki">PUMA Community Wiki</a> ·
+  <a href="https://notebooklm.google.com/notebook/76d59cbe-ce15-4d13-a40f-65d6891dcebc">NotebookLM</a> ·
+  <a href="https://drive.google.com/drive/folders/1TKbYhYqLIrq7liAPlSF7ztS2Bv0l7vZS?usp=sharing">Drive (info)</a>  
+</p>
+
+<p align="center">
+  <sub><strong>PUMA Contact</strong></sub><br>
+  <a href="https://www.reddit.com/r/pumaproject/">Reddit</a> ·
+  <a href="https://discord.gg/fVhcpHREJv">Discord</a> ·
+  <a href="https://github.com/pumacp/puma-community/discussions">GitHub Discussions</a> ·
+  <a href="https://x.com/puma__project">Twitter/X</a> ·
+</p>
+
+<!-- PUMA Acrostic — FOLLOW THE WHITE PUMA -->
+
+<summary><sub><strong>PUMA Project</strong></sub></summary>
+
+<br>
+
+<table align="center" border="0">
+<tr>
+<td valign="top" width="50%">
+
 **F**ollowing empirical evidence, ICT project management faces triage, estimation, and learning inefficiencies.<br>
 **O**bserved widely, these persist despite abundant historical data.<br>
 **L**aying a rigorous foundation requires reproducible benchmarking.<br>
@@ -31,6 +72,10 @@
 **T**hrough open-source release, results become reproducible and verifiable.<br>
 **H**ence, the framework supports extensibility across models and tasks.<br>
 **E**ventually, it enables integration into real organizational settings.<br>
+
+</td>
+<td valign="top" width="50%">
+
 **W**ithin ICT environments, recurring inefficiencies hinder effective decision-making.<br>
 **H**eterogeneous data sources complicate prioritization and estimation processes.<br>
 **I**n response, this work builds a reproducible LLM-based benchmark.<br>
@@ -40,8 +85,29 @@
 **U**sing carbon tracking, the framework measures energy impact.<br>
 **M**oreover, the MVP delivers a valid and original contribution.<br>
 **A**ll artefacts are released as open source for replication and extension.<br>
----
-<!-- PUMA-ACROSTIC-BLOCK END -->
+
+</td>
+</tr>
+</table>
+
+<p align="center">
+  <sub><strong>PUMA Community</strong></sub><br>
+  <a href="https://huggingface.co/pumaproject">HF Organization</a> ·
+  <a href="https://huggingface.co/datasets/pumaproject/puma-community-submissions">HF Submissions</a> ·
+  <a href="https://huggingface.co/spaces/pumaproject/puma-leaderboard">HF Leaderboard</a> ·
+  <a href="https://zenodo.org/communities/pumacp">Zenodo</a> ·
+  <a href="https://www.kaggle.com/pumacp">Kaggle</a> ·
+  <a href="https://www.zotero.org/pumacp/library">Zotero</a>
+</p>
+
+<p align="center">
+  <sub><strong>PUMA Code</strong></sub><br>
+  <a href="https://github.com/pumacp/puma">PUMA Project</a> ·
+  <a href="https://github.com/pumacp/puma-community">PUMA Community</a> ·
+  <a href="https://github.com/pumacp/puma-vault">PUMA Vault</a>
+</p>
+
+<br>
 
 <p align="center">
   <a href="#quick-start"><strong>Get started</strong></a> ·
@@ -56,8 +122,7 @@ open-weight large language models (LLMs) on **ICT Project Management** tasks —
 specifically **issue triage** (classifying a ticket's priority) and
 **story-point estimation** (predicting effort). It runs entirely on your own
 hardware through [Ollama](https://ollama.com): no API calls, no accounts, and no
-data ever leaves your machine. Every run is **deterministic** (fixed seed `42`,
-temperature `0.0`), so the same inputs produce byte-identical predictions, and
+data ever leaves your machine. Every run is **deterministic**, so the same inputs produce byte-identical predictions, and
 every run is **sustainability-aware** — energy use and carbon are measured with
 [CodeCarbon](https://codecarbon.io).
 
