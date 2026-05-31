@@ -65,9 +65,7 @@ _S12_17_NAV_ADDITIONS = [
 # Cross-repo broken-link patterns that previously kept overview.md and
 # RELEASES/v3.0.0.md out of the nav (mkdocs --strict rejects ../ paths
 # that escape docs/).
-_BROKEN_CROSS_REPO_LINK = re.compile(
-    r"\]\((\.\./){1,2}(CONTRIBUTING|CHANGELOG|README)\.md\)"
-)
+_BROKEN_CROSS_REPO_LINK = re.compile(r"\]\((\.\./){1,2}(CONTRIBUTING|CHANGELOG|README)\.md\)")
 
 
 def _read_known_debt() -> str:
@@ -141,18 +139,14 @@ class TestD30Resolution:
         assert re.search(
             r"\*\*Status:\*\*\s*RESOLVED\s*\(\d{4}-\d{2}-\d{2},\s*S12\.17\)",
             body,
-        ), (
-            "D30 Status line is not 'RESOLVED (YYYY-MM-DD, S12.17)'. "
-            f"Found:\n{body[:200]}"
-        )
+        ), f"D30 Status line is not 'RESOLVED (YYYY-MM-DD, S12.17)'. Found:\n{body[:200]}"
 
     def test_mkdocs_nav_contains_s12_17_additions(self):
         """Every page S12.17 surfaced into the nav must actually be wired in."""
         nav_pages = set(_flatten_nav(_read_mkdocs_nav()))
         missing = [p for p in _S12_17_NAV_ADDITIONS if p not in nav_pages]
         assert not missing, (
-            f"Pages re-entered into nav by S12.17 (D30) are no longer "
-            f"in mkdocs.yml nav: {missing}"
+            f"Pages re-entered into nav by S12.17 (D30) are no longer in mkdocs.yml nav: {missing}"
         )
 
     def test_overview_and_v3_release_have_no_cross_repo_broken_links(self):
@@ -166,17 +160,12 @@ class TestD30Resolution:
             for match in _BROKEN_CROSS_REPO_LINK.finditer(text):
                 offenders.append(f"{rel}: {match.group(0)}")
         assert not offenders, (
-            f"Cross-repo broken links resurfaced (would re-break mkdocs "
-            f"--strict): {offenders}"
+            f"Cross-repo broken links resurfaced (would re-break mkdocs --strict): {offenders}"
         )
 
     def test_active_user_docs_exist(self):
         """All paths referenced as 'active user docs' actually exist —
         guards against a refactor that silently moves a page out of the
         D30 audit set."""
-        missing = [
-            str(p.relative_to(_REPO_ROOT))
-            for p in _ACTIVE_USER_DOCS
-            if not p.exists()
-        ]
+        missing = [str(p.relative_to(_REPO_ROOT)) for p in _ACTIVE_USER_DOCS if not p.exists()]
         assert not missing, f"D30 audit set references missing files: {missing}"
