@@ -1,6 +1,6 @@
 # Adding a Model to the Catalog
 
-This guide explains how to register a new Ollama-compatible model in PUMA so it can be selected in run-specs and listed by `puma models list`.
+This guide explains how to register a new Ollama-compatible model in PUMA so it can be selected in run-specs, surfaced by `puma models recommended`, and (once pulled into Ollama) listed by `puma models list`.
 
 ---
 
@@ -16,10 +16,10 @@ Adding a model requires three steps:
 
 ## Step 1 — Pull the model
 
-Pull inside the `puma_ollama` container (preferred — model goes into the shared volume):
+Pull inside the `puma_ollama` container (preferred — the model lands in the shared `ollama_models` volume so every PUMA service sees it):
 
 ```bash
-docker compose run --rm puma_runner puma models pull llama3.2:3b
+docker compose exec puma_ollama ollama pull llama3.2:3b
 ```
 
 Or directly from the host if Ollama is installed:
@@ -27,6 +27,10 @@ Or directly from the host if Ollama is installed:
 ```bash
 ollama pull llama3.2:3b
 ```
+
+> **Note.** `puma` itself never pulls models; the `puma models` sub-group is
+> read-only (`list` / `show` / `recommended`). Pulling is delegated to the
+> Ollama CLI for a single source of truth.
 
 Check it is available:
 
@@ -66,7 +70,7 @@ models:
 | `profiles_compatible` | list[str] | yes | Hardware profiles that can run this model without OOM |
 | `context_window` | int | yes | Maximum context length in tokens |
 | `languages` | list[str] | no | ISO 639-1 language codes the model supports well |
-| `notes` | string | no | Free-text description shown in `puma models list` |
+| `notes` | string | no | Free-text description surfaced as the `rationale` column in `puma models recommended` |
 
 ### Profile compatibility guidelines
 

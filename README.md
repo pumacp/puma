@@ -226,14 +226,15 @@ useful top-level commands:
 
 - `puma preflight` — detect hardware capabilities and select an execution
   profile.
-- `puma models` — list supported model tags from the catalog or pull a tag
-  via Ollama.
+- `puma models` — read-only sub-group inspecting the models Ollama already
+  has locally (`list` / `show <name>` / `recommended`). Pulling is delegated
+  to `ollama pull <tag>` (or `docker compose exec puma_ollama ollama pull
+  <tag>` in the Compose flow).
 - `puma run` — execute a benchmark for a given scenario / model / strategy.
 - `puma compare` — compare two runs side by side.
 - `puma validate-baseline` — verify reproducibility against a published
   baseline.
 - `puma list-runs` — show the runs stored in the local SQLite database.
-- `puma list-ollama-models` — show locally-installed Ollama tags.
 - `puma prepare-datasets` — fetch and pre-process the supported datasets.
 - `puma wilcoxon` — Wilcoxon signed-rank pairwise comparison.
 - `puma bias-analysis` — gendered-prefix robustness sweep.
