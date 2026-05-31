@@ -9,6 +9,9 @@ Versions follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- First official PUMA Community submission landed — qwen2.5:3b / triage_jira /
+  zero_shot (submitter pumacp, F1=0.3898, merged 2026-05-31); documented in
+  `docs/first-submission.md` (S12-N1).
 - Multi-model comparison view in the Streamlit dashboard: side-by-side metrics
   with deltas (F1-macro for triage, MAE for estimation), bar charts (F1-macro,
   MAE, p95 latency, carbon), a full metrics table, and a per-model reproducibility
