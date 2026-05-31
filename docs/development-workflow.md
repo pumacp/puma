@@ -200,6 +200,24 @@ git config core.hooksPath .githooks
 
 This activates the `commit-msg` hook documented in §10.
 
+### Verify the CLI is wired up
+
+After install, confirm the canonical command surface is reachable:
+
+```bash
+puma --help                 # top-level entry point
+puma doctor                 # environment health check (Python, Ollama,
+                            # CodeCarbon, models, hardware profile, DB)
+puma models list            # tags Ollama already has locally
+puma models show qwen2.5:3b # per-model details from /api/show
+puma models recommended     # curated catalog with availability
+puma run --help             # benchmark execution
+```
+
+If `puma --help` does not work, re-run the install step and check
+`which puma`. The full command reference lives in
+[`docs/cli_reference.md`](cli_reference.md).
+
 ---
 
 ## 7. IDE setup recommendations
