@@ -95,7 +95,7 @@ The CI workflow (`lint-and-test.yml`) runs the same checks on every PR.
 
 This repository follows [Conventional Commits](https://www.conventionalcommits.org/).
 Commit types in use: `feat`, `fix`, `docs`, `chore`, `test`, `refactor`,
-`style`, `ci`. Scope is optional but recommended (e.g.,
+`style`, `ci`, `build`. Scope is optional but recommended (e.g.,
 `feat(community): add credential store`).
 
 Example:
@@ -107,7 +107,36 @@ Composes the schema, builder, and validator into a 4-state Streamlit
 wizard. Adds 9 new tests under tests/community/.
 ```
 
+### AI-tool trailers
+
+The repository's `core.hooksPath` is set to `.githooks/`. The
+`commit-msg` hook automatically strips `Co-authored-by:`,
+`Signed-off-by: …<AI tool>` and `Generated-by:` trailers from commit
+messages, regardless of which assistant (if any) helped draft the
+change. Commits are attributed exclusively to the git identity
+configured in `~/.gitconfig` (or the per-repository config).
+
+New contributors should ensure the hook path is set after cloning:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+This policy is tool-agnostic; see
+[Development workflow](docs/development-workflow.md) for the full
+rationale and the list of contributor-supplied AI tools that have
+been used historically (none of which are required to contribute).
+
 ---
+
+## The contribution workflow
+
+For a step-by-step procedural reference covering branch naming, the
+edit-commit-push-PR-merge cycle, IDE setup (VSCode, Cursor, JetBrains),
+local quality gates, conflict handling, and a worked example, see the
+canonical [Development workflow](docs/development-workflow.md) guide
+(also published on the docs site under **Contributing → Development
+workflow**).
 
 ## Pull request process
 
@@ -116,8 +145,14 @@ wizard. Adds 9 new tests under tests/community/.
 3. Write tests for new code; target ≥ 80 % coverage for new modules.
 4. Run `ruff`, `mypy`, and `pytest` locally before pushing.
 5. Open the PR against `develop`. CI must be green before review.
-6. PRs are squash-merged into `develop`; `develop` is fast-forwarded to
+6. PRs are rebase-merged into `develop`; `develop` is fast-forwarded to
    `main` on release.
+
+### One purpose per PR
+
+Keep each PR focused on a single concern. Mixing an unrelated refactor
+into a feature PR makes review slower and increases the blast radius of
+a revert. The repository tracks one rule: **one purpose per PR**.
 
 ---
 
