@@ -411,6 +411,96 @@ interpreted against the current runtime, not the historical `5.7150`.
 recorded here so the failing MAE gate during S12.9 re-validation is traceable
 and not mistaken for an S12.9 regression.
 
+### D32 — License compatibility automation (since S12-N2)
+
+**Status:** OPEN — deferred from S12-N2 MVP scope.
+**Discovered:** Sprint 12 / S12-N2 security audit MVP (2026-05-31).
+
+**Finding.** The S12-N2 MVP wires `pip-audit` (CVE scanning), `bandit`
+(Python SAST), `gitleaks` (secret scanning), and `Trivy` (container CVE
+scanning) into CI, but does not automate license compatibility. A
+non-permissive license (GPL, AGPL, custom restrictive terms) entering
+the production dependency tree via a transitive update would not be
+caught until manual review at release time.
+
+**Resolution path.** Add `pip-licenses` (or equivalent) as a CI step
+that emits a license inventory and fails the build on any non-MIT /
+non-BSD / non-Apache-2.0 / non-PSF-License license in the production
+dependency closure. Allowlist explicit exceptions with a documented
+rationale.
+
+**Rationale for deferral.** Right-sized out of S12-N2 MVP scope to keep
+the security audit deliverable focused on vulnerability scanning;
+license-compatibility automation is a candidate for the post-Sprint-12
+backlog or the next security audit cycle.
+
+### D33 — SBOM CycloneDX generation (since S12-N2)
+
+**Status:** OPEN — deferred from S12-N2 MVP scope.
+**Discovered:** Sprint 12 / S12-N2 security audit MVP (2026-05-31).
+
+**Finding.** Published artifacts (the `puma-cp` PyPI wheel and the
+`ghcr.io/pumacp/puma:vX.Y.Z` container image) ship without a Software
+Bill of Materials. Downstream consumers cannot programmatically
+verify the dependency closure or correlate published-artifact contents
+with upstream advisories at install time.
+
+**Resolution path.** Add a CI step that runs `cyclonedx-py` (Python
+deps) and `syft` or `Trivy` SBOM mode (image layers) and attaches the
+CycloneDX SBOM as an asset to every published release; reference it
+from `SECURITY.md` and `docs/security.md`.
+
+**Rationale for deferral.** Right-sized out of S12-N2 MVP scope to keep
+the security audit deliverable focused on detection (vulnerability
+scanning); the SBOM is a provenance artifact that is most useful once
+v4.0.0 actually ships and downstream consumption begins. Candidate
+for the next security audit cycle.
+
+### D34 — Mutation testing on `src/puma/community/integrity.py` (since S12-N2)
+
+**Status:** OPEN — deferred from S12-N2 MVP scope.
+**Discovered:** Sprint 12 / S12-N2 security audit MVP (2026-05-31).
+
+**Finding.** `src/puma/community/integrity.py` is the canonical
+implementation of the `SHA-256` over the canonical predictions tuple
+that backstops every PUMA Community submission. The file is locked
+(schema-bearing) and has unit + integration test coverage, but no
+mutation-testing pass has verified that the tests would actually
+catch subtle mutations of the canonical hash procedure (e.g. a
+swapped sort order, a tuple ordering change, an off-by-one when
+canonicalizing).
+
+**Resolution path.** Run `mutmut` (or equivalent) on
+`src/puma/community/integrity.py` with the existing test suite as the
+oracle; document the mutation-survival rate; tighten tests where
+needed; record the achieved score in `docs/security.md` §5.
+
+**Rationale for deferral.** Mutation testing is non-trivial to set up
+and tune (run-time, killable-but-not-killed analysis, allowlist for
+equivalent mutants); right-sized out of S12-N2 MVP scope. Candidate
+for the post-Sprint-12 backlog.
+
+### D35 — Cross-platform install test (since S12-N2)
+
+**Status:** OPEN — deferred from S12-N2 MVP scope.
+**Discovered:** Sprint 12 / S12-N2 security audit MVP (2026-05-31).
+
+**Finding.** CI runs on `ubuntu-latest` only; the published wheel and
+the published image are exercised on a single platform. A regression
+that breaks the install on macOS (x86_64 or arm64) or Windows would
+not surface until a contributor reports it.
+
+**Resolution path.** Add a matrix job to a CI workflow (likely a new
+`install-smoke.yml`) that installs `puma-cp` from the built wheel on
+`ubuntu-latest`, `macos-13`, `macos-14` (arm64), and
+`windows-latest`, and verifies `puma --help` exits 0.
+
+**Rationale for deferral.** Right-sized out of S12-N2 MVP scope —
+S12-N2 focuses on vulnerability detection, not platform-coverage
+expansion. Candidate for the post-Sprint-12 backlog, ideally before
+v4.0.0 ships so the published wheel is verified on the documented
+target platforms.
+
 ### P1 captures (Sprint 12)
 
 Coordinator-level prompt-drift captures. Earlier captures are embedded in the
