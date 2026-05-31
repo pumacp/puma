@@ -219,6 +219,9 @@ personal data, signs the integrity hash, and opens the Pull Request on
 your behalf against
 [`pumacp/puma-community`](https://github.com/pumacp/puma-community).
 
+The first official community submission is documented end to end in
+[the first-submission write-up](docs/first-submission.md).
+
 ## CLI overview
 
 The `puma` entry point exposes a Typer-based hierarchy of commands. The most
