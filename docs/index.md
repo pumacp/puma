@@ -370,6 +370,7 @@ findings into a navigable web. Browse it at
 
 ### Documentation sites
 - **PUMA docs** — <https://pumacp.github.io/puma/>
+- **Technical reference** — [`docs/technical_reference.md`](technical_reference.md) (architecture, configuration, JSON Schema, ORM, CLI overview, glossary, decisions timeline)
 - **PUMA Community** — <https://pumacp.github.io/puma-community/>
 - **PUMA Vault** — <https://pumacp.github.io/puma-vault/>
 - **Wiki (tool)** — <https://github.com/pumacp/puma/wiki> · **Wiki (community)** — <https://github.com/pumacp/puma-community/wiki>
