@@ -24,6 +24,20 @@ Versions follow [Semantic Versioning](https://semver.org/).
   `docs/known_debt.md`; every page S12.17 surfaced is wired into the
   mkdocs nav; no cross-repo broken links in `overview.md` /
   `RELEASES/v3.0.0.md`.
+- Canonical procedural reference for the manual IDE-based
+  contribution workflow (`docs/development-workflow.md`, 16 sections,
+  ~860 lines): prerequisites, repository layout (with locked-path
+  callouts), Git identity, clone, install, IDE setup (VSCode / Cursor
+  / JetBrains), the 11-step contribution workflow, conventional
+  commits, local quality gates, conflict handling, the cosmetic /
+  acrostic relaxation, the prohibited-token policy, the benchmark
+  submission pointer, support channels, and a worked PR-#47 appendix.
+- New top-level **Contributing** section in the mkdocs nav, surfacing
+  `docs/development-workflow.md`.
+- Coherence test module
+  (`tests/integration/test_development_workflow_doc.py`, 13 tests)
+  pinning the structural invariants of the CONTRIBUTING + workflow
+  doc pairing.
 
 ### Changed
 - Dashboard theme switched to the monochrome corporate palette (`.streamlit/config.toml`).
@@ -48,8 +62,25 @@ Versions follow [Semantic Versioning](https://semver.org/).
   expanded audit surfaced (Anexo cross-references, `pumaproject/puma-verifier`
   Space mentions, `memoria` reference, one Spanish phrase). The substantive
   release content is preserved.
+- Root `CONTRIBUTING.md` extended with two short cross-cutting sections:
+  'The contribution workflow' (one-paragraph pointer to
+  `docs/development-workflow.md`) and 'AI-tool trailers' (documenting
+  the existing `.githooks/commit-msg` strip-on-commit policy). Existing
+  Development setup / Testing / Code style / Bug reports / Feature
+  requests / Code of Conduct sections preserved as-is. Merge policy
+  copy-edit: `squash-merged` → `rebase-merged` to match actual practice
+  (PRs #45 / #46 / #47 / #48).
+- `README.md` 'Documentation' section: the 'Contributing guide' bullet
+  now also points at `docs/development-workflow.md` and its rendered
+  Pages URL.
 
 ### Removed
+- `docs/CONTRIBUTING.md` — its operational content (pre-commit hooks,
+  `.githooks/commit-msg` policy, branch naming, TDD module list) was
+  folded into the relevant sections of `docs/development-workflow.md`.
+  The file had been excluded from the mkdocs nav since S12.17 as a
+  'canonical-lives-at-repo-root' duplicate; the deletion eliminates the
+  duplicate source of truth.
 
 ### Fixed
 - D30 — Docs sync for the new `models` subcommand structure (since v4.0.0).
