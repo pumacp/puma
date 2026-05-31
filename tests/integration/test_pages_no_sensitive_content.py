@@ -14,13 +14,33 @@ import pytest
 
 _DOCS = Path(__file__).resolve().parents[2] / "docs"
 
+# Expanded in S12.17 from the v4.0.0 minimal 6-page surface to the full
+# 24-page mkdocs nav (D30 resolution).
 _PUBLIC_DOCS = [
     "index.md",
+    "overview.md",
+    "user_guide.md",
     "cli_reference.md",
+    "troubleshooting.md",
+    "architecture.md",
+    "scenarios_reference.md",
+    "metrics_reference.md",
+    "sustainability.md",
+    "adding_models.md",
+    "adding_scenarios.md",
     "publication_workflow.md",
     "knowledge_graph.md",
-    "sustainability.md",
+    "TESTING.md",
+    "baseline_inventory.md",
+    "baseline_references.md",
+    "CATALOG_HISTORY.md",
+    "CROSS_ARCH_REPRODUCIBILITY.md",
+    "HARDWARE.md",
+    "MACOS_NOTES.md",
+    "RELEASES/v3.1.0.md",
+    "RELEASES/v3.0.0.md",
     "PROJECT_TECHNICAL_CLOSURE.md",
+    "open_questions.md",
 ]
 
 _SENSITIVE = [
