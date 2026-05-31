@@ -307,7 +307,12 @@ invariants are metric-level. The gate was over-strict; the metric invariants
 
 ### D30 — Docs sync for the new `models` subcommand structure (since v4.0.0)
 
-**Status:** TRACKED — defer to a focused docs-sync phase or fold into S12.17 (mkdocs).
+**Status:** RESOLVED (2026-05-31, S12.17) — stale `puma models pull` /
+`puma list-ollama-models` references rewritten across `README.md`,
+`docs/user_guide.md`, `docs/troubleshooting.md`, `docs/adding_models.md`;
+held-out docs repaired and re-entered the mkdocs nav (six groups, 26
+public pages); `docs/cli_reference.md` already current for the v4.0.0
+sub-group surface. `mkdocs build --strict` exits 0 with zero warnings.
 **Discovered:** Sprint 12 / S12.9 discovery pass (2026-05-26).
 
 **Finding.** S12.9 replaced the legacy `puma models` (catalog-print + `ollama
