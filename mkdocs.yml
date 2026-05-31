@@ -84,6 +84,7 @@ nav:
       - Hardware: HARDWARE.md
       - macOS notes: MACOS_NOTES.md
   - Releases:
+      - First submission: first-submission.md
       - v3.1.0: RELEASES/v3.1.0.md
       - v3.0.0: RELEASES/v3.0.0.md
   - Project:
