@@ -91,6 +91,7 @@ nav:
       - Open questions: open_questions.md
   - Contributing:
       - Development workflow: development-workflow.md
+      - Security: security.md
 
 # S12.17 (D30) — the v4.0.0 minimal site has been expanded into a full
 # content surface. Pages previously held out have been repaired and entered
