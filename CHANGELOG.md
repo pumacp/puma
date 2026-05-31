@@ -63,6 +63,23 @@ Versions follow [Semantic Versioning](https://semver.org/).
     automation, SBOM CycloneDX generation, mutation testing on
     `integrity.py`, cross-platform install test — all right-sized
     out of the MVP scope and queued for the post-Sprint-12 backlog.
+- **Consolidated technical reference** (S12-N3):
+  - `docs/technical_reference.md` (~770 lines, ~5100 words, 15
+    sections): Overview, 6-layer architecture diagram, full
+    configuration reference (run-spec / profiles / catalog), JSON
+    Schema field-by-field (root + 6 `$defs`), Storage / ORM
+    reference (6 models), 7 metric families, CLI overview
+    cross-linked to `cli_reference.md`, methodologies, 30+-term
+    glossary, 17-row architectural decisions timeline, strengths,
+    14 open D-NN debt entries, risks + mitigations, roadmap pointer,
+    references.
+  - New **Reference** top-level mkdocs nav section surfacing the
+    consolidated reference (nav 26 → 27 pages).
+  - `tests/integration/test_technical_reference_doc.py` (14 tests)
+    pins every YAML key / Schema field / ORM model / CLI command /
+    glossary count / decisions count / canonical cross-link.
+  - README and `docs/index.md` Documentation / Resources sections
+    cross-link the new page (both in-tree and Pages URL).
 
 ### Changed
 - Dashboard theme switched to the monochrome corporate palette (`.streamlit/config.toml`).
