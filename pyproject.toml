@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "puma-cp"
-version = "3.1.0"
+version = "4.0.0"
 description = "Local, reproducible benchmarking of open LLMs on project management tasks"
 readme = "README.md"
 requires-python = ">=3.11"
