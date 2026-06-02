@@ -503,7 +503,7 @@ target platforms.
 
 ### D38 — validate-submission workflow uses a non-existent action version (since S12-N1)
 
-**Status:** OPEN — owner: maintainer. Target: S12.19.
+**Status:** OPEN — owner: maintainer. Target: S12.19 → post-Sprint-12 (v4.0.1 / patch sprint).
 **Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
 
 **File.** `.github/workflows/validate-submission.yml` in `pumacp/puma-community`.
@@ -518,7 +518,7 @@ current commit SHA.
 
 ### D39 — Verify submission integrity workflow broken by gradio_client API drift (since S12-N1)
 
-**Status:** OPEN — owner: maintainer. Target: S12.19.
+**Status:** OPEN — owner: maintainer. Target: S12.19 → post-Sprint-12 (v4.0.1 / patch sprint).
 **Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
 
 **File.** `scripts/verify_submissions.py` in `pumacp/puma-community`, line 54.
@@ -541,7 +541,7 @@ submission to upgrade its `verification_status`.
 ### D40 — `puma share-results` CLI hangs after the Review panel (since S12-N1)
 
 **Status:** OPEN — owner: maintainer. Target: S12.19 (investigation) +
-post-Sprint-12 (full fix).
+post-Sprint-12 (v4.0.1 / patch sprint, full fix).
 **Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
 
 **File.** `src/puma/community/share_results.py` (likely) in `pumacp/puma`.
@@ -556,6 +556,67 @@ all stopped at the same point; no PR was opened by the CLI. A manual
 **Investigation needed.** Instrument the post-review-panel code path with debug
 logging; verify the fork + push + PR-creation pipeline; check whether `--yes`
 is honored by all confirmation prompts in the chain.
+
+### D41 — Container image v4.0.0 blocked by Trivy on 3 HIGH base-image CVEs (since S12.18)
+
+**Status:** OPEN — owner: maintainer. Target: post-Sprint-12 (v4.0.1 / patch sprint).
+**Discovered:** Sprint 12 / S12.18 release ceremony (2026-05-31).
+
+**File.** `Dockerfile.publish` (base image) in `pumacp/puma`.
+
+**Finding.** During the v4.0.0 release ceremony the `publish-docker.yml` run
+(26795071210) built the image successfully, but the Trivy scan reported 3 HIGH,
+3 MEDIUM, and 1 LOW finding (0 CRITICAL) in the base image. The configured
+`severity: CRITICAL,HIGH` / `exit-code: 1` gate failed the step, so the GHCR
+push never ran; `ghcr.io/pumacp/puma:4.0.0` was not published. The SARIF was
+uploaded to the GitHub Security tab under ref `refs/tags/v4.0.0`. This is the
+security gate working as designed, not a code defect.
+
+**Resolution path.** Update the base image in `Dockerfile.publish` to a
+Trivy-clean patched tag (e.g. the most recent `python:3.11-slim` /
+`python:3.12-slim` patch), rebuild, and re-run `publish-docker.yml`; ship as a
+v4.0.1 patch release.
+
+### D42 — PyPI wheel does not bundle config/profiles.yaml and other data files (since S12.18)
+
+**Status:** OPEN — owner: maintainer. Target: post-Sprint-12 (v4.0.1 / patch sprint).
+**Discovered:** Post-S12.18 verification (`pip install puma-cp==4.0.0` in a clean venv).
+
+**File.** `pyproject.toml` — missing `include-package-data = true` or a
+`[tool.setuptools.package-data]` entry for non-Python data files.
+
+**Finding.** A clean-venv install of `puma-cp==4.0.0` (at `/tmp/verify-v400`)
+emits the runtime warning "Profile catalog not found at
+`<venv>/lib/python3.12/config/profiles.yaml` — profile_id validation will
+reject all values". The wheel bundles no `config/*.yaml` or JSON schema data.
+
+**Consequence.** End users who install from PyPI cannot run benchmarks; hardware
+profile validation rejects all values. Source-clone installs
+(`pip install -e .[dev]`) are unaffected because `config/` is present in the
+working tree.
+
+**Resolution path.** Add `include-package-data = true` to the
+`[tool.setuptools]` section, or enumerate package data via
+`[tool.setuptools.package-data]` (`puma = ["config/*.yaml", "schema_data/*.json"]`).
+Verify by rebuilding the wheel and inspecting it:
+`python -m zipfile -l dist/puma_cp-*.whl | grep -E "(config|schema)"`. Ship in
+v4.0.1.
+
+### D43 — CLI does not expose a top-level `--version` flag (since S12.18)
+
+**Status:** OPEN — owner: maintainer. Target: post-Sprint-12 (v4.0.1 / patch sprint).
+**Discovered:** Post-S12.18 verification.
+
+**File.** `src/puma/cli.py` — the root Typer/Click command group.
+
+**Finding.** `puma --version` returns "No such option '--version'. Did you mean
+'--verbose'?". The CLI does not implement the standard `--version` convention.
+
+**Consequence.** Cosmetic. Users expect `--version`; the current workaround is
+`pip show puma-cp`.
+
+**Resolution path.** Add `@click.version_option(package_name="puma-cp")` to the
+root group (or the Typer equivalent). Ship in v4.0.1.
 
 ### P1 captures (Sprint 12)
 
