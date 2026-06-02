@@ -15,5 +15,5 @@ perturbations: []
 metrics:
   - mae
 sustainability:
-  codecarbon: false
+  codecarbon: true
 repeat: 1

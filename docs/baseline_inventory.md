@@ -6,7 +6,7 @@ created: 2026-04-18
 
 # Baseline Inventory
 
-Snapshot of repository state before Phase 0 restructuring. Produced by executing Step 1 of CLAUDE_CODE_INSTRUCTIONS.md.
+Snapshot of repository state before Phase 0 restructuring. Produced by executing Step 1 of AGENT_INSTRUCTIONS.md.
 
 ---
 
@@ -69,7 +69,7 @@ puma/
 ├── tests/
 │   ├── __init__.py
 │   └── test_core.py          — 14 tests (integration + unit)
-├── CLAUDE_CODE_INSTRUCTIONS.md
+├── AGENT_INSTRUCTIONS.md
 ├── Dockerfile                — python:3.11-slim, no GPU support
 ├── docker-compose.yml        — services: ollama + evaluator
 ├── emissions.csv             — CodeCarbon output
@@ -147,7 +147,7 @@ puma/
 | requests | (unpinned) | HTTP calls |
 | pytest | (unpinned) | Tests |
 
-**Missing vs. target** (from `CLAUDE_CODE_INSTRUCTIONS.md §F0.2`):
+**Missing vs. target** (from `AGENT_INSTRUCTIONS.md §F0.2`):
 `typer`, `httpx`, `pydantic`, `pyyaml`, `jinja2`, `numpy`, `sqlalchemy`, `psutil`, `streamlit`, `langdetect`, `pytest-cov`, `ruff`, `mypy`, `structlog`, `rich`, `pre-commit`, `alembic`, `respx`
 
 ---
@@ -196,7 +196,7 @@ No `tests/unit/`, `tests/integration/`, `tests/smoke/` subdirectories yet.
 | Task | Model | Metric | Value |
 |------|-------|--------|-------|
 | Triage | qwen2.5:3b | F1-macro | ~0.5867 (reported) / 0.5087 (mistral:7b in saved JSON) |
-| Estimation | qwen2.5:3b | MAE | ~1.89 SP (reported in CLAUDE_CODE_INSTRUCTIONS.md) |
+| Estimation | qwen2.5:3b | MAE | ~1.89 SP (reported in AGENT_INSTRUCTIONS.md) |
 
 ---
 

@@ -77,13 +77,16 @@ docker compose exec puma_ollama ollama list
 
 ### `pull model manifest: file does not exist`
 
-The model has not been pulled yet:
+The model has not been pulled yet. Pulling is delegated to the Ollama CLI:
 
 ```bash
-puma models pull qwen2.5:3b
-# or
 docker compose exec puma_ollama ollama pull qwen2.5:3b
+# or, if Ollama is installed on the host:
+ollama pull qwen2.5:3b
 ```
+
+Then verify with `puma models list` (locally-installed tags) or
+`puma models recommended` (curated catalog with availability).
 
 ### Inference returns empty or garbled responses
 
@@ -213,7 +216,9 @@ rm data/puma.db && puma db migrate
 ### Very slow inference (> 5 min per instance)
 
 - Verify the hardware profile: `puma preflight` — ensure the correct profile is active.
-- Check that the model fits in VRAM: `puma models list`.
+- Check the model size against your hardware: `puma models show <name>`
+  (per-model details from Ollama's `/api/show`) or `puma models recommended`
+  (curated catalog with size/profile hints).
 - On CPU-only machines, prefer models ≤ 3B parameters.
 - Verify OLLAMA_HOST is reachable: `curl http://localhost:11434/api/version`.
 

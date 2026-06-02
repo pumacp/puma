@@ -133,33 +133,51 @@ Profiles and their requirements:
 
 ## 3. Managing Models
 
-### List all catalog models
+PUMA's CLI never pulls or mutates models — pulling is delegated to the Ollama
+CLI for a single source of truth. The `puma models` sub-group is **read-only**
+and exposes three commands:
+
+| Command | What it shows | Source |
+|---|---|---|
+| `puma models list` | Tags pulled locally in Ollama | Ollama `/api/tags` |
+| `puma models show <name>` | Details for one locally-pulled model | Ollama `/api/show` |
+| `puma models recommended` | Curated PUMA catalog with local availability | `config/models_catalog.yaml` + `/api/tags` |
+
+### See what is installed locally
 
 ```bash
 puma models list
 ```
 
-Output shows model tag, parameter count, disk size, and compatible profiles:
+Shows every tag Ollama already has on disk.
 
+### See the curated catalog (with availability)
+
+```bash
+puma models recommended
 ```
-Model                          Params     Size  Profiles
----------------------------------------------------------------------------
-qwen2.5:0.5b                      0.5B   0.4 GB  cpu-lite, cpu-standard, gpu-entry
-qwen2.5:1.5b                      1.5B   1.0 GB  cpu-lite, cpu-standard, gpu-entry
-qwen2.5:3b                        3.0B   2.0 GB  cpu-standard, gpu-entry, gpu-mid
-qwen2.5:7b                        7.0B   4.7 GB  cpu-standard, gpu-entry, gpu-mid
-llama3.2:3b                       3.0B   2.0 GB  cpu-standard, gpu-entry, gpu-mid
-mistral:7b                        7.0B   4.1 GB  cpu-standard, gpu-entry, gpu-mid
-deepseek-r1:7b                    7.0B   4.7 GB  gpu-entry, gpu-mid, gpu-high
-```
+
+Lists the PUMA-validated models from `config/models_catalog.yaml` annotated
+with whether each one is already available locally — useful to decide what to
+`ollama pull` next.
 
 ### Pull a model
 
+Pulling goes through the Ollama CLI (inside the `puma_ollama` container for
+the Compose flow, so the model lands in the shared `ollama_models` volume):
+
 ```bash
-puma models pull qwen2.5:3b
+docker compose exec puma_ollama ollama pull qwen2.5:3b
 ```
 
-This runs `ollama pull` inside the `puma_ollama` container. The model is stored in the shared `ollama_models` volume.
+Or directly from the host if Ollama is installed there:
+
+```bash
+ollama pull qwen2.5:3b
+```
+
+`puma doctor` will hint `ollama pull <name>` for any catalog model it cannot
+find locally — the same guidance, surfaced from the health check.
 
 ---
 
@@ -657,11 +675,14 @@ This lets you compare models not just by accuracy but by their carbon cost per u
 # Hardware check
 puma preflight
 
-# List available models
+# List locally-installed models
 puma models list
 
-# Pull a model
-puma models pull qwen2.5:3b
+# See the curated catalog with availability
+puma models recommended
+
+# Pull a model (delegated to Ollama)
+docker compose exec puma_ollama ollama pull qwen2.5:3b
 
 # Verify datasets
 puma datasets verify

@@ -1,0 +1,40 @@
+name: bandit
+
+# Python SAST scan against src/puma/. -lll sets the severity threshold
+# to HIGH: only HIGH-severity findings surface in the output and only
+# HIGH causes a non-zero exit. LOW and MEDIUM findings are deliberately
+# left to local-run review — the S12-N2 baseline run on develop
+# surfaced 3 MEDIUM findings that are all design-justified (intentional
+# 0.0.0.0 dashboard bind, controlled-input SQL, hardcoded localhost
+# urlopen). Tests (tests/) are excluded — bandit's defaults flag
+# assert statements as B101, which is the canonical test idiom and
+# would generate noise.
+#
+# Cadence: every push to develop / main, every PR, manual dispatch.
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  sast:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install bandit
+        run: pip install --upgrade pip bandit
+
+      - name: Run bandit against src/puma/
+        run: bandit -r src/puma/ -lll

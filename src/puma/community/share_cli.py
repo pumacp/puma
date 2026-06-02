@@ -35,6 +35,7 @@ from puma.community.github_client import (
     ConflictError,
     GitHubError,
 )
+from puma.community.integrity import export_predictions_jsonl
 from puma.community.ratelimit import LocalRateLimiter
 from puma.community.runs_query import (
     ShareableRunSummary,
@@ -44,6 +45,7 @@ from puma.community.runs_query import (
 from puma.community.schema import Submitter
 from puma.community.validator import is_safe_to_publish
 from puma.storage.db import session_scope
+from puma.ui.themes import Theme, get_theme
 
 log = logging.getLogger("puma.community.share_cli")
 
@@ -115,9 +117,10 @@ def _resolve_submitter_alias(
     return slug or _anonymous_alias()
 
 
-def _render_run_table(rows: list[ShareableRunSummary]) -> Table:
+def _render_run_table(rows: list[ShareableRunSummary], theme: Theme | None = None) -> Table:
+    t = theme or get_theme(None)
     table = Table(title="Shareable runs", show_lines=False)
-    table.add_column("#", justify="right", style="cyan")
+    table.add_column("#", justify="right", style=t.accent)
     table.add_column("run_id", style="bold")
     table.add_column("scenario")
     table.add_column("model")
@@ -196,7 +199,9 @@ def _show_consent_panel(
     *,
     dry_run: bool,
     alias: str,
+    theme: Theme | None = None,
 ) -> None:
+    t = theme or get_theme(None)
     metrics = payload["metrics"]
     metric_lines = []
     for key in ("f1_macro", "accuracy", "mae"):
@@ -218,7 +223,9 @@ def _show_consent_panel(
         f"metrics:\n{metric_text}\n\n"
         f"Action: {action}"
     )
-    console.print(Panel(body, title="[cyan]Review submission[/cyan]", border_style="cyan"))
+    console.print(
+        Panel(body, title=f"[{t.accent}]Review submission[/{t.accent}]", border_style=t.accent)
+    )
 
 
 # ── command ─────────────────────────────────────────────────────────────────
@@ -257,8 +264,9 @@ def share_results(
     ),
 ) -> None:
     """Entrypoint for ``puma share-results``."""
+    theme = (ctx.obj or {}).get("theme") or get_theme(None)
     # Step 1 — discover run
-    summary = _discover_run(run_id=(run_id or None))
+    summary = _discover_run(run_id=(run_id or None), theme=theme)
     if summary is None:
         raise typer.Exit(code=0)
 
@@ -278,7 +286,7 @@ def share_results(
         try:
             client = CommunityGitHubClient()
         except AuthenticationError as exc:
-            console.print(f"[red]{exc}[/red]")
+            console.print(f"[{theme.error}]{exc}[/{theme.error}]")
             raise typer.Exit(code=1) from exc
         alias = _resolve_submitter_alias(
             cli_alias=cli_alias,
@@ -302,7 +310,7 @@ def share_results(
         PIIDetectedError,
         CommunityError,
     ) as exc:
-        console.print(f"[red]Cannot build submission:[/red] {exc}")
+        console.print(f"[{theme.error}]Cannot build submission:[/{theme.error}] {exc}")
         raise typer.Exit(code=1) from exc
 
     payload = json.loads(submission.model_dump_json())
@@ -310,13 +318,13 @@ def share_results(
     # Step 4 — safety sweep
     safe, reasons = is_safe_to_publish(submission)
     if not safe:
-        console.print("[red]Submission failed safety checks:[/red]")
+        console.print(f"[{theme.error}]Submission failed safety checks:[/{theme.error}]")
         for r in reasons:
             console.print(f"  • {r}")
         raise typer.Exit(code=1)
 
     # Step 5 — consent
-    _show_consent_panel(payload, summary, dry_run=dry_run, alias=alias)
+    _show_consent_panel(payload, summary, dry_run=dry_run, alias=alias, theme=theme)
     if not yes:
         confirmed = typer.confirm("Proceed?", default=False)
         if not confirmed:
@@ -327,17 +335,28 @@ def share_results(
     if not dry_run:
         ok, reason = LocalRateLimiter().can_submit(submitter_alias=alias)
         if not ok:
-            console.print(f"[yellow]{reason}[/yellow]")
+            console.print(f"[{theme.warning}]{reason}[/{theme.warning}]")
             raise typer.Exit(code=1)
 
     # Step 7 — execute
     if dry_run:
         path = save_dry_run(payload=payload)
+        # D27: emit the canonical predictions JSONL alongside the submission
+        # JSON. The file uses integrity._COLUMNS and hashes (via
+        # verify_cli.hash_predictions_jsonl) to the submission's declared
+        # predictions_summary_hash, so verify-hash --predictions verifies it.
+        preds_path = path.parent / f"{path.stem}.predictions.jsonl"
+        with session_scope() as session:
+            n_preds = export_predictions_jsonl(
+                session=session, run_id=summary.run_id, target=preds_path
+            )
+        log.info("share_results: exported %d predictions to %s", n_preds, preds_path)
         console.print(
             Panel(
-                f"Saved dry-run submission to:\n[bold]{path}[/bold]",
-                title="[green]share-results --dry-run[/green]",
-                border_style="green",
+                f"Saved dry-run submission to:\n[bold]{path}[/bold]\n"
+                f"Predictions JSONL ({n_preds} records):\n[bold]{preds_path}[/bold]",
+                title=f"[{theme.success}]share-results --dry-run[/{theme.success}]",
+                border_style=theme.success,
             )
         )
         return
@@ -364,13 +383,19 @@ def share_results(
             body=_pr_body(payload, summary),
         )
     except APIRateLimitError as exc:
-        console.print(f"[yellow]{exc}[/yellow] Re-run with --dry-run as a fallback.")
+        console.print(
+            f"[{theme.warning}]{exc}[/{theme.warning}] Re-run with --dry-run as a fallback."
+        )
         raise typer.Exit(code=1) from exc
     except ConflictError as exc:
-        console.print(f"[yellow]{exc}[/yellow] Re-run after the existing PR is closed.")
+        console.print(
+            f"[{theme.warning}]{exc}[/{theme.warning}] Re-run after the existing PR is closed."
+        )
         raise typer.Exit(code=1) from exc
     except GitHubError as exc:
-        console.print(f"[red]GitHub error:[/red] {exc}. Try --dry-run as a fallback.")
+        console.print(
+            f"[{theme.error}]GitHub error:[/{theme.error}] {exc}. Try --dry-run as a fallback."
+        )
         raise typer.Exit(code=1) from exc
 
     LocalRateLimiter().record_submission(
@@ -381,28 +406,31 @@ def share_results(
         Panel(
             f"Pull request opened:\n[bold]{result.pr_url}[/bold]\n"
             f"PR #{result.pr_number} from {result.fork_owner}:{result.branch_name}",
-            title="[green]share-results[/green]",
-            border_style="green",
+            title=f"[{theme.success}]share-results[/{theme.success}]",
+            border_style=theme.success,
         )
     )
 
 
-def _discover_run(*, run_id: str | None) -> ShareableRunSummary | None:
+def _discover_run(*, run_id: str | None, theme: Theme | None = None) -> ShareableRunSummary | None:
     """Return the chosen run summary, or ``None`` to signal a clean exit."""
+    t = theme or get_theme(None)
     if run_id is not None:
         summary = get_run_summary(run_id)
         if summary is None:
-            console.print(f"[red]Run {run_id!r} not found, or its status is not 'done'.[/red]")
+            console.print(
+                f"[{t.error}]Run {run_id!r} not found, or its status is not 'done'.[/{t.error}]"
+            )
             raise typer.Exit(code=1)
         return summary
     rows = list_shareable_runs()
     if not rows:
-        console.print("[yellow]No shareable runs found.[/yellow]")
+        console.print(f"[{t.warning}]No shareable runs found.[/{t.warning}]")
         return None
-    console.print(_render_run_table(rows))
+    console.print(_render_run_table(rows, theme=t))
     pick = int(typer.prompt("Pick a run number", type=int))
     if pick < 1 or pick > len(rows):
-        console.print(f"[red]Invalid selection {pick}.[/red]")
+        console.print(f"[{t.error}]Invalid selection {pick}.[/{t.error}]")
         raise typer.Exit(code=1)
     return rows[pick - 1]
 

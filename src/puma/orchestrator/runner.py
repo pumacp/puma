@@ -14,12 +14,15 @@ from typing import TYPE_CHECKING, Any
 import structlog
 
 from puma.orchestrator.runspec import RunSpec
+from puma.runtime.retry import DEFAULT_POLICY, RetryPolicy, retry_call
 
 if TYPE_CHECKING:
     import pandas as pd
     from sqlalchemy.orm import Session
 
+    from puma.runtime.client import GenerationResult, OllamaClient
     from puma.scenarios.base import Scenario
+    from puma.ui.themes import Theme
 
 logger = structlog.get_logger(__name__)
 
@@ -36,11 +39,25 @@ class Runner:
         db_path: Path | str = "data/puma.db",
         ollama_host: str = "http://localhost:11434",
         dry_run: bool = False,
+        theme: Theme | None = None,
+        quiet: bool = False,
+        summary: bool = True,
+        retry_policy: RetryPolicy | None = None,
     ) -> None:
         self.spec = spec
         self.db_path = Path(db_path)
         self.ollama_host = ollama_host
         self.dry_run = dry_run
+        # Display-only: theme/quiet/summary style the progress bar and the
+        # end-of-run summary; they never affect the data path. theme=None
+        # resolves to the default at run time.
+        self._theme = theme
+        self.quiet = quiet
+        self.summary = summary
+        # Bounded, deterministic retry for transient inference failures only.
+        # Defaults never fire in a healthy environment, so baselines are
+        # unaffected; see puma.runtime.retry.
+        self._retry_policy = retry_policy if retry_policy is not None else DEFAULT_POLICY
         self.run_id = f"{spec.id}__{spec.spec_hash()}__{_ts()}"
 
     # ------------------------------------------------------------------
@@ -60,12 +77,13 @@ class Runner:
 
         logger.info("run.start", run_id=self.run_id, spec_hash=self.spec.spec_hash())
 
+        resolved_profile = _resolve_run_profile(self.spec)
         with session_scope() as db:
             run_record = Run(
                 run_id=self.run_id,
                 spec_hash=self.spec.spec_hash(),
                 spec_yaml=json.dumps(self.spec.model_dump(), default=str),
-                profile=self.spec.profile_required,
+                profile=resolved_profile,
                 started_at=datetime.now(UTC),
                 status="running",
             )
@@ -170,21 +188,109 @@ class Runner:
             duration_s=round(duration_s, 1),
             n_predictions=len(predictions),
         )
+        if self.summary:
+            self._emit_summary(
+                predictions=predictions,
+                metrics=metrics,
+                profile=resolved_profile,
+                duration_s=duration_s,
+                emissions_data=emissions_data,
+            )
         return {"run_id": self.run_id, "metrics": metrics, "n_predictions": len(predictions)}
+
+    def _emit_summary(
+        self,
+        *,
+        predictions: list[dict[str, Any]],
+        metrics: dict[str, Any],
+        profile: str | None,
+        duration_s: float,
+        emissions_data: Any,
+    ) -> None:
+        """Render the themed end-of-run summary to stderr (terminal only).
+
+        Read-only and defensive: auto-suppressed on a non-terminal stderr
+        (mirrors progress), and any rendering failure is logged at debug rather
+        than failing an otherwise-successful run.
+        """
+        from rich.console import Console
+
+        from puma.ui.summary import print_run_summary
+        from puma.ui.themes import get_theme
+
+        console = Console(stderr=True)
+        if not console.is_terminal:
+            return
+        try:
+            theme = self._theme if self._theme is not None else get_theme(None)
+            succeeded = sum(1 for p in predictions if p.get("parsed_label") is not None)
+            flat = dict(_flatten_metrics(metrics))
+            metric_name = next(
+                (m for m in self.spec.metrics if m in flat),
+                next(iter(flat), "metric"),
+            )
+            emissions_g = float(emissions_data.emissions) * 1000.0 if emissions_data else None
+            print_run_summary(
+                console,
+                theme,
+                run_id=self.run_id,
+                task=self.spec.scenario,
+                model=", ".join(self.spec.models),
+                profile=profile or "—",
+                samples_total=len(predictions),
+                samples_succeeded=succeeded,
+                samples_failed=len(predictions) - succeeded,
+                primary_metric_name=metric_name,
+                primary_metric_value=float(flat.get(metric_name, float("nan"))),
+                runtime_seconds=duration_s,
+                emissions_g_co2=emissions_g,
+                predictions_path=None,
+            )
+        except Exception as exc:
+            # A display nicety must never fail an otherwise-successful run.
+            logger.debug("run.summary_failed", run_id=self.run_id, error=str(exc))
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _execute_inferences(self, results_dir: Path) -> list[dict[str, Any]]:
-        from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
+    def _infer_one(self, client: OllamaClient, model: str, prompt: str) -> GenerationResult:
+        """Run one inference call with bounded, deterministic retry.
 
+        Retries only transient failures (see ``puma.runtime.retry``); a call
+        that succeeds is never retried. ``model``/``prompt``/``client`` are
+        method parameters here (not loop variables), so the retry closures are
+        safe and carry no per-iteration aliasing. The transient-error recovery
+        is the only new behavior; output on success is unchanged.
+        """
+        return retry_call(
+            lambda: client.generate_sync(
+                model=model,
+                prompt=prompt,
+                temperature=self.spec.inference.temperature,
+                seed=self.spec.inference.seed,
+                max_tokens=self.spec.inference.max_tokens,
+                logprobs=self.spec.inference.logprobs,
+                top_logprobs=self.spec.inference.top_logprobs,
+            ),
+            self._retry_policy,
+            on_retry=lambda n, e: logger.warning(
+                "inference.retry",
+                model=model,
+                attempt=n,
+                error=f"{type(e).__name__}: {e}",
+            ),
+        )
+
+    def _execute_inferences(self, results_dir: Path) -> list[dict[str, Any]]:
         from puma.adaptation.strategies import get_strategy
         from puma.runtime.cache import InferenceCache
         from puma.runtime.client import client_for_model
         from puma.scenarios.estimation_tawos import EstimationTawosScenario
         from puma.scenarios.prioritization_jira import PrioritizationJiraScenario
         from puma.scenarios.triage_jira import TriageJiraScenario
+        from puma.ui.progress import make_progress
+        from puma.ui.themes import get_theme
 
         scenario_map: dict[str, Callable[[], Scenario]] = {
             "triage_jira": TriageJiraScenario,
@@ -207,14 +313,9 @@ class Runner:
         rows = df.to_dict("records")
         total_tasks = len(rows) * len(self.spec.models) * len(self.spec.adaptation.strategy)
 
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(),
-            TextColumn("{task.completed}/{task.total}"),
-            TimeElapsedColumn(),
-        ) as progress:
-            task_id = progress.add_task(f"[cyan]{self.run_id}", total=total_tasks)
+        theme = self._theme if self._theme is not None else get_theme(None)
+        with make_progress(theme, enabled=not self.quiet) as progress:
+            task_id = progress.add_task(self.run_id, total=total_tasks)
 
             for model in self.spec.models:
                 client = client_for_model(model, base_url=self.ollama_host)
@@ -240,22 +341,23 @@ class Runner:
                             else:
                                 t0 = time.time()
                                 try:
-                                    result = client.generate_sync(
-                                        model=model,
-                                        prompt=prompt,
-                                        temperature=self.spec.inference.temperature,
-                                        seed=self.spec.inference.seed,
-                                        max_tokens=self.spec.inference.max_tokens,
-                                        logprobs=self.spec.inference.logprobs,
-                                        top_logprobs=self.spec.inference.top_logprobs,
-                                    )
+                                    # Transient inference failures are retried
+                                    # inside _infer_one (deterministic, bounded); a
+                                    # call that succeeds is never retried, so output
+                                    # is unchanged in a healthy environment.
+                                    result = self._infer_one(client, model, prompt)
                                     raw_response = result.response
                                     latency_ms = (time.time() - t0) * 1000
                                     tokens_in = result.prompt_eval_count
                                     tokens_out = result.eval_count
                                     logprobs_raw = result.logprobs
                                 except Exception as exc:
-                                    logger.warning("inference.error", model=model, error=str(exc))
+                                    logger.warning(
+                                        "inference.error",
+                                        model=model,
+                                        attempts=self._retry_policy.max_attempts,
+                                        error=str(exc),
+                                    )
                                     raw_response = ""
                                     latency_ms = (time.time() - t0) * 1000
                                     tokens_in = tokens_out = 0
@@ -523,9 +625,106 @@ def _flatten_metrics(metrics: dict[str, Any], prefix: str = "") -> list[tuple[st
     return result
 
 
+def _resolve_run_profile(spec: RunSpec) -> str | None:
+    """Resolve the profile id to persist on ``Run.profile`` (D24).
+
+    Canonical baseline specs do not declare ``profile_required``, which
+    previously left ``Run.profile`` NULL and caused the share-results builder
+    to reject the run (``builder.py:320-321``). When the spec omits
+    ``profile_required`` we fall back to the existing hardware auto-detection
+    (``select_profile``) so the run still records a profile id. Specs that
+    declare ``profile_required`` keep precedence (unchanged behaviour).
+    """
+    if spec.profile_required:
+        return spec.profile_required
+    try:
+        from puma.preflight.detect import detect_capabilities
+        from puma.preflight.profile import select_profile
+
+        profile = select_profile(detect_capabilities())
+    except Exception as exc:
+        # Detection failure must not abort the run; preserve the old
+        # NULL-profile behaviour and surface the reason in the log.
+        logger.warning("run.profile_autodetect_failed", error=str(exc))
+        return None
+    logger.info(
+        "run.profile_autodetected",
+        profile=profile.name,
+        reason="spec omitted profile_required",
+    )
+    return profile.name
+
+
+def _collect_profile_extra() -> dict[str, Any]:
+    """Collect flat host-system facts for ``ProfileSnapshot.extra`` (D26).
+
+    The share-results builder requires ``extra['cpu_cores']``
+    (``builder.py:365``); without it every canonical run is rejected at the
+    snapshot-completeness check. Values are flat scalars (str / int / bool) —
+    no nested objects — to keep the JSON column schema-simple. Degrades
+    gracefully when psutil or torch are unavailable.
+    """
+    import os
+    import platform
+
+    cpu_cores: int = 0
+    cpu_physical_cores: int = 0
+    memory_total_gb: int = 0
+    try:
+        import psutil
+
+        cpu_cores = int(psutil.cpu_count(logical=True) or os.cpu_count() or 0)
+        cpu_physical_cores = int(psutil.cpu_count(logical=False) or 0)
+        memory_total_gb = int(psutil.virtual_memory().total // (1024**3))
+    except Exception:
+        # psutil is a dependency via codecarbon, but degrade defensively.
+        cpu_cores = int(os.cpu_count() or 0)
+
+    has_cuda: bool = False
+    cuda_device_name: str = ""
+    try:
+        import torch
+
+        has_cuda = bool(torch.cuda.is_available())
+        if has_cuda:
+            cuda_device_name = str(torch.cuda.get_device_name(0))
+    except Exception:
+        # torch is optional and not a declared dependency.
+        has_cuda = False
+        cuda_device_name = ""
+
+    return {
+        "cpu_cores": cpu_cores,
+        "cpu_physical_cores": cpu_physical_cores,
+        "memory_total_gb": memory_total_gb,
+        "platform": platform.platform(),
+        "python_version": platform.python_version(),
+        "has_cuda": has_cuda,
+        "cuda_device_name": cuda_device_name,
+    }
+
+
+def _resolve_runner_puma_version() -> str:
+    """Resolve the installed PUMA distribution version dynamically (D26).
+
+    Replaces the previously hardcoded ``"2.0.0-dev"``. Falls back to
+    ``"0.0.0-unknown"`` when the distribution is not installed (a bare
+    source tree without an editable install). The pyproject distribution
+    name is ``puma``.
+    """
+    from importlib.metadata import PackageNotFoundError, version
+
+    try:
+        return version("puma")
+    except PackageNotFoundError:
+        return "0.0.0-unknown"
+
+
 def _add_profile_snapshot(db: Session, run_id: str) -> None:
     from puma.storage.models import ProfileSnapshot
 
+    puma_version = _resolve_runner_puma_version()
+    extra = _collect_profile_extra()
     try:
         from puma.preflight.detect import detect_capabilities
 
@@ -539,8 +738,15 @@ def _add_profile_snapshot(db: Session, run_id: str) -> None:
                 gpu=caps.gpu_name,
                 vram_gb=caps.gpu_vram_gb,
                 ollama_version=caps.ollama_version,
-                puma_version="2.0.0-dev",
+                puma_version=puma_version,
+                extra=extra,
             )
         )
     except Exception:
-        db.add(ProfileSnapshot(run_id=run_id, puma_version="2.0.0-dev"))
+        db.add(
+            ProfileSnapshot(
+                run_id=run_id,
+                puma_version=puma_version,
+                extra=extra,
+            )
+        )

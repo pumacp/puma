@@ -1,0 +1,52 @@
+# .gitnexusignore — controls what GitNexus indexes into the code knowledge graph.
+# Uses .gitignore-style syntax. Honored by both the `gitnexus` CLI and the
+# browser viewer at https://gitnexus.vercel.app.
+# Syntax reference: https://github.com/abhigyanpatwari/GitNexus
+
+# Local-only AI coding-assistant tooling
+.claude/
+CLAUDE.md
+AGENTS.md
+.mcp.json
+.mcp/
+.cursor/
+.windsurf/
+.aider/
+.continue/
+.cody/
+
+# Build / cache
+site/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+__pycache__/
+
+# Virtual envs
+.venv/
+venv/
+env/
+.tox/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Generated artifacts (not source)
+data/
+logs/
+/tmp/
+coverage.xml
+.coverage
+
+# Internal-only project records (kept in repo but excluded from indexed graph
+# and from the public mkdocs nav)
+docs/sprints/
+docs/internal/
+
+# GitNexus' own index store
+.gitnexus/

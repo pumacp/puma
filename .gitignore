@@ -85,7 +85,19 @@ docs/internal/
 # GitNexus operational artifacts (auto-generated graph images, etc.)
 assets/img/*GitNexus*
 
-# Agent / AI tooling artifacts (environment, not project sources)
+# Local-only AI coding-assistant tooling (not in public remote).
+# AGENTS.md is auto-regenerated locally by GitNexus; untracked to avoid the
+# re-neutralization friction on every index refresh.
 .claude/
-AGENTS.md
 CLAUDE.md
+AGENTS.md
+.mcp.json
+.mcp/
+.cursor/
+.windsurf/
+.aider/
+.continue/
+.cody/
+
+# mkdocs build output
+site/

@@ -13,8 +13,64 @@ from puma.community.share_cli import share_results_app
 app = typer.Typer(
     name="puma",
     help="PUMA — Local LLM benchmarking for project management tasks.",
-    no_args_is_help=True,
 )
+
+# Resolved CLI state (theme + verbose) recorded by the root callback so the
+# top-level main() wrapper can render errors with the same theme/verbosity.
+_CLI_STATE: dict[str, Any] = {}
+
+
+@app.callback(invoke_without_command=True)
+def _main(
+    ctx: typer.Context,
+    no_banner: bool = typer.Option(False, "--no-banner", "-B", help="Suppress the startup banner."),
+    theme: str | None = typer.Option(
+        None,
+        "--theme",
+        help="Color theme: amber (default) or green. Overrides PUMA_THEME env var.",
+    ),
+    quiet: bool = typer.Option(False, "--quiet", "-q", help="Suppress progress display."),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Show full traceback on errors."),
+    no_summary: bool = typer.Option(
+        False, "--no-summary", help="Suppress the post-run summary table."
+    ),
+) -> None:
+    """PUMA — Local LLM benchmarking for project management tasks."""
+    from rich.console import Console
+
+    from puma.ui.banner import print_banner
+    from puma.ui.errors import format_error_panel, install_themed_traceback
+    from puma.ui.themes import THEMES, get_theme
+
+    # Resolve the theme for every invocation (precedence: --theme > PUMA_THEME
+    # > amber). On an unknown theme there is no valid theme to style with, so
+    # the panel uses the default theme; exit 2 is unchanged.
+    try:
+        resolved_theme = get_theme(theme)
+    except ValueError as exc:
+        Console(stderr=True).print(format_error_panel(THEMES["amber"], "Unknown theme", str(exc)))
+        raise typer.Exit(code=2) from exc
+
+    # Install the themed Rich traceback handler for any uncaught path, and
+    # record state for the top-level main() wrapper.
+    install_themed_traceback(resolved_theme, show_locals=False)
+    _CLI_STATE["theme"] = resolved_theme
+    _CLI_STATE["verbose"] = verbose
+
+    # Make the resolved theme + flags available to downstream subcommands.
+    ctx.ensure_object(dict)
+    ctx.obj["theme"] = resolved_theme
+    ctx.obj["quiet"] = quiet
+    ctx.obj["verbose"] = verbose
+    ctx.obj["no_summary"] = no_summary
+
+    # When invoked with no subcommand, show the help (with the banner above it
+    # unless suppressed). Subcommands return from here and run as before.
+    if ctx.invoked_subcommand is None:
+        if not no_banner:
+            print_banner(Console(), resolved_theme)
+        typer.echo(ctx.get_help())
+        raise typer.Exit()
 
 
 @app.command()
@@ -59,45 +115,6 @@ def preflight(
     has_errors = any(i.severity == IssueSeverity.ERROR for i in issues)
     if has_errors:
         raise typer.Exit(code=1)
-
-
-@app.command(name="models")
-def models_cmd(
-    action: str = typer.Argument("list", help="Action: list | pull"),
-    model: str | None = typer.Argument(None, help="Model tag (for pull)"),
-) -> None:
-    """List available models for the current profile, or pull a specific model."""
-    if action == "list":
-        from pathlib import Path
-
-        import yaml
-
-        catalog_path = Path("config/models_catalog.yaml")
-        if not catalog_path.exists():
-            typer.echo("models_catalog.yaml not found in config/")
-            raise typer.Exit(1)
-        with open(catalog_path) as fh:
-            data = yaml.safe_load(fh)
-        typer.echo(f"{'Model':<30} {'Params':>8}  {'Size':>8}  {'Profiles'}")
-        typer.echo("-" * 75)
-        for m in data["models"]:
-            profiles = ", ".join(m.get("profiles_compatible", []))
-            typer.echo(
-                f"{m['ollama_tag']:<30} {m['params_b']:>6}B  "
-                f"{m['gguf_size_gb']:>5.1f} GB  {profiles}"
-            )
-    elif action == "pull":
-        if not model:
-            typer.echo("Specify a model tag to pull, e.g.: puma models pull qwen2.5:3b")
-            raise typer.Exit(1)
-        import subprocess
-
-        typer.echo(f"Pulling {model}...")
-        result = subprocess.run(["ollama", "pull", model])
-        raise typer.Exit(result.returncode)
-    else:
-        typer.echo(f"Unknown action: {action!r}. Use 'list' or 'pull'.")
-        raise typer.Exit(1)
 
 
 @app.command()
@@ -145,6 +162,7 @@ def cache(
 
 @app.command()
 def run(
+    ctx: typer.Context,
     spec: str = typer.Argument(..., help="Path to run-spec YAML"),
     dry_run: bool = typer.Option(False, "--dry-run", help="Build prompts without calling Ollama"),
     ollama_host: str = typer.Option(
@@ -153,16 +171,33 @@ def run(
     db_path: str = typer.Option("data/puma.db", "--db"),
 ) -> None:
     """Execute a benchmark run-spec."""
+    from rich.console import Console
+
     from puma.orchestrator.runner import Runner
     from puma.orchestrator.runspec import RunSpec
+    from puma.ui.errors import print_error
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    verbose = bool(obj.get("verbose", False))
+    err_console = Console(stderr=True)
 
     try:
         run_spec = RunSpec.from_yaml(spec)
     except Exception as exc:
-        typer.secho(f"[ERROR] Invalid run-spec: {exc}", fg=typer.colors.RED, err=True)
+        print_error(err_console, theme, exc, show_traceback=verbose)
         raise typer.Exit(1) from exc
 
-    runner = Runner(run_spec, db_path=db_path, ollama_host=ollama_host, dry_run=dry_run)
+    runner = Runner(
+        run_spec,
+        db_path=db_path,
+        ollama_host=ollama_host,
+        dry_run=dry_run,
+        theme=obj.get("theme"),
+        quiet=bool(obj.get("quiet", False)),
+        summary=not bool(obj.get("no_summary", False)),
+    )
     try:
         summary = runner.run()
         typer.echo(f"\nRun complete: {summary['run_id']}")
@@ -171,7 +206,7 @@ def run(
             if isinstance(v, int | float):
                 typer.echo(f"  {k}: {v:.4f}")
     except Exception as exc:
-        typer.secho(f"[ERROR] Run failed: {exc}", fg=typer.colors.RED, err=True)
+        print_error(err_console, theme, exc, show_traceback=verbose)
         raise typer.Exit(1) from exc
 
 
@@ -415,7 +450,7 @@ def report(
         raise typer.Exit(1) from exc
 
 
-# ── Sprint 7 — CLI completeness (Anexo F § A.2) ───────────────────────────────
+# ── Sprint 7 — CLI completeness ───────────────────────────────
 
 
 @app.command(name="list-runs")
@@ -431,7 +466,7 @@ def list_runs(
     ),
     json_output: bool = typer.Option(False, "--json", help="Emit JSON instead of a table"),
 ) -> None:
-    """List runs registered in the database with their headline metrics (Anexo F § A.2.5)."""
+    """List runs registered in the database with their headline metrics."""
     import json as _json
     import re
     import sqlite3
@@ -539,70 +574,6 @@ def list_runs(
     Console().print(table)
 
 
-@app.command(name="list-ollama-models")
-def list_ollama_models(
-    json_output: bool = typer.Option(False, "--json", help="Emit JSON instead of a table"),
-) -> None:
-    """List models effectively present in the Ollama volume (Anexo F § A.2.6)."""
-    import json as _json
-    import re
-    import subprocess
-
-    from rich.console import Console
-    from rich.table import Table
-
-    result = subprocess.run(
-        ["docker", "exec", "puma_ollama", "ollama", "list"],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        typer.secho(
-            f"[ERROR] Ollama did not respond (exit {result.returncode}): "
-            f"{result.stderr.strip() or 'no stderr'}",
-            fg=typer.colors.RED,
-            err=True,
-        )
-        raise typer.Exit(1)
-
-    lines = [ln for ln in result.stdout.splitlines() if ln.strip()]
-    if not lines or not lines[0].lower().startswith("name"):
-        typer.secho(
-            "[ERROR] Unexpected `ollama list` output (no header found)",
-            fg=typer.colors.RED,
-            err=True,
-        )
-        raise typer.Exit(1)
-
-    records: list[dict[str, Any]] = []
-    for ln in lines[1:]:
-        # Ollama list uses variable whitespace; collapse to single splits
-        parts = re.split(r"\s{2,}", ln.strip())
-        if len(parts) < 4:
-            continue
-        records.append(
-            {
-                "model_tag": parts[0],
-                "id": parts[1],
-                "size": parts[2],
-                "modified": parts[3],
-            }
-        )
-
-    if json_output:
-        typer.echo(_json.dumps(records, indent=2))
-        return
-
-    table = Table(title=f"Ollama models present in volume ({len(records)})")
-    table.add_column("model_tag")
-    table.add_column("ID")
-    table.add_column("size", justify="right")
-    table.add_column("modified")
-    for r in records:
-        table.add_row(r["model_tag"], r["id"], r["size"], r["modified"])
-    Console().print(table)
-
-
 @app.command(name="prepare-datasets")
 def prepare_datasets(
     dataset: str | None = typer.Option(
@@ -617,7 +588,7 @@ def prepare_datasets(
         False, "--verify", help="Print SHA-256 of resulting CSVs for manual verification"
     ),
 ) -> None:
-    """Prepare canonical datasets (jira_balanced_200, tawos, prioritization) — Anexo F § A.2.1.
+    """Prepare canonical datasets (jira_balanced_200, tawos, prioritization).
 
     Thin wrapper over ``scripts/prepare_datasets.py``. ``--force-redownload``
     removes the existing CSVs first so the script regenerates them.
@@ -685,7 +656,7 @@ def wilcoxon_cmd(
         None, "--output", help="Write Markdown report to this path (default: stdout only)"
     ),
 ) -> None:
-    """Wilcoxon signed-rank pairwise comparison of two runs (Anexo F § A.2.2)."""
+    """Wilcoxon signed-rank pairwise comparison of two runs."""
     import math
     import sqlite3
     from pathlib import Path as _Path
@@ -813,7 +784,7 @@ def bias_analysis_cmd(
         "docs/results/bias_evaluation.md", "--output", help="Output Markdown path"
     ),
 ) -> None:
-    """Bias analysis from perturbed runs already in DB (Anexo F § A.2.3)."""
+    """Bias analysis from perturbed runs already in DB."""
     from pathlib import Path as _Path
 
     from puma.dashboard.data import load_predictions_with_gold
@@ -973,7 +944,7 @@ def generate_plots_cmd(
     ),
     fmt: str = typer.Option("png", "--format", help="Output format: png | pdf | svg | all"),
 ) -> None:
-    """Generate consolidated plots from runs in the DB (Anexo F § A.2.4)."""
+    """Generate consolidated plots from runs in the DB."""
     import subprocess
     import sys
     from pathlib import Path as _Path
@@ -1012,11 +983,210 @@ def generate_plots_cmd(
         raise typer.Exit(1)
 
 
+@app.command("doctor")
+def doctor(ctx: typer.Context) -> None:
+    """Run read-only environment health checks (OK/WARN/FAIL); exit 1 on any failure."""
+    import os
+    from pathlib import Path
+
+    from rich.console import Console
+
+    from puma.diagnostics.checks import run_all_checks
+    from puma.ui.diagnostics_view import render_doctor_table
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    endpoint = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+    results = run_all_checks(ollama_endpoint=endpoint, db_path=Path("data/puma.db"))
+    Console().print(render_doctor_table(theme, results))
+    if any(r.status == "fail" for r in results):
+        raise typer.Exit(code=1)
+
+
+@app.command("env")
+def env_command(ctx: typer.Context) -> None:
+    """Print the resolved PUMA environment (version, platform, theme, profile, paths)."""
+    import os
+    from pathlib import Path
+
+    from rich.console import Console
+
+    from puma.diagnostics.env import collect_environment
+    from puma.ui.diagnostics_view import render_env_table
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    endpoint = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+    env_info = collect_environment(theme, endpoint, Path("data/puma.db"))
+    Console().print(render_env_table(theme, env_info))
+
+
+models_app = typer.Typer(
+    help="Discover and inspect Ollama models available to PUMA (read-only).",
+    no_args_is_help=True,
+)
+app.add_typer(models_app, name="models")
+
+_DEFAULT_OLLAMA_ENDPOINT = "http://localhost:11434"
+
+
+@models_app.command("list")
+def models_list(ctx: typer.Context) -> None:
+    """List models pulled locally in Ollama (read-only; via /api/tags)."""
+    import os
+
+    from rich.console import Console
+
+    from puma.models.client import OllamaUnreachable, list_local_models
+    from puma.ui.errors import print_error
+    from puma.ui.models_view import render_models_list_table
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    verbose = bool(obj.get("verbose", False))
+    endpoint = os.environ.get("OLLAMA_HOST", _DEFAULT_OLLAMA_ENDPOINT)
+    try:
+        models = list_local_models(endpoint=endpoint)
+    except OllamaUnreachable as exc:
+        print_error(Console(stderr=True), theme, exc, show_traceback=verbose)
+        raise typer.Exit(code=1) from exc
+    Console().print(render_models_list_table(theme, models))
+
+
+@models_app.command("show")
+def models_show(
+    ctx: typer.Context,
+    name: str = typer.Argument(..., help="Ollama model name (e.g., qwen2.5:3b)"),
+) -> None:
+    """Show details for one locally-pulled Ollama model (read-only; via /api/show)."""
+    import os
+
+    from rich.console import Console
+
+    from puma.models.client import ModelNotFound, OllamaUnreachable, show_local_model
+    from puma.ui.errors import print_error
+    from puma.ui.models_view import render_model_show_panel
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    verbose = bool(obj.get("verbose", False))
+    endpoint = os.environ.get("OLLAMA_HOST", _DEFAULT_OLLAMA_ENDPOINT)
+    try:
+        model = show_local_model(endpoint=endpoint, name=name)
+    except (ModelNotFound, OllamaUnreachable) as exc:
+        print_error(Console(stderr=True), theme, exc, show_traceback=verbose)
+        raise typer.Exit(code=1) from exc
+    Console().print(render_model_show_panel(theme, model))
+
+
+@models_app.command("recommended")
+def models_recommended(ctx: typer.Context) -> None:
+    """Show the curated PUMA catalog with current local availability (read-only)."""
+    import os
+
+    from rich.console import Console
+
+    from puma.models.catalog import load_curated, merge_with_local
+    from puma.models.client import OllamaUnreachable, list_local_models
+    from puma.ui.models_view import render_recommended_table
+    from puma.ui.themes import get_theme
+
+    obj = ctx.obj or {}
+    theme = obj.get("theme") or get_theme(None)
+    endpoint = os.environ.get("OLLAMA_HOST", _DEFAULT_OLLAMA_ENDPOINT)
+    try:
+        local = list_local_models(endpoint=endpoint)
+    except OllamaUnreachable:
+        # Graceful degradation: render the curated table with Local? all "—"
+        # rather than failing the whole command when Ollama is down.
+        local = []
+    pairs = merge_with_local(load_curated(), local)
+    Console().print(render_recommended_table(theme, pairs))
+
+
 app.add_typer(auth_app, name="auth")
 app.add_typer(share_results_app, name="share-results")
 # The four community verbs self-register on community_app via decorators when
-# their modules are imported (puma.community.__init__ imports all four).
+# their modules are imported (puma.community.__init__ imports all four). The two
+# read-only visibility commands below register on the same group.
 app.add_typer(community_app, name="community")
 
+
+@community_app.command("status")
+def community_status(ctx: typer.Context) -> None:
+    """Show local PUMA Community status (auth, last submission, channels)."""
+    from rich.console import Console
+
+    from puma.community.channels import CHANNELS, enrich_with_local_state
+    from puma.community.status import collect_status
+    from puma.ui.community_view import render_status_panel
+    from puma.ui.themes import get_theme
+
+    theme = (ctx.obj or {}).get("theme") or get_theme(None)
+    channels = enrich_with_local_state(CHANNELS)
+    status = collect_status(tuple(channels))
+    Console().print(render_status_panel(theme, status))
+
+
+@community_app.command("channels")
+def community_channels(ctx: typer.Context) -> None:
+    """List the PUMA Community distribution channels and their local config."""
+    from rich.console import Console
+
+    from puma.community.channels import CHANNELS, enrich_with_local_state
+    from puma.ui.community_view import render_channels_table
+    from puma.ui.themes import get_theme
+
+    theme = (ctx.obj or {}).get("theme") or get_theme(None)
+    channels = enrich_with_local_state(CHANNELS)
+    Console().print(render_channels_table(theme, channels))
+
+
+def main() -> None:
+    """Console-script entry point with themed, exit-code-preserving errors.
+
+    Runs the Typer app with Click's ``standalone_mode=False`` so this wrapper
+    controls rendering and exit codes (all preserved from prior behavior):
+      - ``typer.Exit(code)`` / ``--help`` -> app returns the code; we exit it.
+      - usage errors (``ClickException``) -> Click's own message, exit 2.
+      - ``KeyboardInterrupt`` (Click delivers it as ``Abort``) -> themed
+        "Interrupted." panel, exit 130.
+      - expected / unexpected errors -> themed panel (+ traceback if --verbose),
+        exit 1.
+    Theme/verbosity come from the state the root callback recorded.
+    """
+    import click
+    from rich.console import Console
+
+    from puma.ui.errors import format_error_panel, print_error
+    from puma.ui.themes import get_theme
+
+    console = Console(stderr=True)
+    try:
+        exit_code = app(standalone_mode=False)
+    except click.exceptions.Exit as exc:  # defensive; Click usually returns the code
+        raise SystemExit(exc.exit_code) from None
+    except (click.exceptions.Abort, KeyboardInterrupt):
+        theme = _CLI_STATE.get("theme") or get_theme(None)
+        console.print(format_error_panel(theme, "Interrupted.", "Operation cancelled by user."))
+        raise SystemExit(130) from None
+    except click.ClickException as exc:  # usage errors, bad parameters, etc.
+        exc.show()
+        raise SystemExit(exc.exit_code) from None
+    except SystemExit:
+        raise
+    except BaseException as exc:
+        theme = _CLI_STATE.get("theme") or get_theme(None)
+        verbose = bool(_CLI_STATE.get("verbose", False))
+        print_error(console, theme, exc, show_traceback=verbose)
+        raise SystemExit(1) from None
+    if exit_code:
+        raise SystemExit(exit_code)
+
+
 if __name__ == "__main__":
-    app()
+    main()

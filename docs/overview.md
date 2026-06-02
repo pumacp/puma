@@ -251,5 +251,5 @@ All of the above: 100% local, fully traceable, with carbon emissions recorded.
 | Adding models | [adding_models.md](adding_models.md) |
 | Adding scenarios | [adding_scenarios.md](adding_scenarios.md) |
 | Troubleshooting | [troubleshooting.md](troubleshooting.md) |
-| Contributing | [../CONTRIBUTING.md](../CONTRIBUTING.md) |
-| Changelog | [../CHANGELOG.md](../CHANGELOG.md) |
+| Contributing | [CONTRIBUTING.md (repo root)](https://github.com/pumacp/puma/blob/develop/CONTRIBUTING.md) |
+| Changelog | [CHANGELOG.md (repo root)](https://github.com/pumacp/puma/blob/develop/CHANGELOG.md) |

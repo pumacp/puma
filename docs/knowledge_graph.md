@@ -1,0 +1,104 @@
+# Code knowledge graph — GitNexus
+
+## Overview
+
+[GitNexus](https://www.npmjs.com/package/gitnexus) is an open-source code
+intelligence tool that indexes a repository into a queryable **knowledge graph**
+via Tree-sitter ASTs, community clustering, and hybrid keyword + vector search.
+It exposes the graph through a command-line interface, a browser-based
+interactive viewer at <https://gitnexus.vercel.app> for WebGL navigation, and an
+LLM-powered `gitnexus wiki` subcommand that generates module-grouped
+architectural documentation. Indexing runs locally — source never leaves the
+machine (or, for the web viewer, never leaves the browser).
+
+## Why PUMA uses it
+
+PUMA spans a six-layer architecture plus the modules added across Sprint 12 —
+`ui/*` (themes, banner, progress, errors, summary), `diagnostics/`, `models/`,
+`runtime/retry`, and the `community/` channels + status surface. The graph lets
+any developer or AI agent navigate callers/callees and execution flows without
+grepping the whole repo, and supports impact analysis before changing a symbol.
+
+## Interactive web viewer
+
+1. Visit <https://gitnexus.vercel.app>.
+2. Paste the repository URL: <https://github.com/pumacp/puma>.
+3. The browser indexes the code via Tree-sitter WASM (client-side — the code
+   never leaves the browser), honoring the `.gitnexusignore` exclusions at the
+   repo root, and renders an interactive WebGL graph (Sigma.js + Graphology)
+   with a built-in Graph RAG agent.
+
+Alternatively, run `npx gitnexus serve` locally; the web viewer auto-detects the
+local backend.
+
+## Command-line indexing
+
+```bash
+npx gitnexus analyze          # index the current repository
+npx gitnexus analyze --force  # full re-index
+npx gitnexus status           # show index state vs current commit
+npx gitnexus list             # list indexed repositories
+npx gitnexus serve            # local backend for the web viewer
+```
+
+Install globally with `npm install -g gitnexus` for fastest startup. Re-run
+`gitnexus analyze` after major code changes — a sensible cadence is once per
+merged group of PRs.
+
+## Current index
+
+| Property | Value |
+|---|---|
+| GitNexus version | 1.6.3 |
+| Last indexed | `develop` HEAD, 2026-05-26 |
+| Symbols (nodes) | 5657 |
+| Relationships (edges) | 8051 |
+| Clusters | 148 |
+| Execution flows | 75 |
+
+These counts are a snapshot from the most recent `gitnexus analyze` and refresh
+on every subsequent run.
+
+## LLM-powered wiki generation
+
+`gitnexus wiki` reads the indexed graph, groups files into modules via an LLM
+call, and generates per-module pages plus an overview page with cross-references.
+It requires an LLM API key — set one of `OPENAI_API_KEY` or
+`GITNEXUS_LLM_API_KEY` in your environment (never commit a key). Example:
+
+```bash
+gitnexus wiki --model <your-model> --base-url <your-llm-base-url>
+```
+
+The output is written locally; copy it into `docs/architecture/` to surface it
+via the mkdocs site. (No wiki snapshot is committed yet — generate one with the
+command above when an API key is available.)
+
+## Repository wiki synchronization
+
+The GitHub repository wiki at <https://github.com/pumacp/puma/wiki> is a separate
+Git repository at `https://github.com/pumacp/puma.wiki.git`. Use
+`scripts/sync_gitnexus_wiki.sh` to clone the wiki repo, copy the contents of
+`docs/architecture/` into it, commit, and push. This is a manual maintainer step
+(not automated CI) and requires push access to the wiki repo.
+
+## Configuration
+
+`.gitnexusignore` (repo root, `.gitignore`-style syntax) controls indexing
+exclusions for both the CLI and the web viewer. Two environment variables tune
+indexing: `GITNEXUS_MAX_FILE_SIZE` (KB, default 512) and `GITNEXUS_NO_GITIGNORE=1`
+(index files that `.gitignore` would otherwise skip).
+
+## What is committed and what is not
+
+| Committed (tracked) | Not committed (local-only) |
+|---|---|
+| `.gitnexusignore` | the graph database (`~/.gitnexus/` / `.gitnexus/`) |
+| `docs/knowledge_graph.md` | the agent context files GitNexus regenerates locally |
+| `docs/architecture/` (when generated) | local AI coding-assistant tooling directories |
+| `scripts/sync_gitnexus_wiki.sh` | any LLM API keys |
+
+## Related
+
+For the broader knowledge-management context maintained outside the source
+repository, see the [PUMA Vault](https://github.com/pumacp/puma-vault).

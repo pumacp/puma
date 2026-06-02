@@ -1,0 +1,135 @@
+site_name: "PUMA"
+site_description: "Local LLM benchmarks for project management tasks"
+site_url: "https://pumacp.github.io/puma/"
+repo_url: "https://github.com/pumacp/puma"
+repo_name: "pumacp/puma"
+edit_uri: "edit/develop/docs/"
+
+theme:
+  name: material
+  logo: assets/img/PUMA.png
+  favicon: assets/img/PUMA.png
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: black
+      accent: black
+      toggle:
+        icon: material/brightness-7
+        name: "Switch to dark mode"
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: black
+      accent: white
+      toggle:
+        icon: material/brightness-4
+        name: "Switch to light mode"
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - content.tabs.link
+    - search.suggest
+    - search.highlight
+  icon:
+    repo: fontawesome/brands/github
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Get started:
+      - Overview: overview.md
+      - User guide: user_guide.md
+      - CLI reference: cli_reference.md
+      - Troubleshooting: troubleshooting.md
+  - Concepts:
+      - Architecture: architecture.md
+      - Scenarios: scenarios_reference.md
+      - Metrics: metrics_reference.md
+      - Sustainability: sustainability.md
+  - Guides:
+      - Adding a model: adding_models.md
+      - Adding a scenario: adding_scenarios.md
+      - Publication workflow: publication_workflow.md
+      - Knowledge graph: knowledge_graph.md
+      - Testing: TESTING.md
+  - Reproducibility:
+      - Baseline inventory: baseline_inventory.md
+      - Baseline references: baseline_references.md
+      - Catalog history: CATALOG_HISTORY.md
+      - Cross-arch reproducibility: CROSS_ARCH_REPRODUCIBILITY.md
+      - Hardware: HARDWARE.md
+      - macOS notes: MACOS_NOTES.md
+  - Releases:
+      - First submission: first-submission.md
+      - v3.1.0: RELEASES/v3.1.0.md
+      - v3.0.0: RELEASES/v3.0.0.md
+  - Project:
+      - Technical closure: PROJECT_TECHNICAL_CLOSURE.md
+      - Open questions: open_questions.md
+  - Reference:
+      - Technical reference: technical_reference.md
+  - Contributing:
+      - Development workflow: development-workflow.md
+      - Security: security.md
+
+# S12.17 (D30) — the v4.0.0 minimal site has been expanded into a full
+# content surface. Pages previously held out have been repaired and entered
+# the nav above. exclude_docs is reduced to pages that are intentionally
+# never publishable:
+#
+# Excluded and why:
+#   - internal/ ............. gitignored project-internal prompts/notes; must
+#                            never be published.
+#   - sprints/, community/, decisions/, maintenance/, results/ .. internal
+#                            project records, not user-facing.
+#   - RELEASES/v2.*.md ...... older release notes that contain links into
+#                            internal/excluded directories (e.g.
+#                            results/phase_b_analysis.md) and into the
+#                            repo-root CONTRIBUTING.md; preserved on disk
+#                            for historical reference but kept out of the
+#                            built site to avoid extensive rewriting.
+#   - known_debt.md ......... maintainer-only debt tracker with D-numbered
+#                            internal entries; not user-facing.
+#
+# (docs/CONTRIBUTING.md was removed in S12-N4 — its operational content
+#  was folded into docs/development-workflow.md, and the canonical
+#  entry-point copy lives at the repository root as CONTRIBUTING.md.)
+exclude_docs: |
+  internal/
+  sprints/
+  community/
+  decisions/
+  maintenance/
+  results/
+  RELEASES/v2.1.0.md
+  RELEASES/v2.2.0.md
+  RELEASES/v2.3.0.md
+  RELEASES/v2.4.0.md
+  RELEASES/v2.5.0.md
+  RELEASES/v2.6.0.md
+  RELEASES/v2.7.0.md
+  known_debt.md

@@ -1,0 +1,65 @@
+name: Docs
+
+# Build the MkDocs site on every docs-affecting push/PR to develop or main, and
+# publish it to GitHub Pages (gh-pages branch) on pushes to develop. Uses only
+# the auto-provided GITHUB_TOKEN.
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'pyproject.toml'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'docs/**'
+      - 'mkdocs.yml'
+      - 'pyproject.toml'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch: {}
+
+concurrency:
+  group: pages-deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install docs dependencies
+        run: pip install -e ".[docs]"
+      - name: Build site (strict)
+        run: mkdocs build --strict
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: site
+          path: site/
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # Deploy only on direct pushes to develop — never from a pull request.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install docs dependencies
+        run: pip install -e ".[docs]"
+      - name: Deploy to GitHub Pages (gh-pages branch)
+        run: mkdocs gh-deploy --force

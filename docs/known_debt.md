@@ -106,6 +106,536 @@ field was absent. The limitation is purely algorithmic, not a missing field.
 Both directions require a decision on which canonical artifact the Verifier
 consumes; neither is attempted in Sprint 11'.
 
+**Deferral rationale (S12.2 empirical confirmation, 2026-05-25).** A controlled
+discovery session in Sprint 12 S12.2 attempted the client-side alignment and
+HALTED before any edit, confirming D23 is schema-decision work, not a
+mechanical fix. Four blockers were identified empirically:
+1. The Sprint 12 plan assumed a `src/puma/community/hashing.py` with a
+   `_compute_summary_hash` function; neither exists. The real producer is
+   `integrity.compute_predictions_hash`, a 4-field CSV hash. The plan was
+   working from a stale model of the code.
+2. **Schema vs Verifier prefix contradiction.** The schema mandates
+   `predictions_summary_hash` match `^[a-f0-9]{64}$` (plain 64-hex, no prefix,
+   `schema_data/submission.v1.json:78-81`) and is immutable (P3). The Verifier
+   emits `sha256:<hex>`. Cross-service string equality cannot be reached by
+   editing only the client hash; it needs a Verifier-side prefix strip
+   (FORBIDDEN + the Space is not git-accessible) or a `verify_cli` `--remote`
+   comparison change (separate scope).
+3. **"prediction" is semantically undefined for PUMA.** The 4-field canonical
+   deliberately carries both `predicted_label` (triage_jira / prioritization_jira)
+   and `predicted_value` (estimation_tawos). A single 2-field
+   `(instance_id, prediction)` requires ratifying what "prediction" maps to per
+   scenario.
+4. **Unverifiable in isolation.** The Verifier Space source is not on GitHub
+   (`pumacp/puma-verifier` and `pumaproject/puma-verifier` both 404) and
+   `HF_TOKEN` was unavailable, so no 2-field implementation could be confirmed
+   byte-for-byte against the live Space. A wrong guess would pass local
+   `verify-hash` (client agrees with itself) while breaking production silently.
+
+**Three open decisions D23 closure requires.** (a) Which side adapts — client
+to Verifier, Verifier to client, or a third shared canonical. (b) How to
+reconcile the `sha256:` prefix with the immutable schema (`verify_cli --remote`
+comparison logic vs Verifier-side strip). (c) What "prediction" maps to per
+scenario if the chosen canonical is 2-field. **Target: a schema-decision Sprint
+after v4.0.0.** Cross-references: S12.2 HALT report; D27 (the exporter, RESOLVED
+in S12.2, which productizes the *existing* 4-field canonical and is decoupled
+from this decision); `schema_data/submission.v1.json:78-81` (the immutable
+constraint).
+
+### D24 — Canonical baseline specs missing `profile_required` (since v1.0.0)
+
+**Status:** RESOLVED in v4.0.0 (Sprint 12 S12.1). Discovered: 2026-05-25
+(Sprint 11' E2E demo attempt, S11'.10.a).
+**Severity:** medium — blocks the publication pipeline on canonical runs out
+of the box.
+
+**Description.** The shipped specs under `specs/runs/baseline_*.yaml` do not
+declare the `profile_required` field. The runner
+(`src/puma/orchestrator/runner.py:68`) populates `Run.profile` only from
+`spec.profile_required`. The publication pipeline builder
+(`src/puma/community/builder.py:320-321`) requires `Run.profile` to be
+non-NULL. Therefore, no run produced by a canonical spec can be turned into a
+shareable submission.
+
+**Impact.** All canonical runs in the Sprint 11' DB at v3.1.0 release time
+have `Run.profile = NULL` and cannot feed `share-results`.
+
+**Detection.** S11'.10.a attempted to produce a real demo submission and was
+blocked at the builder precondition. A one-off untracked demo spec
+(`specs/runs/demo_triage_s11p.yaml`) was used to bridge the gap locally
+(adding `profile_required: gpu-entry`); the run's F1 stayed 0.5831 bit-exact,
+confirming the field is metadata, not an inference parameter. The broader fix
+is to add `profile_required` as a declared field in canonical specs.
+
+**Path to resolution.** Two viable approaches:
+(a) Add `profile_required` to each canonical baseline spec with a sensible
+    default (e.g. `auto-detect` resolved at run time).
+(b) Make `runner.py:68` fall back to the auto-detected profile when the spec
+    does not declare `profile_required`.
+Either approach is a small code or spec change in a future Sprint.
+
+**Resolution (Sprint 12 S12.1).** Implemented approach (b): `runner.py` now
+resolves `Run.profile` via `_resolve_run_profile`, which returns
+`spec.profile_required` when declared and otherwise falls back to the existing
+`select_profile(detect_capabilities())` auto-detection, logging an INFO line
+(`run.profile_autodetected`). Commit `54fd53e`. Empirically bit-exact (F1
+triage 0.5831) and covered by `tests/unit/test_runner_profile_fallback.py`.
+
+### D25 — Canonical baseline specs disable codecarbon (since v1.0.0)
+
+**Status:** RESOLVED in v4.0.0 (Sprint 12 S12.1). Discovered: 2026-05-25
+(Sprint 11' E2E demo attempt, S11'.10.a).
+**Severity:** medium — blocks the publication pipeline on canonical runs (same
+flow as D24).
+
+**Description.** The canonical baseline specs ship with
+`sustainability.codecarbon: false`. As a result, no emissions record is created
+in the DB. The publication pipeline builder
+(`src/puma/community/builder.py:330`) requires an emissions record to exist.
+Therefore, even with D24 bridged (`Run.profile` set), the absence of an
+emissions record blocks `share-results` on canonical runs — empirically the
+second precondition hit during S11'.10.a, after D24 was bridged.
+
+**Impact.** Same scope as D24: canonical runs are not publishable directly.
+
+**Path to resolution.** Default `sustainability.codecarbon` to `true` in
+canonical specs (cheap to enable; minor overhead). Alternative: relax the
+builder requirement to allow runs without emissions records, with a clear
+warning.
+
+**Resolution (Sprint 12 S12.1).** Flipped `sustainability.codecarbon` from
+`false` to `true` in `specs/runs/baseline_triage.yaml` and
+`specs/runs/baseline_estimation_canonical.yaml`, so canonical runs now produce
+the emissions record `builder.py:330` requires. Commit `6a2c812`. Empirically
+verified the flip does not affect inference: F1 triage stays 0.5831 (within
+±0.01) and MAE estimation stays 5.7150 bit-exact.
+
+### D26 — `runner.py` never populates `ProfileSnapshot.extra` (since v1.0.0)
+
+**Status:** RESOLVED in v4.0.0 (Sprint 12 S12.1). Discovered: 2026-05-25
+(Sprint 11' E2E demo attempt, S11'.10.a).
+**Severity:** medium-high — the hard blocker preventing any canonical run from
+feeding `share-results`. Unlike D24 and D25, this is **not** spec-fixable; it
+requires a code change.
+
+**Description.** `src/puma/orchestrator/runner.py:526`
+(`_add_profile_snapshot`) constructs a `ProfileSnapshot` without ever setting
+the `extra` field, so `extra` is empty for every run. The publication pipeline
+builder (`src/puma/community/builder.py:365`) requires
+`ProfileSnapshot.extra['cpu_cores']` to be present. Therefore, even with
+D24 + D25 bridged via spec, the runner output still fails the builder's snapshot
+completeness check. (The same function also hardcodes a stale
+`puma_version="2.0.0-dev"`.)
+
+**Why this gap remained latent until S11'.10.a.** The `share-results` and
+`puma community *` subcommand test fixtures (e.g.
+`tests/community/conftest.py:218`) hand-craft full `ProfileSnapshot` records
+including `extra['cpu_cores']`. Because no test exercised the runner → builder
+integration end-to-end, the gap between what the runner produces and what the
+builder requires remained invisible. Unit tests at 80-89% coverage on the
+community CLI did not catch it.
+
+**Impact.** Combined with D24 + D25, no canonical run can be turned into a
+publishable submission. The community CLI subcommands implemented in
+Sprint 11'.2 (`validate`, `verify-hash`, `browse`, `pull`) are architecturally
+complete and unit-tested, but the upstream pipeline that feeds them with real
+artifacts cannot operate on canonical inputs.
+
+**Path to resolution.** Populate `ProfileSnapshot.extra` in
+`_add_profile_snapshot` with at minimum `cpu_cores` (via `os.cpu_count()` or
+`psutil`), plus a `puma_version` derived dynamically from the package version
+(instead of the hardcoded `"2.0.0-dev"`). Estimated effort: < 1 day including
+a small integration test that exercises the full pipeline from `puma run`
+through to a validated submission.
+
+**Methodological note.** This gap is a textbook case where component-level unit
+testing (which passes at high coverage) does NOT substitute for end-to-end
+integration testing with real artifacts. Future Sprints should add a single
+end-to-end integration test that runs the full pipeline on a fresh, real
+submission to catch this class of regression.
+
+**Resolution (Sprint 12 S12.1).** `_add_profile_snapshot` now populates
+`ProfileSnapshot.extra` via `_collect_profile_extra` (`cpu_cores`,
+`cpu_physical_cores`, `memory_total_gb`, `platform`, `python_version`,
+`has_cuda`, `cuda_device_name`) and derives `puma_version` dynamically via
+`importlib.metadata.version("puma")` (`_resolve_runner_puma_version`),
+replacing the hardcoded `"2.0.0-dev"`. Commit `a76bec9`. Covered by
+`tests/unit/test_profile_snapshot.py`. The methodological note's recommendation
+was acted on: `tests/integration/test_e2e_publication.py` (US-12.5) now
+exercises the full runner → share-results → community CLI pipeline end-to-end,
+the regression test that would have caught D24/D25/D26 immediately.
+
+### D29 — Estimation predictions-hash run-to-run nondeterminism (since v3.0.0)
+
+**Status:** TRACKED — defer to post-v4.0.0 schema-decision sprint (alongside D23).
+**Discovered:** Sprint 12 / S12.7b determinism oracle check (2026-05-26).
+
+**Finding.** Three independent runs of the canonical estimation baseline on
+byte-identical code produce three different `predictions_summary_hash` values
+(e.g. `89f0e30…` / `7a89130…` / `604d324…`). The reported metric MAE is
+bit-exact `5.7150` across all runs. Triage hashes are bit-identical across runs.
+
+**Root cause.** `src/puma/community/integrity.compute_predictions_hash` hashes
+`parsed_label` as a raw string. The estimation LLM (`qwen2.5:3b` at
+`temperature=0.0`, `seed=42`) emits the same numeric value in occasionally
+different string forms (`"5"` vs `"5.0"` vs `"5.00"`). String form differs →
+hash differs; numeric value identical → metric identical. Triage labels are
+categorical (no string-form variation) → triage hashes are stable.
+
+**Impact.**
+- The reproducibility claim "`predictions_summary_hash` bit-equal across runs"
+  is FALSE for estimation; any documentation asserting hash-level reproducibility
+  for estimation submissions must be qualified to metric-level only until D29 is
+  resolved.
+- Verifier roundtrip validation of estimation submissions is affected: a
+  legitimate re-run of the same code produces a different submission hash, which
+  the Verifier may flag as mismatch despite identical metrics. (Within a single
+  run, the exported JSONL still matches that run's declared hash, so local
+  `verify-hash` is unaffected.)
+
+**Resolution path.** Normalize `parsed_label` to a canonical numeric form (e.g.
+a float formatted with fixed precision such as `"%.6f"`) before hashing in
+`compute_predictions_hash`. This makes the hash invariant to
+string-representation noise while preserving metric bit-exactness. Coordinate
+with D23 (Verifier hash 2-field alignment + `sha256:` prefix) in the
+schema-decision sprint, since both changes touch integrity hashing.
+
+**P1 capture (P1-S12.7b-COORD-01).** Coordinator-level prompt drift: the S12.7b
+prompt asserted hash-level determinism as a mandatory gate, but the actual P2
+invariants are metric-level. The gate was over-strict; the metric invariants
+(F1 = 0.5831 ±0.01, MAE = 5.7150 bit-exact) are upheld in this phase.
+
+### D30 — Docs sync for the new `models` subcommand structure (since v4.0.0)
+
+**Status:** RESOLVED (2026-05-31, S12.17) — stale `puma models pull` /
+`puma list-ollama-models` references rewritten across `README.md`,
+`docs/user_guide.md`, `docs/troubleshooting.md`, `docs/adding_models.md`;
+held-out docs repaired and re-entered the mkdocs nav (six groups, 26
+public pages); `docs/cli_reference.md` already current for the v4.0.0
+sub-group surface. `mkdocs build --strict` exits 0 with zero warnings.
+**Discovered:** Sprint 12 / S12.9 discovery pass (2026-05-26).
+
+**Finding.** S12.9 replaced the legacy `puma models` (catalog-print + `ollama
+pull` via subprocess) and `puma list-ollama-models` (docker-exec subprocess
+wrapper) with a read-only `puma models` Typer sub-group (`list` / `show` /
+`recommended`). Several docs still reference the removed command forms.
+
+**Affected docs.**
+- `docs/user_guide.md` — `puma models list`, `puma models pull qwen2.5:3b`
+- `docs/troubleshooting.md` — `puma models pull qwen2.5:3b`, `puma models list`
+- `docs/adding_models.md` — `puma models pull`, `puma models list`
+- `README.md` — the `puma models` one-line description
+- `docs/cli_reference.md` — locked this phase (S12.9 FORBIDDEN); regeneration
+  needs its lock lifted in the docs-sync phase.
+
+**What changed.**
+- `puma models list` (catalog YAML print) → `puma models recommended` (themed
+  table with local availability)
+- `puma models pull <tag>` → `ollama pull <tag>` (use the Ollama CLI directly;
+  `puma doctor` already hints `ollama pull <name>` for missing models, so the
+  guidance stays consistent)
+- `puma list-ollama-models` → `puma models list` (httpx `/api/tags`, themed)
+
+**Field-gap note (curated catalog).** `config/models_catalog.yaml` does not
+encode `validated_for` / `status` / `rationale`; `puma models recommended`
+derives them with conservative defaults (`validated_for={triage, estimation}`,
+`status=experimental`, `rationale` from the catalog `notes`). The YAML is NOT
+modified this phase. Adding these fields to the catalog schema is the natural
+complement to this docs-sync work.
+
+**Resolution path.** In the next docs-focused phase (or S12.17), update each
+affected doc to reference the new commands and regenerate
+`docs/cli_reference.md` (its lock lifted there).
+
+**Update (S12.11, 2026-05-26).** mkdocs scaffolding is in place (Material theme,
+`mkdocs build --strict` green). The published site is intentionally MINIMAL —
+nav surfaces only `index`, `cli_reference`, `sustainability`, `known_debt`, and
+`RELEASES/v3.1.0`; every other doc is held out of the build via `exclude_docs`
+(kept on disk, not deleted). The stale user-facing docs (`user_guide`,
+`troubleshooting`, `adding_models`), the remaining reference docs, the older
+release notes, and `RELEASES/v3.0.0.md` (its `../../CHANGELOG.md` link aborts
+strict and the file is locked) are all queued for the S12.17 content sync, which
+will fix their links/content and add them to the nav. `overview.md` also has
+broken `../CONTRIBUTING.md` / `../CHANGELOG.md` links to repair in S12.17.
+
+**P1 capture (P1-S12.9-COORD-01).** Coordinator-level prompt drift: the S12.9
+prompt assumed `puma models` was greenfield, but a legacy
+`@app.command(name="models")` plus a separate `puma list-ollama-models`
+already existed, and `config/models_catalog.yaml` already contained the
+17-entry curated registry the prompt was about to hardcode in Python. Detected
+by the executor's discovery pass before branching (audit-before-write).
+Resolution: re-scoped to REPLACE legacy with the new sub-group, reuse the
+existing YAML catalog, and drop `pull` (read-only phase per S12.9 FORBIDDEN);
+docs-sync tracked here as D30. Third coordinator-level prompt drift of Sprint 12
+(after P1-S12.2-COORD-01 and P1-S12.7b-COORD-01).
+
+### D31 — Estimation MAE baseline drift in the current Ollama runtime (since v4.0.0)
+
+**Status:** TRACKED — environment/reproducibility finding; investigate under D3
+(Ollama/CUDA determinism) and F2 (cold-vs-warm drift).
+**Discovered:** Sprint 12 / S12.9 baseline re-validation (2026-05-26).
+
+**Finding.** The canonical estimation baseline
+(`specs/runs/baseline_estimation_canonical.yaml`, `qwen2.5:3b`,
+`temperature=0.0`, `seed=42`) now produces `mae=6.3150`, a +0.6000 shift from
+the P2 reference `5.7150` (outside the ±0.01 gate). The triage baseline F1 in
+the same session is `0.5891` (+0.0060, within ±0.01).
+
+**Isolation (not caused by S12.9).**
+- Reproduces identically (`6.3150`) on pristine `origin/develop` @ `6f09b2d`
+  with no S12.9 code present; the estimation code path is byte-identical there.
+  S12.9 adds only read-only discovery commands and removes two legacy CLI
+  commands — it touches no inference/estimation code.
+- Stable across three runs (two warm, back-to-back) — a deterministic shift,
+  not sampling noise.
+- Model unchanged: `qwen2.5:3b` digest `357c53fb659c`, modified 6 days prior,
+  quant `Q4_K_M`; Ollama `0.21.0`. The model was not re-pulled.
+- The Ollama container had been restarted ~20 min before the session, so the
+  warm runtime state differs from when `5.7150` was last captured (S12.8).
+
+**Likely cause.** Ollama runtime nondeterminism across container/runtime
+restarts (GPU kernel scheduling / batching) — the same class as F2 (cold-vs-warm
+drift ≤0.006 on F1) and D3 (untuned CUDA determinism flags). Estimation MAE is
+numerically more sensitive than categorical triage F1, so the same runtime
+perturbation moves MAE well beyond the ±0.01 window while F1 stays within it.
+
+**Resolution path.** (1) Characterize the drift across N warm runs to establish
+the current-environment MAE distribution; (2) apply and document the D3
+determinism configuration (`CUBLAS_WORKSPACE_CONFIG`, `OLLAMA_*` flags) and
+re-measure; (3) if the shift persists as a stable environment property, re-pin
+the canonical estimation MAE reference (with its supporting run set) and update
+the reproducibility docs (D5). Until then, the estimation MAE gate must be
+interpreted against the current runtime, not the historical `5.7150`.
+
+**Scope note.** Does not block S12.9 (read-only discovery, no inference path);
+recorded here so the failing MAE gate during S12.9 re-validation is traceable
+and not mistaken for an S12.9 regression.
+
+### D32 — License compatibility automation (since S12-N2)
+
+**Status:** OPEN — deferred from S12-N2 MVP scope.
+**Discovered:** Sprint 12 / S12-N2 security audit MVP (2026-05-31).
+
+**Finding.** The S12-N2 MVP wires `pip-audit` (CVE scanning), `bandit`
+(Python SAST), `gitleaks` (secret scanning), and `Trivy` (container CVE
+scanning) into CI, but does not automate license compatibility. A
+non-permissive license (GPL, AGPL, custom restrictive terms) entering
+the production dependency tree via a transitive update would not be
+caught until manual review at release time.
+
+**Resolution path.** Add `pip-licenses` (or equivalent) as a CI step
+that emits a license inventory and fails the build on any non-MIT /
+non-BSD / non-Apache-2.0 / non-PSF-License license in the production
+dependency closure. Allowlist explicit exceptions with a documented
+rationale.
+
+**Rationale for deferral.** Right-sized out of S12-N2 MVP scope to keep
+the security audit deliverable focused on vulnerability scanning;
+license-compatibility automation is a candidate for the post-Sprint-12
+backlog or the next security audit cycle.
+
+### D33 — SBOM CycloneDX generation (since S12-N2)
+
+**Status:** OPEN — deferred from S12-N2 MVP scope.
+**Discovered:** Sprint 12 / S12-N2 security audit MVP (2026-05-31).
+
+**Finding.** Published artifacts (the `puma-cp` PyPI wheel and the
+`ghcr.io/pumacp/puma:vX.Y.Z` container image) ship without a Software
+Bill of Materials. Downstream consumers cannot programmatically
+verify the dependency closure or correlate published-artifact contents
+with upstream advisories at install time.
+
+**Resolution path.** Add a CI step that runs `cyclonedx-py` (Python
+deps) and `syft` or `Trivy` SBOM mode (image layers) and attaches the
+CycloneDX SBOM as an asset to every published release; reference it
+from `SECURITY.md` and `docs/security.md`.
+
+**Rationale for deferral.** Right-sized out of S12-N2 MVP scope to keep
+the security audit deliverable focused on detection (vulnerability
+scanning); the SBOM is a provenance artifact that is most useful once
+v4.0.0 actually ships and downstream consumption begins. Candidate
+for the next security audit cycle.
+
+### D34 — Mutation testing on `src/puma/community/integrity.py` (since S12-N2)
+
+**Status:** OPEN — deferred from S12-N2 MVP scope.
+**Discovered:** Sprint 12 / S12-N2 security audit MVP (2026-05-31).
+
+**Finding.** `src/puma/community/integrity.py` is the canonical
+implementation of the `SHA-256` over the canonical predictions tuple
+that backstops every PUMA Community submission. The file is locked
+(schema-bearing) and has unit + integration test coverage, but no
+mutation-testing pass has verified that the tests would actually
+catch subtle mutations of the canonical hash procedure (e.g. a
+swapped sort order, a tuple ordering change, an off-by-one when
+canonicalizing).
+
+**Resolution path.** Run `mutmut` (or equivalent) on
+`src/puma/community/integrity.py` with the existing test suite as the
+oracle; document the mutation-survival rate; tighten tests where
+needed; record the achieved score in `docs/security.md` §5.
+
+**Rationale for deferral.** Mutation testing is non-trivial to set up
+and tune (run-time, killable-but-not-killed analysis, allowlist for
+equivalent mutants); right-sized out of S12-N2 MVP scope. Candidate
+for the post-Sprint-12 backlog.
+
+### D35 — Cross-platform install test (since S12-N2)
+
+**Status:** OPEN — deferred from S12-N2 MVP scope.
+**Discovered:** Sprint 12 / S12-N2 security audit MVP (2026-05-31).
+
+**Finding.** CI runs on `ubuntu-latest` only; the published wheel and
+the published image are exercised on a single platform. A regression
+that breaks the install on macOS (x86_64 or arm64) or Windows would
+not surface until a contributor reports it.
+
+**Resolution path.** Add a matrix job to a CI workflow (likely a new
+`install-smoke.yml`) that installs `puma-cp` from the built wheel on
+`ubuntu-latest`, `macos-13`, `macos-14` (arm64), and
+`windows-latest`, and verifies `puma --help` exits 0.
+
+**Rationale for deferral.** Right-sized out of S12-N2 MVP scope —
+S12-N2 focuses on vulnerability detection, not platform-coverage
+expansion. Candidate for the post-Sprint-12 backlog, ideally before
+v4.0.0 ships so the published wheel is verified on the documented
+target platforms.
+
+### D38 — validate-submission workflow uses a non-existent action version (since S12-N1)
+
+**Status:** OPEN — owner: maintainer. Target: S12.19.
+**Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
+
+**File.** `.github/workflows/validate-submission.yml` in `pumacp/puma-community`.
+
+**Finding.** The workflow references
+`actions-ecosystem/action-add-labels@v1.4.0`, a version that was never
+published. On the inaugural submission (PR #8, 2026-05-31) the workflow failed
+at the "Prepare all required actions" step, before any validation logic ran.
+
+**Resolution path.** Pin the action to `@v1.3.0` (latest stable) or to a
+current commit SHA.
+
+### D39 — Verify submission integrity workflow broken by gradio_client API drift (since S12-N1)
+
+**Status:** OPEN — owner: maintainer. Target: S12.19.
+**Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
+
+**File.** `scripts/verify_submissions.py` in `pumacp/puma-community`, line 54.
+
+**Finding.** The script calls `Client(VERIFIER_SPACE, hf_token=token)`; the
+current `gradio_client` API expects `token=token` (without the `hf_` prefix).
+The inaugural submission triggered the verify workflow, which failed with
+`TypeError: Client.__init__() got an unexpected keyword argument 'hf_token'`.
+
+**Consequence.** The inaugural submission carries
+`integrity.verification_status="self-attested"` instead of `"verified"`. The
+PUMA Leaderboard Space appears to filter for verified submissions, so the
+inaugural row is not yet visible despite being correctly archived in the
+submissions dataset.
+
+**Resolution path.** Rename the `hf_token` kwarg to `token` in
+`scripts/verify_submissions.py`; re-run verification on the inaugural
+submission to upgrade its `verification_status`.
+
+### D40 — `puma share-results` CLI hangs after the Review panel (since S12-N1)
+
+**Status:** OPEN — owner: maintainer. Target: S12.19 (investigation) +
+post-Sprint-12 (full fix).
+**Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
+
+**File.** `src/puma/community/share_results.py` (likely) in `pumacp/puma`.
+
+**Finding.** After printing the Review submission panel with "Action: will open
+a PR against pumacp/puma-community", the CLI process either hangs indefinitely
+or completes silently without opening the PR; the `--yes` flag does not bypass
+whatever is blocking. Three attempts during the inaugural submission (S12-N1)
+all stopped at the same point; no PR was opened by the CLI. A manual
+`fork + push + gh pr create` was used as the workaround.
+
+**Investigation needed.** Instrument the post-review-panel code path with debug
+logging; verify the fork + push + PR-creation pipeline; check whether `--yes`
+is honored by all confirmation prompts in the chain.
+
+### P1 captures (Sprint 12)
+
+Coordinator-level prompt-drift captures. Earlier captures are embedded in the
+debt entry they relate to (P1-S12.7b-COORD-01 in D29; P1-S12.9-COORD-01 in
+D30); later captures are collected here.
+
+#### P1-S12.9-COORD-02 — Coordinator prompt over-strict MAE gate
+
+Scope: the S12.9 prompt (and all prior phase prompts) specified "MAE = 5.7150
+bit-exact" as a P2 invariant. The actual property that holds is "MAE = 5.7150
+bit-exact WITHIN a warm Ollama session"; across container restarts, MAE can
+drift > bit-exact tolerance without any code regression, as demonstrated by
+D31's pristine-develop reproduction (three identical 6.3150 runs).
+
+Detected by: executor's baseline re-validation with rigorous isolation in S12.9
+(run #3 on pristine develop @ 6f09b2d reproduced 6.3150).
+
+Resolution: from S12.10 onward, phase prompts specify the MAE gate as
+"5.7150 ± 1.0" rather than "bit-exact 5.7150". Bit-exactness is reserved for
+within-session re-validation only. F1 ± 0.01 unchanged.
+
+Pattern: fourth coordinator-level prompt drift of Sprint 12 (P1-S12.2-COORD-01
+nonexistent module, P1-S12.7b-COORD-01 hash-level gate, P1-S12.9-COORD-01
+greenfield assumption, P1-S12.9-COORD-02 bit-exact assumption). All four share
+the same upstream root cause: coordinator prompts over-asserting determinism in
+an LLM-local stochastic system.
+
+#### P1-S12.12-COORD-01 — Coordinator prompt assumed wrong CLI surface for share-results / verify-hash
+
+Scope: the S12.12 prompt scripted `puma share-results --output-dir … --spec …`
+and `puma verify-hash <file>` as if they were top-level subcommands with those
+flag names. The actual CLI surface is:
+
+- `puma share-results --dry-run --run-id <id> --yes` (output dir via env `PUMA_DRY_RUN_DIR`)
+- `puma community verify-hash <submission> --predictions <jsonl>`
+- run_id parsed from `puma run` stdout line: `Run complete: <run_id>`
+
+Plus: no small demo spec existed in `specs/runs/`, so
+`specs/runs/demo_publication.yaml` had to be created in-phase (the single
+justified `specs/runs/` exception per the S12.12 prompt).
+
+Detected by: executor's discovery pass (read `share_cli.py` + `verify_cli.py`
+before scripting the demo).
+
+Resolution: prompt-time assumptions corrected in-place via the executor's
+discovery → adapt loop; demo script and tests use the real surface. Future
+Sprint 12 prompts that wire existing CLI commands must REQUIRE a discovery step
+before scripting flags (already the pattern; reinforce in the next phases).
+
+Pattern: fifth coordinator-level prompt drift of Sprint 12 (P1-S12.2-COORD-01
+nonexistent module, P1-S12.7b-COORD-01 hash-level gate, P1-S12.9-COORD-01
+greenfield assumption, P1-S12.9-COORD-02 bit-exact MAE assumption,
+P1-S12.12-COORD-01 CLI surface assumption). Root cause across all five:
+coordinator (chat-side) prompts under-grounded in current repo state; mitigated
+each time by the executor's audit-before-write discipline.
+
+#### P1-S12.13-COORD-01 — Coordinator prompt assumed wrong auth surface
+
+Scope: the S12.13 prompt asked for a `puma auth whoami` username read and an
+`authenticated_as: str | None` field populated with the local GitHub username.
+The actual auth surface is `puma auth login/status/logout` with token-only
+storage at `~/.config/puma/credentials.toml`; there is no `whoami` and no
+locally-cached username (resolving the username would require api.github.com,
+which is forbidden this phase).
+
+Detected by: executor's discovery pass on src/puma/community/_community_app.py
+and the auth module before scripting status.
+
+Resolution: implemented `authenticated = local-credential-presence-check` (no
+HTTP), `authenticated_as = None` always (with a doc note explaining why). The
+status renderer shows "✓ authenticated" without a username — accurate to what
+the local state can determine without network.
+
+Pattern: sixth coordinator-level prompt drift of Sprint 12 (P1-S12.2-COORD-01,
+P1-S12.7b-COORD-01, P1-S12.9-COORD-01, P1-S12.9-COORD-02, P1-S12.12-COORD-01,
+P1-S12.13-COORD-01). All six share the same upstream root cause: coordinator
+(chat-side) prompts under-grounded in current repo surface state; mitigated each
+time by the executor's audit-before-write discipline.
+
 ## Resolved technical debt
 
 Items previously tracked as open technical debt that have been fully
@@ -115,6 +645,36 @@ for academic traceability. Sprint 1 closures remain inline in the
 following entries document the more involved resolutions from Sprint 2
 onward, where the fix touched multiple files and had measurable
 empirical impact.
+
+### D27 — Predictions JSONL exporter missing in `share-results` (since v3.0.0)
+
+**Status:** RESOLVED in v4.0.0 (Sprint 12 S12.2).
+**Discovered:** Sprint 12 S12.1 (2026-05-25), while implementing the E2E
+publication test — `share-results --dry-run` emitted only the submission JSON,
+so the `<id>.predictions.jsonl` that `puma community verify-hash` and
+`validate --strict` consume had no producer. The S12.1 E2E test worked around
+this by exporting the JSONL directly from the database via `integrity._COLUMNS`.
+
+**Resolution.** Commit `76c0ce1` — `integrity.export_predictions_jsonl` writes
+the predictions JSONL using the existing 4-field canonical column list
+(`integrity._COLUMNS`: `instance_id`, `predicted_label`, `predicted_value`,
+`prompt_hash`), and `share-results --dry-run` now emits
+`<submission_id>.predictions.jsonl` next to `<submission_id>.json`. Because
+`verify_cli.hash_predictions_jsonl` is byte-identical to
+`compute_predictions_hash` for that 4-field format, the on-disk JSONL hashes to
+the value the submission declares — verified by the smoke check
+(`verify-hash` → `verified`), by `tests/unit/test_predictions_exporter.py`
+(the byte-equality contract test), and by the refactored E2E test (`0617a16`),
+which now consumes the real artifact instead of the DB stand-in.
+
+**Scope note.** This is a productizing step with no change to the hash
+semantics, the schema, or the Verifier. It is deliberately decoupled from D23
+(Verifier 2-field alignment): the 4-field format is the existing canonical that
+both `compute_predictions_hash` and `hash_predictions_jsonl` already share. If
+D23's eventual schema decision selects a different canonical format, the
+exporter updates atomically with that change. The live-publish path
+(`raw_predictions_url` upload) is not wired here; it belongs to the live
+publication demo (S12.12) alongside the D23 resolution.
 
 ### D15 — CodeCarbon GPU detection inside container
 

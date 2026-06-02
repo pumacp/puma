@@ -1,0 +1,34 @@
+name: gitleaks
+
+# Full-history secret scan. fetch-depth: 0 brings the whole git history
+# into the runner so gitleaks can scan past commits as well as the
+# current tree. Fails the build on any finding; if a finding is a
+# known false positive (e.g. a schema example), allowlist it in
+# .gitleaks.toml (created on demand — not present by default).
+#
+# Cadence: every push to develop / main, every PR, manual dispatch.
+
+on:
+  push:
+    branches: [develop, main]
+  pull_request:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the full repository history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: detect --source . --redact --verbose

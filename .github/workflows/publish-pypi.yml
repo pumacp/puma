@@ -1,0 +1,70 @@
+name: Publish to PyPI
+
+# Builds the sdist + wheel on every run. Publishes to PyPI only on a `v*` tag
+# push (or a manual run with test-pypi unchecked); a manual run with
+# test-pypi=true publishes to TestPyPI instead. Build-only otherwise.
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      test-pypi:
+        description: 'Publish to TestPyPI instead of PyPI (manual runs only)'
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install build twine
+      - run: python -m build
+      - run: twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  publish-pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    # Real PyPI on a tag push, or a manual run with test-pypi unchecked.
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && !inputs.test-pypi)
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # Token auth until trusted publishing is configured; once trusted
+          # publishing is set up, remove this line and the id-token permission
+          # will be used automatically.
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+  publish-testpypi:
+    needs: build
+    runs-on: ubuntu-latest
+    # Manual run with test-pypi checked -> TestPyPI dry run.
+    if: github.event_name == 'workflow_dispatch' && inputs.test-pypi
+    environment: testpypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}

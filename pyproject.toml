@@ -3,11 +3,26 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "puma"
-version = "3.1.0"
+name = "puma-cp"
+version = "4.0.0"
 description = "Local, reproducible benchmarking of open LLMs on project management tasks"
+readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
+authors = [{ name = "PUMA", email = "pumacapstoneproject@gmail.com" }]
+keywords = ["benchmark", "llm", "project-management", "evaluation", "reproducible"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Quality Assurance",
+]
 dependencies = [
     "typer>=0.15",
     "httpx>=0.27",
@@ -26,6 +41,7 @@ dependencies = [
     "langdetect>=1.0.9",
     "structlog>=24.1",
     "rich>=13.7",
+    "pyfiglet>=1.0",
     "requests>=2.31",
     "jsonschema>=4.23.0",
     "tomli-w>=1.0.0",
@@ -43,9 +59,19 @@ dev = [
     "mypy>=1.10",
     "pre-commit>=3.7",
 ]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocs-material>=9.5",
+    "pymdown-extensions>=10.7",
+]
+
+[project.urls]
+Homepage = "https://github.com/pumacp/puma"
+Documentation = "https://pumacp.github.io/puma"
+Repository = "https://github.com/pumacp/puma"
 
 [project.scripts]
-puma = "puma.cli:app"
+puma = "puma.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -97,6 +123,7 @@ markers = [
     "ollama: Tests that require Ollama running",
     "smoke: End-to-end smoke tests",
     "requires_gpu: Tests that require an NVIDIA GPU passthrough into the runner container",
+    "e2e: end-to-end integration tests (runs full pipeline against real Ollama; slow but high-signal)",
 ]
 
 [tool.isort]

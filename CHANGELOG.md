@@ -8,13 +8,102 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-05-31
+
+The Sprint 12 closure release. PUMA's federated community-submission
+infrastructure is now operational and validated end to end by the first
+official production submission (qwen2.5:3b / triage_jira / zero_shot,
+F1=0.3898), which landed at pumacp/puma-community#8 and mirrored to the
+Hugging Face submissions dataset.
+
 ### Added
+- PUMA Community federated submission infrastructure (S12.15), validated by the
+  inaugural submission landed at pumacp/puma-community#8 (qwen2.5:3b /
+  triage_jira / zero_shot, F1=0.3898, submitter pumacp, merged 2026-05-31).
+- First official production submission documented end to end in
+  `docs/first-submission.md` (S12-N1), including the canonical identifiers,
+  the maintainer-driven submission path, and the F1 floor-anchor rationale.
+- PyPI + Docker (ghcr.io) publishing workflows: `publish-pypi.yml` and
+  `publish-docker.yml`, with `Dockerfile.publish` (S12.15).
+- Multi-model comparison view in the Streamlit dashboard: side-by-side metrics
+  with deltas (F1-macro for triage, MAE for estimation), bar charts, a full
+  metrics table, and a per-model reproducibility fingerprint check; reads
+  persisted SQLite results only — no live inference (S12.16).
+- Consolidated technical reference (`docs/technical_reference.md`, ~5100 words,
+  15 sections, 17-row architectural decisions timeline, 30+-term glossary)
+  with a new **Reference** mkdocs nav section (S12-N3).
+- Manual IDE contribution workflow reference (`docs/development-workflow.md`,
+  16 sections) and a new **Contributing** mkdocs nav section (S12-N4).
+- Security audit MVP (S12-N2): `pip-audit`, `bandit`, and `gitleaks`
+  workflows; a Trivy container scan; `SECURITY.md` private-disclosure policy;
+  and a `docs/security.md` threat model.
+- Corporate monochrome visual identity across GitHub Pages and the Streamlit
+  dashboard.
+- Acrostic visual flexibility — the FOLLOW THE WHITE PUMA acrostic may now be
+  laid out for presentation (PR #47).
+- Integration test modules pinning the new documentation surfaces:
+  `test_first_submission_doc.py`, `test_technical_reference_doc.py`,
+  `test_development_workflow_doc.py`, `test_security_doc.py`, and
+  `test_docs_s12_17_d30_resolution.py`.
 
 ### Changed
+- mkdocs nav expanded from 6 to 28 public pages; `exclude_docs` reduced to
+  pages that are intentionally never publishable.
+- Acrostic immutability constraint relaxed: visual editing is now permitted;
+  the immutability tests are skipped (PR #47).
+- README header restructured into a categorized channel directory
+  (Platform / Info / Contact / Community / Code), mirrored on the mkdocs
+  landing page.
+- CLI references across the docs rewritten for the read-only `puma models`
+  sub-group (`list` / `show` / `recommended`); pulling delegated to
+  `ollama pull <tag>` (D30 RESOLVED).
+- `pyproject.toml` hardened for PyPI publication (distribution name
+  `puma-cp`); project version bumped to 4.0.0.
+- Public-docs audit sets expanded from 6 to the full public surface so
+  Spanish / sensitive-token regressions are caught across every page.
 
 ### Removed
+- `docs/CONTRIBUTING.md` — its operational content was folded into
+  `docs/development-workflow.md`; the canonical entry-point copy lives at the
+  repository root as `CONTRIBUTING.md`, eliminating the duplicate source.
 
 ### Fixed
+- D30 — documentation synced with the `puma models` subcommand structure;
+  marked RESOLVED in `docs/known_debt.md` (2026-05-31, S12.17).
+- mkdocs `--strict` nav coherence: cross-repo links that aborted the strict
+  build rewritten as absolute GitHub URLs.
+
+### Security
+- `pip-audit`, `bandit`, and `gitleaks` now run on every push and PR; Trivy
+  scans every container publish and blocks HIGH/CRITICAL CVEs.
+- `SECURITY.md` private-disclosure policy added at the repository root.
+- A 9-check programmatic validation pipeline guards community submissions.
+- git history sanitized (Phase Z-2).
+
+### Infrastructure
+- `Dockerfile.publish`: multi-stage, non-root, OCI-labelled image.
+- Production-grade PyPI + ghcr.io publishing workflows.
+- GitHub Pages site live at pumacp.github.io/puma with a 28-page nav.
+- Hugging Face dataset mirror operational at
+  huggingface.co/datasets/pumaproject/puma-community-submissions.
+
+### Documentation
+- New comprehensive pages: `development-workflow.md`, `security.md`,
+  `technical_reference.md`, `first-submission.md`, and the expanded landing
+  page, among others.
+- A 30+-term glossary and a 17-entry architectural decisions timeline in the
+  technical reference.
+
+### Known limitations (deferred to S12.19 / post-Sprint-12)
+- D38 — `validate-submission` workflow references a non-existent action
+  version (`actions-ecosystem/action-add-labels@v1.4.0`).
+- D39 — `verify-integrity` workflow broken by `gradio_client` API drift
+  (`hf_token=` → `token=`); the inaugural submission is therefore
+  `self-attested` rather than `verified`.
+- D40 — `puma share-results` CLI hangs after the Review panel, which forced
+  the maintainer-driven path for the inaugural submission.
+- `notify-discord` workflow lacks the `DISCORD_WEBHOOK` secret (optional
+  integration; not a code defect).
 
 ## [3.1.0] — 2026-05-25
 
@@ -1016,7 +1105,7 @@ Sprint 6:
   to reflect actual behavior (it processes a local TAWOS SQL dump, does
   not download). References updated across `src/puma/datasets/tawos.py`,
   `data/README.md`, `docs/user_guide.md`, `docs/troubleshooting.md`, and
-  the future Phase D directives in `docs/internal/claude-code-prompts/PROMPT-D-tecnico.md`.
+  the future Phase D directives in `docs/internal/agent-prompts/PROMPT-D-tecnico.md`.
   Historical mentions retained in `docs/known_debt.md` (F4) and
   `docs/baseline_inventory.md` (pre-Phase-0 snapshot). Closes debt D13.
 - `pyproject.toml` version bumped from `2.0.0-dev` to `2.1.0-dev` —
@@ -1220,7 +1309,7 @@ Sprint 6:
 - `puma db` CLI: refactored from single argument-dispatch (`db <action>`) to sub-Typer with explicit `migrate`, `downgrade`, `history`, `status` subcommands (decision S1: `status` preserved as subcommand)
 - Datasets: small processed CSVs (`jira_balanced_200.csv`, `tawos_clean.csv`, `tawos_raw.csv`, ~12 MB total) tracked in repo; SQL dumps and large artifacts remain gitignored
 - Repository hygiene: removed build artifacts and legacy prototype code from versioning (~31k lines deleted): `__pycache__/`, `*.pyc`, `agents/`, `src/{cleanup,data_prep,evaluate_*,history,rag_index,statistical_analysis}.py`, `reports/`
-- Internal operational documents (`CLAUDE_CODE_INSTRUCTIONS.md`, audit reports) relocated to `docs/internal/` (gitignored)
+- Internal operational documents (`AGENT_INSTRUCTIONS.md`, audit reports) relocated to `docs/internal/` (gitignored)
 - `README.md` updated with positive independence statement asserting that PUMA is a self-contained benchmarking framework with evaluation methodology developed independently
 
 ### Fixed

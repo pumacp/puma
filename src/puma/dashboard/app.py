@@ -18,6 +18,7 @@ from puma.dashboard.views import (
     fairness,
     instance_drilldown,
     model_comparison,
+    multi_model,
     overview,
     reliability,
     robustness,
@@ -30,6 +31,7 @@ LOGO_PATH = Path(__file__).resolve().parents[3] / "assets" / "img" / "PUMA.png"
 VIEWS = {
     "📊 Overview": overview.render,
     "🆚 Model Comparison": model_comparison.render,
+    "🔬 Multi-model": multi_model.render,
     "🎯 Reliability": reliability.render,
     "🛡️ Robustness": robustness.render,
     "⚖️ Fairness": fairness.render,
