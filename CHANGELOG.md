@@ -8,128 +8,102 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.0.0] — 2026-05-31
+
+The Sprint 12 closure release. PUMA's federated community-submission
+infrastructure is now operational and validated end to end by the first
+official production submission (qwen2.5:3b / triage_jira / zero_shot,
+F1=0.3898), which landed at pumacp/puma-community#8 and mirrored to the
+Hugging Face submissions dataset.
+
 ### Added
-- First official PUMA Community submission landed — qwen2.5:3b / triage_jira /
-  zero_shot (submitter pumacp, F1=0.3898, merged 2026-05-31); documented in
-  `docs/first-submission.md` (S12-N1).
+- PUMA Community federated submission infrastructure (S12.15), validated by the
+  inaugural submission landed at pumacp/puma-community#8 (qwen2.5:3b /
+  triage_jira / zero_shot, F1=0.3898, submitter pumacp, merged 2026-05-31).
+- First official production submission documented end to end in
+  `docs/first-submission.md` (S12-N1), including the canonical identifiers,
+  the maintainer-driven submission path, and the F1 floor-anchor rationale.
+- PyPI + Docker (ghcr.io) publishing workflows: `publish-pypi.yml` and
+  `publish-docker.yml`, with `Dockerfile.publish` (S12.15).
 - Multi-model comparison view in the Streamlit dashboard: side-by-side metrics
-  with deltas (F1-macro for triage, MAE for estimation), bar charts (F1-macro,
-  MAE, p95 latency, carbon), a full metrics table, and a per-model reproducibility
-  fingerprint check. Reads persisted SQLite results only — no live inference.
-- mkdocs landing page (`docs/index.md`) mirrors the README header restructure
-  from PR #47: split badge groups (CI / properties / ecosystem), categorized
-  channel directory (Platform / Info / Contact / Community / Code), and the
-  FOLLOW THE WHITE PUMA acrostic laid out in a two-column table.
-- Dedicated D30 resolution test module
-  (`tests/integration/test_docs_s12_17_d30_resolution.py`, six tests)
-  asserting: no stale `puma models pull` / `puma list-ollama-models`
-  references in active docs; D30 marked RESOLVED with date in
-  `docs/known_debt.md`; every page S12.17 surfaced is wired into the
-  mkdocs nav; no cross-repo broken links in `overview.md` /
-  `RELEASES/v3.0.0.md`.
-- Canonical procedural reference for the manual IDE-based
-  contribution workflow (`docs/development-workflow.md`, 16 sections,
-  ~860 lines): prerequisites, repository layout (with locked-path
-  callouts), Git identity, clone, install, IDE setup (VSCode / Cursor
-  / JetBrains), the 11-step contribution workflow, conventional
-  commits, local quality gates, conflict handling, the cosmetic /
-  acrostic relaxation, the prohibited-token policy, the benchmark
-  submission pointer, support channels, and a worked PR-#47 appendix.
-- New top-level **Contributing** section in the mkdocs nav, surfacing
-  `docs/development-workflow.md`.
-- Coherence test module
-  (`tests/integration/test_development_workflow_doc.py`, 13 tests)
-  pinning the structural invariants of the CONTRIBUTING + workflow
-  doc pairing.
-- **Security audit MVP** (S12-N2):
-  - `docs/security.md` (~330 lines) — comprehensive threat model and
-    security posture reference, covering determinism guarantees, the
-    no-outbound-telemetry default, submission integrity (SHA-256),
-    Phase Z-2 history sanitization, dependency / container / GitHub
-    Actions posture, brand-scanner enforcement, audit cadence, and
-    the known security debt (D32–D35).
-  - `.github/workflows/pip-audit.yml` — dependency CVE scan on every
-    push, every PR, and weekly Monday 06:00 UTC.
-  - `.github/workflows/bandit.yml` — Python SAST against `src/puma/`
-    on every push and PR (MEDIUM+ reported, HIGH fails).
-  - `.github/workflows/gitleaks.yml` — full-history secret scan on
-    every push and PR.
-  - Trivy scan inserted between build and push in
-    `.github/workflows/publish-docker.yml`; SARIF upload to the
-    GitHub Security tab; HIGH/CRITICAL CVEs block the publish.
-  - `tests/integration/test_security_doc.py` (14 tests) — pins the
-    SECURITY.md + docs/security.md content invariants and validates
-    the four new/modified security workflows.
-  - New **Security** entry in the Contributing nav alongside
-    `development-workflow.md`.
-  - `D32`–`D35` recorded in `docs/known_debt.md`: license-compat
-    automation, SBOM CycloneDX generation, mutation testing on
-    `integrity.py`, cross-platform install test — all right-sized
-    out of the MVP scope and queued for the post-Sprint-12 backlog.
-- **Consolidated technical reference** (S12-N3):
-  - `docs/technical_reference.md` (~770 lines, ~5100 words, 15
-    sections): Overview, 6-layer architecture diagram, full
-    configuration reference (run-spec / profiles / catalog), JSON
-    Schema field-by-field (root + 6 `$defs`), Storage / ORM
-    reference (6 models), 7 metric families, CLI overview
-    cross-linked to `cli_reference.md`, methodologies, 30+-term
-    glossary, 17-row architectural decisions timeline, strengths,
-    14 open D-NN debt entries, risks + mitigations, roadmap pointer,
-    references.
-  - New **Reference** top-level mkdocs nav section surfacing the
-    consolidated reference (nav 26 → 27 pages).
-  - `tests/integration/test_technical_reference_doc.py` (14 tests)
-    pins every YAML key / Schema field / ORM model / CLI command /
-    glossary count / decisions count / canonical cross-link.
-  - README and `docs/index.md` Documentation / Resources sections
-    cross-link the new page (both in-tree and Pages URL).
+  with deltas (F1-macro for triage, MAE for estimation), bar charts, a full
+  metrics table, and a per-model reproducibility fingerprint check; reads
+  persisted SQLite results only — no live inference (S12.16).
+- Consolidated technical reference (`docs/technical_reference.md`, ~5100 words,
+  15 sections, 17-row architectural decisions timeline, 30+-term glossary)
+  with a new **Reference** mkdocs nav section (S12-N3).
+- Manual IDE contribution workflow reference (`docs/development-workflow.md`,
+  16 sections) and a new **Contributing** mkdocs nav section (S12-N4).
+- Security audit MVP (S12-N2): `pip-audit`, `bandit`, and `gitleaks`
+  workflows; a Trivy container scan; `SECURITY.md` private-disclosure policy;
+  and a `docs/security.md` threat model.
+- Corporate monochrome visual identity across GitHub Pages and the Streamlit
+  dashboard.
+- Acrostic visual flexibility — the FOLLOW THE WHITE PUMA acrostic may now be
+  laid out for presentation (PR #47).
+- Integration test modules pinning the new documentation surfaces:
+  `test_first_submission_doc.py`, `test_technical_reference_doc.py`,
+  `test_development_workflow_doc.py`, `test_security_doc.py`, and
+  `test_docs_s12_17_d30_resolution.py`.
 
 ### Changed
-- Dashboard theme switched to the monochrome corporate palette (`.streamlit/config.toml`).
-- mkdocs site expanded from the v4.0.0 minimal 6-page surface to the full
-  24-page nav (six groups: Get started / Concepts / Guides / Reproducibility
-  / Releases / Project). `exclude_docs` reduced to four categories of
-  intentionally-unpublishable pages (internal/, project records, older
-  `RELEASES/v2.*.md`, `known_debt.md` + `CONTRIBUTING.md`).
-- Stale CLI references in `README.md`, `docs/user_guide.md`,
-  `docs/troubleshooting.md`, and `docs/adding_models.md` rewritten for the
-  v4.0.0 read-only `puma models` sub-group (`list` / `show` / `recommended`);
-  pulling now consistently delegated to `ollama pull <tag>` (or
-  `docker compose exec puma_ollama ollama pull <tag>` in the Compose flow).
-- `docs/overview.md` and `docs/RELEASES/v3.0.0.md` cross-repo links to
-  `../CONTRIBUTING.md` / `../../CHANGELOG.md` (which aborted
-  `mkdocs --strict`) rewritten as absolute GitHub URLs on the develop branch.
-- Public-docs audit set in `test_pages_content_audit.py` and
-  `test_pages_no_sensitive_content.py` expanded from 6 to 24 pages, matching
-  the new nav so Spanish / Anexo / sensitive-token regressions are caught
-  across the full public surface.
-- `docs/RELEASES/v3.1.0.md` sanitized to remove forbidden tokens that the
-  expanded audit surfaced (Anexo cross-references, `pumaproject/puma-verifier`
-  Space mentions, `memoria` reference, one Spanish phrase). The substantive
-  release content is preserved.
-- Root `CONTRIBUTING.md` extended with two short cross-cutting sections:
-  'The contribution workflow' (one-paragraph pointer to
-  `docs/development-workflow.md`) and 'AI-tool trailers' (documenting
-  the existing `.githooks/commit-msg` strip-on-commit policy). Existing
-  Development setup / Testing / Code style / Bug reports / Feature
-  requests / Code of Conduct sections preserved as-is. Merge policy
-  copy-edit: `squash-merged` → `rebase-merged` to match actual practice
-  (PRs #45 / #46 / #47 / #48).
-- `README.md` 'Documentation' section: the 'Contributing guide' bullet
-  now also points at `docs/development-workflow.md` and its rendered
-  Pages URL.
+- mkdocs nav expanded from 6 to 28 public pages; `exclude_docs` reduced to
+  pages that are intentionally never publishable.
+- Acrostic immutability constraint relaxed: visual editing is now permitted;
+  the immutability tests are skipped (PR #47).
+- README header restructured into a categorized channel directory
+  (Platform / Info / Contact / Community / Code), mirrored on the mkdocs
+  landing page.
+- CLI references across the docs rewritten for the read-only `puma models`
+  sub-group (`list` / `show` / `recommended`); pulling delegated to
+  `ollama pull <tag>` (D30 RESOLVED).
+- `pyproject.toml` hardened for PyPI publication (distribution name
+  `puma-cp`); project version bumped to 4.0.0.
+- Public-docs audit sets expanded from 6 to the full public surface so
+  Spanish / sensitive-token regressions are caught across every page.
 
 ### Removed
-- `docs/CONTRIBUTING.md` — its operational content (pre-commit hooks,
-  `.githooks/commit-msg` policy, branch naming, TDD module list) was
-  folded into the relevant sections of `docs/development-workflow.md`.
-  The file had been excluded from the mkdocs nav since S12.17 as a
-  'canonical-lives-at-repo-root' duplicate; the deletion eliminates the
-  duplicate source of truth.
+- `docs/CONTRIBUTING.md` — its operational content was folded into
+  `docs/development-workflow.md`; the canonical entry-point copy lives at the
+  repository root as `CONTRIBUTING.md`, eliminating the duplicate source.
 
 ### Fixed
-- D30 — Docs sync for the new `models` subcommand structure (since v4.0.0).
-  Marked RESOLVED in `docs/known_debt.md` (2026-05-31, S12.17).
+- D30 — documentation synced with the `puma models` subcommand structure;
+  marked RESOLVED in `docs/known_debt.md` (2026-05-31, S12.17).
+- mkdocs `--strict` nav coherence: cross-repo links that aborted the strict
+  build rewritten as absolute GitHub URLs.
+
+### Security
+- `pip-audit`, `bandit`, and `gitleaks` now run on every push and PR; Trivy
+  scans every container publish and blocks HIGH/CRITICAL CVEs.
+- `SECURITY.md` private-disclosure policy added at the repository root.
+- A 9-check programmatic validation pipeline guards community submissions.
+- git history sanitized (Phase Z-2).
+
+### Infrastructure
+- `Dockerfile.publish`: multi-stage, non-root, OCI-labelled image.
+- Production-grade PyPI + ghcr.io publishing workflows.
+- GitHub Pages site live at pumacp.github.io/puma with a 28-page nav.
+- Hugging Face dataset mirror operational at
+  huggingface.co/datasets/pumaproject/puma-community-submissions.
+
+### Documentation
+- New comprehensive pages: `development-workflow.md`, `security.md`,
+  `technical_reference.md`, `first-submission.md`, and the expanded landing
+  page, among others.
+- A 30+-term glossary and a 17-entry architectural decisions timeline in the
+  technical reference.
+
+### Known limitations (deferred to S12.19 / post-Sprint-12)
+- D38 — `validate-submission` workflow references a non-existent action
+  version (`actions-ecosystem/action-add-labels@v1.4.0`).
+- D39 — `verify-integrity` workflow broken by `gradio_client` API drift
+  (`hf_token=` → `token=`); the inaugural submission is therefore
+  `self-attested` rather than `verified`.
+- D40 — `puma share-results` CLI hangs after the Review panel, which forced
+  the maintainer-driven path for the inaugural submission.
+- `notify-discord` workflow lacks the `DISCORD_WEBHOOK` secret (optional
+  integration; not a code defect).
 
 ## [3.1.0] — 2026-05-25
 
