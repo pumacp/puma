@@ -655,6 +655,36 @@ data-availability-limited in the results doc.
 (d) run the best config twice to confirm bit-exact MAE. Supersede
 `h2_estimation_wilcoxon.md` with the fresh result.
 
+### D45 — H1 triage inferential test uses a no-information majority-class baseline, not the pre-registered keyword heuristic (since post-Sprint-12)
+
+**Status:** OPEN — owner: maintainer. Target: when `input_text` is re-ingested
+(D22 fix) and Ollama hardware is available.
+**Discovered:** Post-Sprint-12 H1 reproducibility task (2026-06-04).
+**Related:** **D22** (root cause — empty `input_text`), **D44** (parallel H2 case).
+
+**Files.** `docs/results/h1_triage_wilcoxon.md`, `data/puma_h1_triage.db`.
+
+**Finding.** The pre-registered H1 test compares the triage model against a
+**keyword-rule heuristic** baseline. That heuristic needs the ticket text, but the
+preserved `instances` rows have empty `input_text` in 200/200 triage rows (**D22**),
+so the heuristic is irrecoverable. A real, independently-recomputable test was
+produced (decision: **REJECT H0_1**; qwen2.5:3b + contextual-anchoring F1-macro
+0.5894 vs a no-information majority-class floor acc 0.25 / F1 0.10; Wilcoxon
+p = 6.9e-13, r = -0.51, N = 200) under a **baseline substitution**: the keyword
+heuristic was replaced by a constant-class floor computable from gold labels alone.
+
+**Consequence.** H0_1 is rejected, but only against the weakest possible (chance-level)
+baseline on a perfectly balanced 4-class set — a low bar. The result does not
+establish superiority over a competitive heuristic. Other deviations: preserved
+May-10 data (not a fresh live run); no run-twice re-check (the 5 stable N=200 runs
+are byte-identical; the computation is deterministic); model digest not recorded.
+
+**Resolution path (closure).** On hardware with Ollama: (a) fix **D22** so triage
+`instances` persist `input_text`; (b) implement/run the keyword-rule heuristic
+per-instance on the same N=200 set; (c) recompute the Wilcoxon test of model vs
+keyword heuristic; (d) re-run the model config twice to confirm bit-exact F1.
+Supersede `h1_triage_wilcoxon.md` with the fresh result.
+
 ### P1 captures (Sprint 12)
 
 Coordinator-level prompt-drift captures. Earlier captures are embedded in the
