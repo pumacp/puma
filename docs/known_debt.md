@@ -618,6 +618,43 @@ v4.0.1.
 **Resolution path.** Add `@click.version_option(package_name="puma-cp")` to the
 root group (or the Typer equivalent). Ship in v4.0.1.
 
+### D44 — H2 estimation inferential test computed on preserved N=100 data with a global-mean baseline (since post-Sprint-12)
+
+**Status:** OPEN — owner: maintainer. Target: when Ollama hardware is available and
+instance-level project persistence (D22) is fixed.
+**Discovered:** Post-Sprint-12 H2 reproducibility task (2026-06-04).
+**Related:** **D22** (root cause for the baseline deviation), `D26`/RT3 (version sentinel).
+
+**Files.** `docs/results/h2_estimation_wilcoxon.md`, `data/puma_h2_estimation.db`.
+
+**Finding.** The pre-registered hypothesis H2 requires a Wilcoxon signed-rank test
+of enriched-instruction configs against the project's **per-project** historical-mean
+predictor on `estimation_tawos`. A real, independently-recomputable test was produced
+(decision: **fail to reject H0_2**; best config `qwen2.5:7b` MAE = 1.86 vs global-mean
+baseline 2.03, reduction 0.17 SP, p = 0.104, r = −0.16, N = 100), but under four
+deviations from the pre-registration:
+
+1. **Global-mean baseline instead of per-project mean** — the evaluated `instances`
+   rows persist only a hashed id + gold label; `input_text`/project are empty
+   (**D22**), so instances cannot be mapped to their TAWOS project.
+2. **N = 100** — the only `contextual-anchoring` estimation data preserved at
+   per-prediction granularity; the N = 200 canonical baseline was `zero-shot`.
+3. **Preserved May-10 Phase-B predictions, not a fresh live run** — Ollama/Docker
+   were unavailable in the environment.
+4. **No run-twice determinism re-check** — requires live inference (the underlying
+   run used seed = 42 / T = 0.0; the test computation itself is deterministic).
+
+**Consequence.** The committed H2 result is valid for what it measures (global-mean
+baseline, N = 100) but is not the full pre-registered test. It is labelled
+data-availability-limited in the results doc.
+
+**Resolution path (closure).** On hardware with Ollama: (a) fix **D22** so
+`instances` persist project id + `input_text`; (b) re-run `estimation_tawos`
+`contextual-anchoring` at N = 200 (seed = 42, T = 0.0) with per-prediction logging;
+(c) compute the Wilcoxon test against the **per-project** historical-mean baseline;
+(d) run the best config twice to confirm bit-exact MAE. Supersede
+`h2_estimation_wilcoxon.md` with the fresh result.
+
 ### P1 captures (Sprint 12)
 
 Coordinator-level prompt-drift captures. Earlier captures are embedded in the
