@@ -60,7 +60,7 @@ Runner.run()
 | `puma.sustainability` | `codecarbon_wrapper` | `@track_emissions`, `emissions_summary()`, `gco2_per_f1_point()` |
 | `puma.orchestrator` | `runspec`, `runner`, `compare` | `RunSpec`, `Runner`, `compare_runs()` |
 | `puma.storage` | `models`, `db` | `Run`, `Instance`, `Prediction`, `Metric`, `Emission`, `ProfileSnapshot`, `init_db()`, `session_scope()` |
-| `puma.dashboard` | `app`, `components`, `data` | Streamlit 7-view app, `load_runs()`, `metrics_pivot()`, `metric_card()`, etc. |
+| `puma.dashboard` | `app`, `components`, `data` | Streamlit 9-view app, `load_runs()`, `metrics_pivot()`, `metric_card()`, etc. |
 | `puma.reporting` | `report` | `generate_report()`, `_convert_to_pdf()` |
 | `puma.cli` | `cli` | Typer app: 15 commands + 5 command groups |
 

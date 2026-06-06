@@ -59,7 +59,7 @@ binds them into a benchmark run.
 │     CodeCarbon energy + CO₂ tracking                             │
 ├─────────────────────────────────────────────────────────────────┤
 │  3. Adaptation + Perturbations                                   │
-│     Prompt-strategy application (zero-shot, few-shot-3 / 6,      │
+│     Prompt-strategy application (zero-shot, few-shot-3 / 5 / 8,  │
 │     chain-of-thought, RCOIF, contextual-anchoring, ...),         │
 │     optional input perturbations for robustness                  │
 ├─────────────────────────────────────────────────────────────────┤
@@ -102,7 +102,7 @@ Layer-by-layer:
   and binds the layers into the run lifecycle.
 - **6. Dashboard + Reporting + CLI** (`src/puma/dashboard/`,
   `src/puma/reporting/`, `src/puma/cli.py`) — surfaces results
-  through a seven-view Streamlit dashboard (including the
+  through a nine-view Streamlit dashboard (including the
   S12.16 Multi-model comparison view), Markdown / PDF report
   rendering, and the Typer-based `puma` CLI.
 
