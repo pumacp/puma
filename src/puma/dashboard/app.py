@@ -51,7 +51,7 @@ st.set_page_config(
 if LOGO_PATH.exists():
     st.sidebar.image(str(LOGO_PATH), width=160)
 st.sidebar.title("PUMA")
-st.sidebar.caption("Project Understanding & Management with Agents")
+st.sidebar.caption("PUMA Understanding & Management w Agents")
 
 # ── Sidebar: dark mode ────────────────────────────────────────────────────────
 

@@ -384,7 +384,7 @@ If you use PUMA in your work, please cite the repository:
 ```bibtex
 @software{puma_project,
   author  = {{PUMA Project contributors}},
-  title   = {PUMA: PUMA Understanding and Management with Agents},
+  title   = {PUMA: PUMA Understanding & Management w Agents},
   url     = {https://github.com/pumacp/puma},
   version = {2.7.0},
   year    = {2026}
