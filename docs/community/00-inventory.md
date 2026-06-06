@@ -327,8 +327,8 @@ closure at v2.7.0*.
 > + Sprint 10 catalog expansion) is complete. Every quality gate passes. … Further
 > technical work would introduce risk of regression on 407 passing tests without empirical
 > contrapartida on the validation hardware available to the project. The marginal value of
-> further infrastructure work is now exceeded by the marginal value of memoria redaction
-> for the TFG defence cycle."
+> further infrastructure work is now exceeded by the marginal value of documentation redaction
+> for the project defense cycle."
 
 The closure document explicitly contemplates future **additive** work post-defence; the
 federation v1 fits this profile if introduced under a strict opt-in mechanism that does not
@@ -448,7 +448,7 @@ new top-level workflow, to keep PR signals consolidated.
   in one directory). A community feature spans CLI + storage + HTTP I/O + dashboard, which
   does not map cleanly onto any single existing folder. Creating `tests/community/`
   preserves the "purpose-shaped" convention and keeps federation tests collocated for the
-  reviewer of the memoria. (Alternative `tests/unit/community/` would be the first nested
+  reviewer of the project documentation. (Alternative `tests/unit/community/` would be the first nested
   subfolder ever in `tests/unit/` and would split federation tests across multiple
   directories.) The Makefile `test` target currently runs only `tests/unit/` and
   `tests/integration/`, so a `tests/community/` folder will need to be added to the test

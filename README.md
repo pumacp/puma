@@ -146,7 +146,7 @@ single CLI command.
 - **Two production scenarios:** `triage_jira` (issue classification) and
   `effort_tawos` (story-point estimation), plus experimental
   `prioritization_jira`.
-- **Multi-strategy prompting:** zero-shot, zero-shot-CoT, few-shot (k=3 / k=6),
+- **Multi-strategy prompting:** zero-shot, zero-shot-CoT, few-shot (k=3 / k=5 / k=8),
   CoT few-shot, RCOIF, contextual anchoring, EGI, self-consistency.
 - **Multi-dimensional metrics:** F1-macro, accuracy, MAE, MdAE, ECE, per-class
   breakdown, confusion matrix, Wilcoxon signed-rank pairwise tests.

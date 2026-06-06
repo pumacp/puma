@@ -201,7 +201,7 @@ puma/
 │   ├── sustainability/     # CodeCarbon wrapper
 │   ├── orchestrator/       # RunSpec, Runner, compare_runs
 │   ├── storage/            # SQLAlchemy ORM (6 tables)
-│   ├── dashboard/          # Streamlit app (8 views)
+│   ├── dashboard/          # Streamlit app (9 views)
 │   ├── reporting/          # Markdown + PDF report generation
 │   └── cli.py              # Unified CLI entrypoint
 ├── tests/
