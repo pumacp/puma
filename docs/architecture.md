@@ -62,7 +62,7 @@ Runner.run()
 | `puma.storage` | `models`, `db` | `Run`, `Instance`, `Prediction`, `Metric`, `Emission`, `ProfileSnapshot`, `init_db()`, `session_scope()` |
 | `puma.dashboard` | `app`, `components`, `data` | Streamlit 7-view app, `load_runs()`, `metrics_pivot()`, `metric_card()`, etc. |
 | `puma.reporting` | `report` | `generate_report()`, `_convert_to_pdf()` |
-| `puma.cli` | `cli` | Typer app: 10 commands |
+| `puma.cli` | `cli` | Typer app: 15 commands + 5 command groups |
 
 ## 3. Docker Services
 

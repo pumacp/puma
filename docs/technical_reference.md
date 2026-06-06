@@ -48,7 +48,7 @@ binds them into a benchmark run.
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  6. Dashboard + Reporting + CLI                                  │
-│     Streamlit dashboard (7 views), report rendering, Typer CLI   │
+│     Streamlit dashboard (9 views), report rendering, Typer CLI   │
 ├─────────────────────────────────────────────────────────────────┤
 │  5. Storage + Orchestrator                                       │
 │     SQLite ORM (Run, Instance, Prediction, Metric, Emission,     │
@@ -611,7 +611,7 @@ term elsewhere in the documentation.
 - **Story point** — estimation-task target value (Fibonacci scale,
   typically 1–13 for the TAWOS corpus).
 - **Strategy** — a prompting approach selected per run-spec
-  (`zero-shot`, `few-shot-3`, `few-shot-6`, `cot`, `rcoif`,
+  (`zero-shot`, `few-shot-3`, `few-shot-5`, `few-shot-8`, `cot`, `rcoif`,
   `contextual-anchoring`, `egi`, `self-consistency`).
 - **Sub-group** — Typer sub-command grouping in the CLI
   (`puma models`, `puma db`, `puma cache`, `puma auth`,

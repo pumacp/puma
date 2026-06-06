@@ -196,7 +196,7 @@ No `tests/unit/`, `tests/integration/`, `tests/smoke/` subdirectories yet.
 | Task | Model | Metric | Value |
 |------|-------|--------|-------|
 | Triage | qwen2.5:3b | F1-macro | ~0.5867 (reported) / 0.5087 (mistral:7b in saved JSON) |
-| Estimation | qwen2.5:3b | MAE | ~1.89 SP (reported in AGENT_INSTRUCTIONS.md) |
+| Estimation | qwen2.5:3b | MAE | 1.86 SP |
 
 ---
 
