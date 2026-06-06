@@ -1,6 +1,6 @@
 # PUMA — Index
 
-**Platform for Understanding & Management with Agents**
+**PUMA Understanding & Management w Agents**
 Local, reproducible, multi-dimensional benchmarking of open LLMs on project management tasks.
 
 ---

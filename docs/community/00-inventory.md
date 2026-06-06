@@ -76,7 +76,7 @@ Not expanded.
 
 ### `README.md` (first 100 lines)
 
-Title: **PUMA — Project Understanding and Management with Agents**.
+Title: **PUMA — PUMA Understanding & Management w Agents**.
 Badges: tests=407 passing, version=v2.7.0, python=3.11+, license=MIT, runs-on Docker.
 Status table lists v2.7.0, 407 tests, **58 %** coverage (badge claims 61 % elsewhere —
 both numbers live in different files, see §Surprises). Section headers visible in the first

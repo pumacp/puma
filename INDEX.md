@@ -2,7 +2,7 @@
 
 ![PUMA Logo](https://raw.githubusercontent.com/pumacp/puma/main/assets/img/PUMA.png)
 
-> **PUMA — Project Understanding and Management with Agents**
+> **PUMA — PUMA Understanding & Management w Agents**
 >
 > *Can language models manage ICT projects? An empirical benchmark of local LLM agents for issue triage and effort estimation in ICT projects.*
 
