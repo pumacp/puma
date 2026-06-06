@@ -14,7 +14,7 @@ results, and releases.
 
 ## Project status
 
-**Current version**: v3.1.0 (released 2026-05-25)
+**Current version**: v4.0.0 (released 2026-06-02)
 
 | Phase | Description | Status |
 |-------|-------------|--------|
@@ -26,18 +26,15 @@ results, and releases.
 | F | Hardening (post-v2.4.0 inconsistencies I5–I10) | ✓ COMPLETE (Sprint 8, v2.5.0) |
 | G | Apple Silicon M3/M4/M5 support — detection + native mode | ✓ INFRASTRUCTURE COMPLETE (Sprint 9, v2.6.0); empirical validation pending Mac hardware |
 | H | Catalog expansion — Qwen3 dense + MoE | ✓ INFRASTRUCTURE COMPLETE (Sprint 10, v2.7.0); empirical validation pending gpu-high hardware |
-
-**v2.7.0-academic** is a local-only Git tag that freezes the
-repository state used as the academic snapshot for the TFG
-memoria. It is deliberately not pushed to `origin`. Do not
-delete; restore via
-`git rev-list -n 1 v2.7.0-academic`
-if recovery is ever needed.
+| I | First public release + multi-model hardening | ✓ COMPLETE (Sprint 11, v3.0.0) |
+| J | Reconciliation + `puma community` CLI | ✓ COMPLETE (Sprint 11', v3.1.0) |
+| K | Integration hardening + security audit + community inauguration | ✓ COMPLETE (Sprint 12, v4.0.0) |
 
 ## Releases
 
 | Tag | Date | Highlights |
 |-----|------|------------|
+| [v4.0.0](https://github.com/pumacp/puma/releases/tag/v4.0.0) | 2026-06-02 | Sprint 12 — integration hardening (D24–D26), security audit (pip-audit, bandit, gitleaks, Trivy), community subsystem inauguration, HF Dataset mirror, leaderboard render |
 | [v3.1.0](https://github.com/pumacp/puma/releases/tag/v3.1.0) | 2026-05-25 | Sprint 11' — post-v3.0.0 reconciliation + `puma community` CLI (browse/pull/verify-hash/validate) + wiki/Verifier minimal repairs + docs cleanup; deuda técnica D23 documented (deferred to v4.x) |
 | [v3.0.0](https://github.com/pumacp/puma/releases/tag/v3.0.0) | 2026-05-20 | First public release — public documentation overhaul (Wiki + README + sync workflow) + mypy remediation from 104 errors to zero |
 | [v2.7.0](https://github.com/pumacp/puma/releases/tag/v2.7.0) | 2026-05-16 | Catalog expansion (Sprint 10) — `qwen3:30b` dense + `qwen3:30b-a3b` MoE at gpu-high; Kimi K2.6 formally excluded after 13-tag Ollama registry probe; schema preserved at 8 fields; 407 tests; empirical validation pending gpu-high hardware |
@@ -68,7 +65,7 @@ PUMA is organized in modular layers under `src/puma/`:
 | Sustainability | `sustainability/` | CodeCarbon integration (CPU + RAM + GPU energy) |
 | Perturbations | `perturbations/` | Surface and semantic perturbations (typos, case, gender_swap_prefix, register_shift) |
 | Preflight | `preflight/` | Hardware detection, profile selection, model catalog SoT |
-| Dashboard | `dashboard/` | Streamlit interface (8 views) |
+| Dashboard | `dashboard/` | Streamlit interface (9 views) |
 | Reporting | `reporting/` | Markdown / PDF report generation |
 
 ## Documentation
@@ -110,10 +107,10 @@ PUMA is organized in modular layers under `src/puma/`:
 | Category | Count |
 |----------|-------|
 | Closed methodological findings (F1–F8) | 8 |
-| Resolved technical debt | 15 |
-| Open technical debt | 7 (0 critical, 5 medium, 2 low; 1 DECIDED-NO-ACTION) |
+| Resolved technical debt | 13 |
+| Open technical debt | 26 |
 | Inconsistencies resolved in v2.5.0 (I5–I10) | 6 |
-| Total tracked | 30 |
+| Total tracked | 39 |
 
 See [docs/known_debt.md](docs/known_debt.md) for full per-item evidence and resolution traceability.
 
