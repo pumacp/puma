@@ -1,5 +1,5 @@
 """
-PUMA — Platform for Understanding & Management with Agents.
+PUMA Understanding & Management w Agents.
 
 Local, reproducible benchmarking of open LLMs on project management tasks.
 """
