@@ -685,6 +685,42 @@ per-instance on the same N=200 set; (c) recompute the Wilcoxon test of model vs
 keyword heuristic; (d) re-run the model config twice to confirm bit-exact F1.
 Supersede `h1_triage_wilcoxon.md` with the fresh result.
 
+### D46 — Leaderboard reads `verification.status` instead of `integrity.verification_status` (since post-Sprint-12)
+
+**Status:** OPEN — owner: maintainer. Target: v4.0.1 / patch sprint.
+**Discovered:** Sprint 12 community diagnostic.
+
+**File.** `app.py` in `pumaproject/puma-leaderboard` (HF Space).
+
+**Finding.** The leaderboard reads `record["verification"]["status"]`, but the
+v1.0.0 submission schema exposes the status at
+`record["integrity"]["verification_status"]`. The key path never matches, so the
+"verified" column renders "—" for every submission regardless of its real status.
+
+**Consequence.** Display-only; no effect on data or metrics. With a single
+self-attested submission the visible effect is nil today.
+
+**Resolution path.** Read the correct key and map
+`self-attested` / `verified` / `mismatch`. Ship in v4.0.1.
+
+### D47 — D39's description of leaderboard filtering is inaccurate (since post-Sprint-12)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: v4.0.1 / patch sprint.
+**Discovered:** Sprint 12 community diagnostic.
+
+**File.** This file — the **D39** entry.
+
+**Finding.** D39 states the leaderboard "appears to filter for verified
+submissions, so the inaugural row is not yet visible". Inspection of `app.py`
+(`get_leaderboard`) shows it filters only by scenario / model / profile; there is
+no verification-status filter, so the row is shown with "—", not hidden.
+
+**Consequence.** Documentation only — D39's stated consequence overstates the
+effect. The deployed Space was not verified from the academic environment; the
+local source is authoritative.
+
+**Resolution path.** Correct the wording of the **D39** entry. Ship in v4.0.1.
+
 ### P1 captures (Sprint 12)
 
 Coordinator-level prompt-drift captures. Earlier captures are embedded in the
