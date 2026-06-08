@@ -1,0 +1,2920 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Local LLM benchmarks for project management tasks">
+      
+      
+      
+        <link rel="canonical" href="https://pumacp.github.io/puma/">
+      
+      
+      
+        <link rel="next" href="overview/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/img/PUMA.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>PUMA</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="stylesheets/extra.css">
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="black">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#what-is-puma" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="PUMA" class="md-header__button md-logo" aria-label="PUMA" data-md-component="logo">
+      
+  <img src="assets/img/PUMA.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            PUMA
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="black"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="white"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pumacp/puma" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pumacp/puma
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="overview/" class="md-tabs__link">
+          
+  
+  
+  Get started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="architecture/" class="md-tabs__link">
+          
+  
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="adding_models/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="baseline_inventory/" class="md-tabs__link">
+          
+  
+  
+  Reproducibility
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="first-submission/" class="md-tabs__link">
+          
+  
+  
+  Releases
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="PROJECT_TECHNICAL_CLOSURE/" class="md-tabs__link">
+          
+  
+  
+  Project
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="sprint12-retrospective/" class="md-tabs__link">
+          
+  
+  
+  Sprint
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="technical_reference/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="development-workflow/" class="md-tabs__link">
+          
+  
+  
+  Contributing
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="PUMA" class="md-nav__button md-logo" aria-label="PUMA" data-md-component="logo">
+      
+  <img src="assets/img/PUMA.png" alt="logo">
+
+    </a>
+    PUMA
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pumacp/puma" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pumacp/puma
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-puma" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is PUMA?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-questions-puma-addresses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The questions PUMA addresses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-two-phases-of-pumas-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The two phases of PUMA's development
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-puma-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How PUMA works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-puma-measures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What PUMA measures
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-use-puma" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why use PUMA?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#practical-tutorials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Practical tutorials
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use cases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#puma-community" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PUMA Community
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-with-puma-vault" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research with PUMA Vault
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#methodologies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methodologies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cost-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cost analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#community" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Community
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resources
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Resources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code-repositories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code repositories
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-sites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation sites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hugging-face-hub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hugging Face Hub
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persistent-archives-catalogs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persistent archives &amp; catalogs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knowledge-management-research" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Knowledge management &amp; research
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conversation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conversation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Get started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Get started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="user_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="cli_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="scenarios_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="metrics_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="sustainability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sustainability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adding_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="adding_scenarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a scenario
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="publication_workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publication workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="knowledge_graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Knowledge graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reproducibility
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="baseline_inventory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline inventory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="baseline_references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline references
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="CATALOG_HISTORY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalog history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="CROSS_ARCH_REPRODUCIBILITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-arch reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="HARDWARE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="MACOS_NOTES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    macOS notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Releases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="first-submission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First submission
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="RELEASES/v3.1.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v3.1.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="RELEASES/v3.0.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v3.0.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="PROJECT_TECHNICAL_CLOSURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical closure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="open_questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprint
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Sprint
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="sprint12-retrospective/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprint 12 retrospective
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="technical_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_10" >
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="development-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-puma" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is PUMA?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-questions-puma-addresses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The questions PUMA addresses
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-two-phases-of-pumas-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The two phases of PUMA's development
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-puma-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How PUMA works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-puma-measures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What PUMA measures
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-use-puma" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why use PUMA?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#practical-tutorials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Practical tutorials
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use cases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#puma-community" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PUMA Community
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-with-puma-vault" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research with PUMA Vault
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#methodologies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Methodologies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cost-analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cost analysis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#community" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Community
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resources
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Resources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code-repositories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code repositories
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation-sites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation sites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hugging-face-hub" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hugging Face Hub
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#persistent-archives-catalogs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Persistent archives &amp; catalogs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#knowledge-management-research" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Knowledge management &amp; research
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#conversation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conversation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#citation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Citation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+  <h1>Home</h1>
+
+<p align="center">
+  <img src="assets/img/PUMA.png" alt="PUMA logo" width="240">
+</p>
+
+<p align="center"><strong>Local, reproducible, sustainable benchmarking for LLMs in ICT Project Management.</strong></p>
+
+<!-- CI / status badges -->
+<p align="center">
+  <a href="https://github.com/pumacp/puma/actions/workflows/lint-and-test.yml"><img src="https://github.com/pumacp/puma/actions/workflows/lint-and-test.yml/badge.svg" alt="Lint and test"></a>
+  <a href="https://github.com/pumacp/puma/actions/workflows/docs.yml"><img src="https://github.com/pumacp/puma/actions/workflows/docs.yml/badge.svg?branch=develop" alt="Docs CI"></a>
+  <img src="https://img.shields.io/badge/python-3.11+-111111" alt="Python 3.11+">
+  <img src="https://img.shields.io/badge/license-MIT-111111" alt="License: MIT">
+  <img src="https://img.shields.io/badge/runs%20on-Docker-111111" alt="Runs on Docker">
+</p>
+
+<!-- Project property badges -->
+<p align="center">
+  <img src="https://img.shields.io/badge/reproducible-seed%3D42-111111" alt="Reproducible">
+  <img src="https://img.shields.io/badge/sustainability-CodeCarbon-111111" alt="CodeCarbon">
+  <img src="https://img.shields.io/badge/inference-Ollama-111111" alt="Ollama">
+</p>
+
+<!-- Quick-access ecosystem badges -->
+<p align="center">
+  <a href="https://huggingface.co/spaces/pumaproject/puma-leaderboard"><img src="https://img.shields.io/badge/%F0%9F%A4%97-Leaderboard-111111" alt="Leaderboard"></a>
+  <a href="https://zenodo.org/communities/pumacp"><img src="https://img.shields.io/badge/Zenodo-DOI-111111" alt="Zenodo"></a>
+  <a href="https://github.com/pumacp/puma-community"><img src="https://img.shields.io/badge/PUMA-Community-111111" alt="PUMA Community"></a>
+  <a href="https://discord.gg/fVhcpHREJv"><img src="https://img.shields.io/badge/Discord-Server-111111" alt="Discord"></a>
+</p>
+
+<!-- PUMA Profiles -->
+<p align="center">
+  <sub><strong>PUMA Platform</strong></sub><br>
+  <a href="https://pumacp.github.io/puma">PUMA</a> ·
+  <a href="https://pumacp.github.io/puma-community">PUMA Community</a> ·
+  <a href="https://pumacp.github.io/puma-vault">PUMA Vault</a>
+</p>
+
+<p align="center">
+  <sub><strong>PUMA Info</strong></sub><br>
+  <a href="https://www.youtube.com/@PUMA_Project">Youtube</a> ·
+  <a href="https://github.com/pumacp/puma/wiki">PUMA Wiki</a> ·
+  <a href="https://github.com/pumacp/puma-community/wiki">PUMA Community Wiki</a> ·
+  <a href="https://notebooklm.google.com/notebook/76d59cbe-ce15-4d13-a40f-65d6891dcebc">NotebookLM</a> ·
+  <a href="https://drive.google.com/drive/folders/1TKbYhYqLIrq7liAPlSF7ztS2Bv0l7vZS?usp=sharing">Drive (info)</a>  
+</p>
+
+<p align="center">
+  <sub><strong>PUMA Contact</strong></sub><br>
+  <a href="https://www.reddit.com/r/pumaproject/">Reddit</a> ·
+  <a href="https://discord.gg/fVhcpHREJv">Discord</a> ·
+  <a href="https://github.com/pumacp/puma-community/discussions">GitHub Discussions</a> ·
+  <a href="https://x.com/puma__project">Twitter/X</a> ·
+</p>
+
+<!-- PUMA Acrostic — FOLLOW THE WHITE PUMA -->
+
+<summary><sub><strong>PUMA Project</strong></sub></summary>
+
+<p><br></p>
+<table align="center" border="0">
+<tr>
+<td valign="top" width="50%">
+
+**F**ollowing empirical evidence, ICT project management faces triage, estimation, and learning inefficiencies.<br>
+**O**bserved widely, these persist despite abundant historical data.<br>
+**L**aying a rigorous foundation requires reproducible benchmarking.<br>
+**L**everaging labeled datasets enables systematic evaluation of LLM performance.<br>
+**O**utcomes are compared using quantitative metrics and statistical analysis.<br>
+**W**ith an incremental design, a minimal viable benchmark is defined.<br>
+**T**hrough open-source release, results become reproducible and verifiable.<br>
+**H**ence, the framework supports extensibility across models and tasks.<br>
+**E**ventually, it enables integration into real organizational settings.<br>
+
+</td>
+<td valign="top" width="50%">
+
+**W**ithin ICT environments, recurring inefficiencies hinder effective decision-making.<br>
+**H**eterogeneous data sources complicate prioritization and estimation processes.<br>
+**I**n response, this work builds a reproducible LLM-based benchmark.<br>
+**T**he focus is on issue triage and story-point estimation tasks.<br>
+**E**valuation follows controlled experiments with statistical validation.<br>
+**P**rotocols ensure reproducibility through fixed parameters and configurations.<br>
+**U**sing carbon tracking, the framework measures energy impact.<br>
+**M**oreover, the MVP delivers a valid and original contribution.<br>
+**A**ll artefacts are released as open source for replication and extension.<br>
+
+</td>
+</tr>
+</table>
+
+<p align="center">
+  <sub><strong>PUMA Community</strong></sub><br>
+  <a href="https://huggingface.co/pumaproject">HF Organization</a> ·
+  <a href="https://huggingface.co/datasets/pumaproject/puma-community-submissions">HF Submissions</a> ·
+  <a href="https://huggingface.co/spaces/pumaproject/puma-leaderboard">HF Leaderboard</a> ·
+  <a href="https://zenodo.org/communities/pumacp">Zenodo</a> ·
+  <a href="https://www.kaggle.com/pumacp">Kaggle</a> ·
+  <a href="https://www.zotero.org/pumacp/library">Zotero</a>
+</p>
+
+<p align="center">
+  <sub><strong>PUMA Code</strong></sub><br>
+  <a href="https://github.com/pumacp/puma">PUMA Project</a> ·
+  <a href="https://github.com/pumacp/puma-community">PUMA Community</a> ·
+  <a href="https://github.com/pumacp/puma-vault">PUMA Vault</a>
+</p>
+
+<p><br></p>
+<p align="center">
+  <a href="#quick-start"><strong>Get started</strong></a> ·
+  <a href="#citation"><strong>Cite PUMA</strong></a> ·
+  <a href="#community"><strong>Join the community</strong></a>
+</p>
+
+<h2 id="what-is-puma">What is PUMA?<a class="headerlink" href="#what-is-puma" title="Permanent link">&para;</a></h2>
+<p>PUMA is a local-first, open-source benchmarking platform that evaluates
+open-weight large language models (LLMs) on <strong>ICT Project Management</strong> tasks —
+specifically <strong>issue triage</strong> (classifying a ticket's priority) and
+<strong>story-point estimation</strong> (predicting effort). It runs entirely on your own
+hardware through <a href="https://ollama.com">Ollama</a>: no API calls, no accounts, and no
+data ever leaves your machine. Every run is <strong>deterministic</strong>, so the same inputs produce byte-identical predictions, and
+every run is <strong>sustainability-aware</strong> — energy use and carbon are measured with
+<a href="https://codecarbon.io">CodeCarbon</a>.</p>
+<p>PUMA was built to test a hypothesis: that AI systems can be evaluated rigorously,
+and that the evaluation itself can be reproducible, auditable, and free. Around
+the tool sits <strong>PUMA Community</strong>, a public archive where any researcher or
+practitioner can publish their results with cryptographic integrity — turning a
+private benchmark into a shared, verifiable body of evidence.</p>
+<h2 id="the-questions-puma-addresses">The questions PUMA addresses<a class="headerlink" href="#the-questions-puma-addresses" title="Permanent link">&para;</a></h2>
+<p>PUMA began as a set of open questions about research, software, and AI:</p>
+<ul>
+<li>Can rigorous academic research be conducted using AI tools?</li>
+<li>Can scientific studies conducted with AI tools be scientifically replicated?</li>
+<li>What is the state of the art in software development built with AI tools?</li>
+<li>Can software built with AI tools be efficiently audited?</li>
+<li>Can a local, free, automated project-management evaluation platform be built?</li>
+<li>Is there a paradigm shift underway in research, software development, and project management?</li>
+<li>What is the cost — financial and environmental — of adopting LLMs in business or project-management processes?</li>
+<li>Can LLM capabilities on a concrete scenario be measured scientifically, alongside their environmental consequences?</li>
+<li>Can gaps in the literature be detected using AI tools — can AI surface new problems and new solutions?</li>
+<li>Can a research project be documented in a live, automated, reproducible, real-time way?</li>
+<li>Can the resulting knowledge be shared publicly, without authorship, investment, or time restrictions?</li>
+<li>Can AI tools be studied <em>using</em> AI tools — can the object of study also be an instrument of its own study?</li>
+</ul>
+<p>PUMA is one concrete, working answer to these questions: a reproducible artefact
+whose construction and evidence are public end-to-end.</p>
+<h2 id="the-two-phases-of-pumas-development">The two phases of PUMA's development<a class="headerlink" href="#the-two-phases-of-pumas-development" title="Permanent link">&para;</a></h2>
+<div class="admonition info">
+<p class="admonition-title">PUMA was built in two openly documented phases</p>
+<p><strong>1 — Research.</strong> A structured literature review (Keshav's three-pass method,
+PRISMA 2020 review structure), methodology design (Design Science Research),
+hypothesis formulation, and experimental design.</p>
+<p><strong>2 — Artefact construction.</strong> Two artefacts: the <strong>PUMA benchmark tool</strong>
+(this repository) and <strong>PUMA Community</strong> (the public submission hub). Both
+phases are published with full reproducibility.</p>
+</div>
+<h2 id="how-puma-works">How PUMA works<a class="headerlink" href="#how-puma-works" title="Permanent link">&para;</a></h2>
+<p>PUMA is organized as a six-layer architecture, each layer with a single
+responsibility:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Orchestrator</strong></td>
+<td>Drives a run-spec end to end (load → infer → evaluate → persist).</td>
+</tr>
+<tr>
+<td><strong>Runtime</strong></td>
+<td>Talks to Ollama locally, with deterministic, bounded retry.</td>
+</tr>
+<tr>
+<td><strong>Models</strong></td>
+<td>Discovers and describes the local model catalog (read-only).</td>
+</tr>
+<tr>
+<td><strong>Evaluation</strong></td>
+<td>Computes task metrics (F1-macro, MAE, calibration, latency).</td>
+</tr>
+<tr>
+<td><strong>Diagnostics</strong></td>
+<td><code>puma doctor</code> / <code>puma env</code> — health and environment checks.</td>
+</tr>
+<tr>
+<td><strong>Community</strong></td>
+<td>Builds, validates, and publishes submissions with integrity hashes.</td>
+</tr>
+</tbody>
+</table>
+<p>Results are stored in a bi-temporal <strong>SQLite</strong> database; a <strong>Streamlit</strong> dashboard
+visualizes runs; and <strong>CodeCarbon</strong> records energy and emissions on every run.
+Crucially, execution is <strong>local-only</strong> — PUMA never makes an external inference
+call.</p>
+<h2 id="what-puma-measures">What PUMA measures<a class="headerlink" href="#what-puma-measures" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>F1-macro</strong> — issue triage (multi-class classification).</li>
+<li><strong>MAE</strong> — story-point estimation (numeric prediction).</li>
+<li><strong>Per-class precision / recall / F1</strong> — where the model succeeds or fails.</li>
+<li><strong>Calibration (ECE)</strong> — when log-probabilities are available.</li>
+<li><strong>Latency</strong> — p50, p95, p99 per inference.</li>
+<li><strong>Sustainability</strong> — grams of CO₂-equivalent and kWh, via CodeCarbon.</li>
+<li><strong>Reproducibility</strong> — byte-identical predictions across repeated runs.</li>
+</ul>
+<h2 id="why-use-puma">Why use PUMA?<a class="headerlink" href="#why-use-puma" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>100% local</strong> — code and data never leave your machine.</li>
+<li><strong>Reproducible</strong> — same inputs produce the same outputs, byte for byte.</li>
+<li><strong>Sustainable</strong> — measures and reports its own environmental impact.</li>
+<li><strong>Free</strong> — no API keys, no paywalls, no commercial licenses.</li>
+<li><strong>Open</strong> — MIT-licensed and community-contributed.</li>
+<li><strong>Multi-model</strong> — Qwen, Mistral, Llama, and Gemma families.</li>
+<li><strong>Multi-hardware</strong> — CPU-only or GPU profiles, auto-detected.</li>
+<li><strong>Verifiable</strong> — cryptographic integrity on every submission.</li>
+<li><strong>Statistically rigorous</strong> — Wilcoxon validation and falsifiable hypotheses.</li>
+</ul>
+<h2 id="quick-start">Quick start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># 1. Install — via pip (available with the v4.0.0 release)</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>pip<span class="w"> </span>install<span class="w"> </span>puma-cp
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># ...or via Docker (available with the v4.0.0 release)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>docker<span class="w"> </span>pull<span class="w"> </span>ghcr.io/pumacp/puma:latest
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://raw.githubusercontent.com/pumacp/puma/main/docker-compose.yml<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>docker<span class="w"> </span>compose<span class="w"> </span>up
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># ...or from source (works today)</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/pumacp/puma<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>puma
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev]&quot;</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># 2. Check your environment (Ollama, models, hardware, database)</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>puma<span class="w"> </span>doctor
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="c1"># 3. See which models are available locally</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>puma<span class="w"> </span>models<span class="w"> </span>list
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="c1"># 4. Run your first benchmark</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>puma<span class="w"> </span>run<span class="w"> </span>specs/runs/baseline_triage.yaml
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="c1"># 5. Package the result for sharing (local dry-run, no network)</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>puma<span class="w"> </span>share-results<span class="w"> </span>--dry-run<span class="w"> </span>--run-id<span class="w"> </span>&lt;run_id&gt;<span class="w"> </span>--yes
+</code></pre></div>
+<ol>
+<li><strong>Install</strong> the package and its development extras.</li>
+<li><strong><code>puma doctor</code></strong> confirms Ollama is reachable, a model is present, and the hardware profile is detected.</li>
+<li><strong><code>puma models list</code></strong> shows the models pulled locally.</li>
+<li><strong><code>puma run</code></strong> executes a run-spec and prints <code>Run complete: &lt;run_id&gt;</code>.</li>
+<li><strong><code>puma share-results --dry-run</code></strong> builds a submission package on disk without touching the network.</li>
+</ol>
+<h2 id="practical-tutorials">Practical tutorials<a class="headerlink" href="#practical-tutorials" title="Permanent link">&para;</a></h2>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:8"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><input id="__tabbed_1_4" name="__tabbed_1" type="radio" /><input id="__tabbed_1_5" name="__tabbed_1" type="radio" /><input id="__tabbed_1_6" name="__tabbed_1" type="radio" /><input id="__tabbed_1_7" name="__tabbed_1" type="radio" /><input id="__tabbed_1_8" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">1 · Baseline triage</label><label for="__tabbed_1_2">2 · Compare two models</label><label for="__tabbed_1_3">3 · Reproduce a submission</label><label for="__tabbed_1_4">4 · Check hardware</label><label for="__tabbed_1_5">5 · List models</label><label for="__tabbed_1_6">6 · Generate a submission</label><label for="__tabbed_1_7">7 · Verify integrity</label><label for="__tabbed_1_8">8 · Compare two models on the same task</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>puma<span class="w"> </span>run<span class="w"> </span>specs/runs/baseline_triage.yaml
+</code></pre></div>
+Runs the canonical triage benchmark (200 instances). The summary prints
+F1-macro and the run id you can feed into later commands.</p>
+</div>
+<div class="tabbed-block">
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>puma<span class="w"> </span>run<span class="w"> </span>specs/runs/baseline_triage.yaml<span class="w">        </span><span class="c1"># model A (edit the spec&#39;s model)</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>puma<span class="w"> </span>run<span class="w"> </span>specs/runs/baseline_triage.yaml<span class="w">        </span><span class="c1"># model B</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>puma<span class="w"> </span>compare<span class="w"> </span>&lt;run_id_a&gt;<span class="w"> </span>&lt;run_id_b&gt;
+</code></pre></div>
+Lays the two runs' metrics side by side so you can see which model wins on
+the same task and data.</p>
+</div>
+<div class="tabbed-block">
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>puma<span class="w"> </span>community<span class="w"> </span>pull
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>puma<span class="w"> </span>community<span class="w"> </span>verify-hash<span class="w"> </span>&lt;submission&gt;.json<span class="w"> </span>--predictions<span class="w"> </span>&lt;submission&gt;.predictions.jsonl
+</code></pre></div>
+Downloads community submissions and re-derives the integrity hash locally to
+confirm a published result is exactly what it claims to be.</p>
+</div>
+<div class="tabbed-block">
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>puma<span class="w"> </span>doctor
+</code></pre></div>
+A read-only health sweep: Python, CodeCarbon, Ollama, models, hardware
+profile, database, and baseline specs. Exits non-zero if anything is wrong.</p>
+</div>
+<div class="tabbed-block">
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>puma<span class="w"> </span>models<span class="w"> </span>list
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>puma<span class="w"> </span>models<span class="w"> </span>recommended
+</code></pre></div>
+<code>list</code> shows what is pulled locally; <code>recommended</code> shows the curated catalog
+and which entries you still need to <code>ollama pull</code>.</p>
+</div>
+<div class="tabbed-block">
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>puma<span class="w"> </span>share-results<span class="w"> </span>--dry-run<span class="w"> </span>--run-id<span class="w"> </span>&lt;run_id&gt;<span class="w"> </span>--yes
+</code></pre></div>
+Produces a <code>submission.json</code> + <code>predictions.jsonl</code> package locally for review
+before any external publication.</p>
+</div>
+<div class="tabbed-block">
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>puma<span class="w"> </span>community<span class="w"> </span>verify-hash<span class="w"> </span>submission.json<span class="w"> </span>--predictions<span class="w"> </span>predictions.jsonl
+</code></pre></div>
+Recomputes the predictions hash and compares it to the declared value —
+exit <code>0</code> means verified, exit <code>1</code> means the file does not match.</p>
+</div>
+<div class="tabbed-block">
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>puma<span class="w"> </span>run<span class="w"> </span>specs/runs/baseline_triage.yaml<span class="w">   </span><span class="c1"># run each model you want to compare</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>puma<span class="w"> </span>dashboard<span class="w">                             </span><span class="c1"># open http://localhost:8501</span>
+</code></pre></div>
+In the dashboard, pick the <strong>Multi-model</strong> view, choose a scenario, and select
+two or more models. You get headline metrics with deltas (F1-macro for triage,
+MAE for estimation), bar charts for F1-macro / MAE / p95 latency / carbon, a
+full metrics table, and a reproducibility check on each model's prediction
+fingerprint. Everything reads from persisted results — no live inference.</p>
+</div>
+</div>
+</div>
+<h2 id="use-cases">Use cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Academic research</strong> — rigorously evaluate model capabilities for PMO tasks and publish the findings.</li>
+<li><strong>Pre-production evaluation</strong> — test which open-weight LLM fits your use case before committing to it.</li>
+<li><strong>Model comparison</strong> — benchmark several models on the same task with statistical validation.</li>
+<li><strong>Sustainability auditing</strong> — measure the environmental cost of AI-enabled workflows.</li>
+<li><strong>Reproducibility verification</strong> — independently confirm a published result.</li>
+</ul>
+<h2 id="puma-community">PUMA Community<a class="headerlink" href="#puma-community" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/pumacp/puma-community">PUMA Community</a> is the public archive of
+community-contributed benchmark results.</p>
+<ul>
+<li><strong>What it is</strong> — a public, governance-first repository of submissions.</li>
+<li><strong>How it works</strong> — you open a pull request with a submission JSON; CI validates it against the schema and integrity hash, auto-merges if valid, and mirrors it to Hugging Face, Zenodo, and Kaggle.</li>
+<li><strong>Why it matters</strong> — submissions are cryptographically verifiable, follow FAIR data principles, and receive citable DOIs.</li>
+<li><strong>How to contribute</strong> — see the <a href="https://github.com/pumacp/puma-community/blob/main/CONTRIBUTING.md">contributing guide</a>.</li>
+<li><strong>Status</strong> — browse the <a href="https://huggingface.co/spaces/pumaproject/puma-leaderboard">public leaderboard</a>.</li>
+</ul>
+<h2 id="research-with-puma-vault">Research with PUMA Vault<a class="headerlink" href="#research-with-puma-vault" title="Permanent link">&para;</a></h2>
+<p><a href="https://github.com/pumacp/puma-vault">PUMA Vault</a> is the public knowledge graph
+behind the research process. It is built with Obsidian using PARA, GTD, and
+Zettelkasten methods, linking literature notes, methodology decisions, and
+findings into a navigable web. Browse it at
+<a href="https://pumacp.github.io/puma-vault/">pumacp.github.io/puma-vault</a>.</p>
+<h2 id="methodologies">Methodologies<a class="headerlink" href="#methodologies" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Design Science Research (DSR)</strong> — for artefact construction.</li>
+<li><strong>Spec-Driven Development (SDD)</strong> — for the codebase.</li>
+<li><strong>Keshav's three-pass method</strong> — for reading the literature.</li>
+<li><strong>PRISMA 2020</strong> — for the systematic-review structure.</li>
+<li><strong>Wilcoxon signed-rank test</strong> — for non-parametric statistical validation.</li>
+<li><strong>Marco Veritas protocol</strong> — disciplined AI-tool use in research: verify primary sources, never cite what cannot be checked.</li>
+<li><strong>APA 7th edition</strong> — for citations.</li>
+</ul>
+<h2 id="cost-analysis">Cost analysis<a class="headerlink" href="#cost-analysis" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Financial cost</strong> — zero: no API keys, no paywalls, no commercial licenses.</li>
+<li><strong>Environmental cost</strong> — on the <code>gpu-entry</code> profile, a 200-instance triage run is on the order of <strong>0.1–0.2 gCO₂-equivalent</strong> (CodeCarbon-measured; CPU-only profiles draw more energy and take longer).</li>
+<li><strong>Hardware</strong> — 16 GB RAM minimum for the CPU-only profile; a GPU is optional and speeds runs up substantially.</li>
+</ul>
+<h2 id="community">Community<a class="headerlink" href="#community" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Discord</strong> — <a href="https://discord.gg/fVhcpHREJv">discord.gg/fVhcpHREJv</a></li>
+<li><strong>GitHub Discussions</strong> — on the <a href="https://github.com/pumacp/puma-community/discussions">puma-community</a> repository.</li>
+<li><strong>Contribute</strong> — start with the <a href="https://github.com/pumacp/puma-community/blob/main/CONTRIBUTING.md">contributing guide</a>.</li>
+<li><strong>Report issues</strong> — open an issue on the relevant repository.</li>
+</ul>
+<h2 id="resources">Resources<a class="headerlink" href="#resources" title="Permanent link">&para;</a></h2>
+<h3 id="code-repositories">Code repositories<a class="headerlink" href="#code-repositories" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>PUMA benchmark tool</strong> — <a href="https://github.com/pumacp/puma">https://github.com/pumacp/puma</a></li>
+<li><strong>PUMA Community</strong> — <a href="https://github.com/pumacp/puma-community">https://github.com/pumacp/puma-community</a></li>
+<li><strong>PUMA Vault</strong> — <a href="https://github.com/pumacp/puma-vault">https://github.com/pumacp/puma-vault</a></li>
+</ul>
+<h3 id="documentation-sites">Documentation sites<a class="headerlink" href="#documentation-sites" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>PUMA docs</strong> — <a href="https://pumacp.github.io/puma/">https://pumacp.github.io/puma/</a></li>
+<li><strong>Technical reference</strong> — <a href="technical_reference/"><code>docs/technical_reference.md</code></a> (architecture, configuration, JSON Schema, ORM, CLI overview, glossary, decisions timeline)</li>
+<li><strong>PUMA Community</strong> — <a href="https://pumacp.github.io/puma-community/">https://pumacp.github.io/puma-community/</a></li>
+<li><strong>PUMA Vault</strong> — <a href="https://pumacp.github.io/puma-vault/">https://pumacp.github.io/puma-vault/</a></li>
+<li><strong>Wiki (tool)</strong> — <a href="https://github.com/pumacp/puma/wiki">https://github.com/pumacp/puma/wiki</a> · <strong>Wiki (community)</strong> — <a href="https://github.com/pumacp/puma-community/wiki">https://github.com/pumacp/puma-community/wiki</a></li>
+</ul>
+<h3 id="hugging-face-hub">Hugging Face Hub<a class="headerlink" href="#hugging-face-hub" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Organization</strong> — <a href="https://huggingface.co/pumaproject">https://huggingface.co/pumaproject</a></li>
+<li><strong>Dataset of submissions</strong> — <a href="https://huggingface.co/datasets/pumaproject/puma-community-submissions">https://huggingface.co/datasets/pumaproject/puma-community-submissions</a></li>
+<li><strong>Leaderboard (Gradio Space)</strong> — <a href="https://huggingface.co/spaces/pumaproject/puma-leaderboard">https://huggingface.co/spaces/pumaproject/puma-leaderboard</a></li>
+<li><strong>Personal namespace</strong> — <a href="https://huggingface.co/pumacp">https://huggingface.co/pumacp</a></li>
+</ul>
+<h3 id="persistent-archives-catalogs">Persistent archives &amp; catalogs<a class="headerlink" href="#persistent-archives-catalogs" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Zenodo community (production)</strong> — <a href="https://zenodo.org/communities/pumacp">https://zenodo.org/communities/pumacp</a></li>
+<li><strong>Zenodo community (sandbox)</strong> — <a href="https://sandbox.zenodo.org/communities/pumacp">https://sandbox.zenodo.org/communities/pumacp</a></li>
+<li><strong>Source dataset (Jira Social Repository)</strong> — <a href="https://doi.org/10.5281/zenodo.5901893">https://doi.org/10.5281/zenodo.5901893</a></li>
+<li><strong>Kaggle dataset</strong> — <a href="https://www.kaggle.com/datasets/pumacp/puma-community-submissions">https://www.kaggle.com/datasets/pumacp/puma-community-submissions</a></li>
+</ul>
+<h3 id="knowledge-management-research">Knowledge management &amp; research<a class="headerlink" href="#knowledge-management-research" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Zotero library</strong> — <a href="https://www.zotero.org/pumacp/library">https://www.zotero.org/pumacp/library</a></li>
+<li><strong>Google Drive (PDF repository)</strong> — <a href="https://drive.google.com/drive/folders/1TKbYhYqLIrq7liAPISF7ztS2Bv0l7vZS?usp=sharing">https://drive.google.com/drive/folders/1TKbYhYqLIrq7liAPISF7ztS2Bv0l7vZS?usp=sharing</a></li>
+<li><strong>ResearchRabbit map 1</strong> — <a href="https://app.researchrabbit.ai/folder-shares/d8244f17-47f7-4f6c-a589-473876578b54">https://app.researchrabbit.ai/folder-shares/d8244f17-47f7-4f6c-a589-473876578b54</a></li>
+<li><strong>ResearchRabbit map 2</strong> — <a href="https://app.researchrabbit.ai/folder-shares/b6c00471-2f28-4c66-85f5-ab5399470228">https://app.researchrabbit.ai/folder-shares/b6c00471-2f28-4c66-85f5-ab5399470228</a></li>
+</ul>
+<h3 id="conversation">Conversation<a class="headerlink" href="#conversation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Discord</strong> — <a href="https://discord.gg/fVhcpHREJv">https://discord.gg/fVhcpHREJv</a></li>
+<li><strong>Contact</strong> — pumacapstoneproject@gmail.com</li>
+</ul>
+<h2 id="citation">Citation<a class="headerlink" href="#citation" title="Permanent link">&para;</a></h2>
+<p>If you use PUMA in your work, please cite it:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nc">@software</span><span class="p">{</span><span class="nl">puma_benchmark</span><span class="p">,</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="na">title</span><span class="w">        </span><span class="p">=</span><span class="w"> </span><span class="s">{PUMA: Local, reproducible benchmarking for LLMs in ICT Project Management}</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="na">author</span><span class="w">       </span><span class="p">=</span><span class="w"> </span><span class="s">{{The PUMA Project}}</span><span class="p">,</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="na">year</span><span class="w">         </span><span class="p">=</span><span class="w"> </span><span class="s">{2026}</span><span class="p">,</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="na">url</span><span class="w">          </span><span class="p">=</span><span class="w"> </span><span class="s">{https://github.com/pumacp/puma}</span><span class="p">,</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="na">note</span><span class="w">         </span><span class="p">=</span><span class="w"> </span><span class="s">{Zenodo DOI forthcoming}</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="p">}</span>
+</code></pre></div>
+<p>APA (7th edition):</p>
+<blockquote>
+<p>The PUMA Project. (2026). <em>PUMA: Local, reproducible benchmarking for LLMs in ICT Project Management</em> [Computer software]. https://github.com/pumacp/puma</p>
+</blockquote>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A Zenodo DOI is forthcoming and will be appended here after the first
+DOI-backed snapshot.</p>
+</div>
+<hr />
+<!-- PUMA-ACROSTIC-BLOCK START — DO NOT MODIFY — IMMUTABLE -->
+<hr />
+<p><strong>F</strong>ollowing empirical evidence, ICT project management faces triage, estimation, and learning inefficiencies.<br>
+<strong>O</strong>bserved widely, these persist despite abundant historical data.<br>
+<strong>L</strong>aying a rigorous foundation requires reproducible benchmarking.<br>
+<strong>L</strong>everaging labeled datasets enables systematic evaluation of LLM performance.<br>
+<strong>O</strong>utcomes are compared using quantitative metrics and statistical analysis.<br>
+<strong>W</strong>ith an incremental design, a minimal viable benchmark is defined.<br>
+<strong>T</strong>hrough open-source release, results become reproducible and verifiable.<br>
+<strong>H</strong>ence, the framework supports extensibility across models and tasks.<br>
+<strong>E</strong>ventually, it enables integration into real organizational settings.<br>
+<strong>W</strong>ithin ICT environments, recurring inefficiencies hinder effective decision-making.<br>
+<strong>H</strong>eterogeneous data sources complicate prioritization and estimation processes.<br>
+<strong>I</strong>n response, this work builds a reproducible LLM-based benchmark.<br>
+<strong>T</strong>he focus is on issue triage and story-point estimation tasks.<br>
+<strong>E</strong>valuation follows controlled experiments with statistical validation.<br>
+<strong>P</strong>rotocols ensure reproducibility through fixed parameters and configurations.<br>
+<strong>U</strong>sing carbon tracking, the framework measures energy impact.<br>
+<strong>M</strong>oreover, the MVP delivers a valid and original contribution.<br>
+<strong>A</strong>ll artefacts are released as open source for replication and extension.<br></p>
+<hr />
+<!-- PUMA-ACROSTIC-BLOCK END -->
+
+<p>PUMA is released under the <strong>MIT License</strong>. Built with
+<a href="https://squidfunk.github.io/mkdocs-material/">MkDocs Material</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "content.tabs.link", "search.suggest", "search.highlight"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

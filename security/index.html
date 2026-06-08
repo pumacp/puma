@@ -1,0 +1,2784 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Local LLM benchmarks for project management tasks">
+      
+      
+      
+        <link rel="canonical" href="https://pumacp.github.io/puma/security/">
+      
+      
+        <link rel="prev" href="../development-workflow/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/img/PUMA.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Security - PUMA</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CJetBrains+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"JetBrains Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="black">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#security" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="PUMA" class="md-header__button md-logo" aria-label="PUMA" data-md-component="logo">
+      
+  <img src="../assets/img/PUMA.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            PUMA
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Security
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="black"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="black" data-md-color-accent="white"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pumacp/puma" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pumacp/puma
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../overview/" class="md-tabs__link">
+          
+  
+  
+  Get started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../adding_models/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../baseline_inventory/" class="md-tabs__link">
+          
+  
+  
+  Reproducibility
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../first-submission/" class="md-tabs__link">
+          
+  
+  
+  Releases
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../PROJECT_TECHNICAL_CLOSURE/" class="md-tabs__link">
+          
+  
+  
+  Project
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../sprint12-retrospective/" class="md-tabs__link">
+          
+  
+  
+  Sprint
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../technical_reference/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../development-workflow/" class="md-tabs__link">
+          
+  
+  
+  Contributing
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="PUMA" class="md-nav__button md-logo" aria-label="PUMA" data-md-component="logo">
+      
+  <img src="../assets/img/PUMA.png" alt="logo">
+
+    </a>
+    PUMA
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pumacp/puma" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pumacp/puma
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Get started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Get started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Concepts
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Concepts
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../scenarios_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Scenarios
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metrics_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metrics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sustainability/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sustainability
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adding_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adding_scenarios/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Adding a scenario
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../publication_workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Publication workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../knowledge_graph/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Knowledge graph
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TESTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reproducibility
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reproducibility
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_inventory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline inventory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline_references/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Baseline references
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CATALOG_HISTORY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Catalog history
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CROSS_ARCH_REPRODUCIBILITY/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cross-arch reproducibility
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../HARDWARE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Hardware
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../MACOS_NOTES/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    macOS notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Releases
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Releases
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../first-submission/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    First submission
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RELEASES/v3.1.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v3.1.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../RELEASES/v3.0.0/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    v3.0.0
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../PROJECT_TECHNICAL_CLOSURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical closure
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../open_questions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Open questions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprint
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Sprint
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sprint12-retrospective/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprint 12 retrospective
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../technical_reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Technical reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_10" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_10" id="__nav_10_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Contributing
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_10_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Contributing
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-threat-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Threat Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Threat Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-in-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 In scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Out of scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-determinism-guarantees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Determinism guarantees
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-no-outbound-telemetry-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. No outbound telemetry by default
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-submission-integrity-puma-community" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Submission integrity (PUMA Community)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-git-history-sanitization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Git history sanitization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-dependency-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Dependency management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-container-image-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Container image security
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-github-actions-security-posture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. GitHub Actions security posture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-brand-scanner-enforcement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Brand-scanner enforcement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-vulnerability-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Vulnerability reporting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-audit-cadence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Audit cadence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-known-security-debt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Known security debt
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-threat-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Threat Model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Threat Model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-in-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 In scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Out of scope
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-determinism-guarantees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Determinism guarantees
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-no-outbound-telemetry-by-default" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. No outbound telemetry by default
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-submission-integrity-puma-community" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Submission integrity (PUMA Community)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-git-history-sanitization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Git history sanitization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-dependency-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Dependency management
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-container-image-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Container image security
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-github-actions-security-posture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. GitHub Actions security posture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-brand-scanner-enforcement" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Brand-scanner enforcement
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-vulnerability-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Vulnerability reporting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-audit-cadence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Audit cadence
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-known-security-debt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Known security debt
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h1>
+<p>This page is PUMA's comprehensive security posture reference: the
+threat model, the determinism and integrity guarantees, the no-outbound
+defaults, the CI security tooling, the GitHub Actions permissions
+baseline, and the known security debt that is queued for follow-up
+work.</p>
+<p>For the GitHub-canonical security policy (private disclosure path,
+supported versions, disclosure timeline) see
+<a href="https://github.com/pumacp/puma/blob/develop/SECURITY.md"><code>SECURITY.md</code></a>
+at the repository root.</p>
+<hr />
+<h2 id="1-overview">1. Overview<a class="headerlink" href="#1-overview" title="Permanent link">&para;</a></h2>
+<p>PUMA is a local-first benchmarking framework. Its security posture
+follows from three structural choices:</p>
+<ol>
+<li><strong>Inference is local.</strong> Every model call goes through a local
+   Ollama daemon on the same host. There is no SaaS inference path
+   and no API token to leak.</li>
+<li><strong>Predictions are reproducible.</strong> Fixed <code>seed=42</code>, <code>temperature=0.0</code>,
+   and a pinned model digest produce byte-identical predictions across
+   runs — the <code>predictions_summary_hash</code> is the audit signature.</li>
+<li><strong>Submissions are integrity-checked.</strong> Every PUMA Community
+   submission carries a <code>SHA-256</code> over a canonical predictions tuple,
+   the schema is immutable, and verification is available client-side
+   and server-side.</li>
+</ol>
+<p>The attack surface that remains — dependency vulnerabilities, leaked
+secrets, container image CVEs, GitHub Actions misconfiguration — is
+addressed by the CI security tooling and the audit cadence described
+below.</p>
+<hr />
+<h2 id="2-threat-model">2. Threat Model<a class="headerlink" href="#2-threat-model" title="Permanent link">&para;</a></h2>
+<h3 id="21-in-scope">2.1 In scope<a class="headerlink" href="#21-in-scope" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Threat</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tampered or back-doored Python dependency</td>
+<td><code>pip-audit</code> on every push and weekly; <code>pip</code> install over PyPI HTTPS; pinned versions in <code>requirements.txt</code>.</td>
+</tr>
+<tr>
+<td>SAST-detectable issue in PUMA source code</td>
+<td><code>bandit -r src/puma/</code> on every push; <code>MEDIUM</code>+ reported, <code>HIGH</code> fails the build.</td>
+</tr>
+<tr>
+<td>Secrets leaked in git history</td>
+<td><code>gitleaks</code> full-history scan on every push; <code>.githooks/commit-msg</code> strips AI-assistant trailers and other unwanted footers on the local side; the Phase Z-2 history rewrite (May 2026) removed prior co-author trailers.</td>
+</tr>
+<tr>
+<td>CVE in the published container image</td>
+<td><code>Trivy</code> scan on every published tag (<code>v*</code>); upload as SARIF to the GitHub Security tab; build fails on <code>HIGH</code>/<code>CRITICAL</code> OS or library CVE.</td>
+</tr>
+<tr>
+<td>Tampered PUMA Community submission</td>
+<td><code>SHA-256</code> over the canonical predictions tuple; immutable <code>schema/submission.v1.json</code> (P3 constraint); JSON Schema validation; server-side recompute via the public verifier service.</td>
+</tr>
+<tr>
+<td>GitHub Actions over-privilege</td>
+<td>Least-privilege <code>permissions:</code> block declared per workflow / per job; no workflow uses a long-lived registry credential — GHCR publishes via the auto-provided <code>GITHUB_TOKEN</code> with <code>packages: write</code>; PyPI publishes via OIDC <code>id-token: write</code> (trusted publishing).</td>
+</tr>
+<tr>
+<td>Drift of the determinism guarantees</td>
+<td>The <code>predictions_summary_hash</code> is part of every persisted run and is verified across re-runs; any drift surfaces as a <code>validate-baseline</code> failure.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="22-out-of-scope">2.2 Out of scope<a class="headerlink" href="#22-out-of-scope" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Host OS hardening</strong> — the contributor's local OS and Docker daemon
+  configuration are the contributor's responsibility.</li>
+<li><strong>Network-level attacks</strong> — PUMA does not run network services that
+  expose attack surface beyond <code>localhost</code> (the dashboard binds
+  <code>0.0.0.0:8501</code> by default but is intended for the local host).</li>
+<li><strong>Physical access</strong> — full-disk encryption and similar host-level
+  defenses are out of scope.</li>
+<li><strong>Model-output adversarial attacks</strong> — prompt-injection,
+  jailbreaking, and similar attacks against the model itself are
+  research-grade concerns and are tracked separately (post-v4.x
+  research agenda).</li>
+<li><strong>Vulnerabilities in third-party services</strong> — Ollama, the SQLAlchemy
+  driver, Streamlit, etc. are reported upstream and tracked here via
+  <code>pip-audit</code> advisories.</li>
+</ul>
+<hr />
+<h2 id="3-determinism-guarantees">3. Determinism guarantees<a class="headerlink" href="#3-determinism-guarantees" title="Permanent link">&para;</a></h2>
+<p>PUMA's reproducibility is a security property: it is what makes a
+benchmark result auditable.</p>
+<table>
+<thead>
+<tr>
+<th>Guarantee</th>
+<th>Where it is enforced</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fixed RNG seed <code>42</code></td>
+<td><code>src/puma/runtime/</code> — every spec uses <code>inference.seed: 42</code> unless explicitly overridden.</td>
+</tr>
+<tr>
+<td>Fixed sampling temperature <code>0.0</code></td>
+<td>Spec default; overrides surface in the run summary.</td>
+</tr>
+<tr>
+<td>Pinned model digest</td>
+<td>The Ollama manifest digest (e.g. <code>qwen2.5:3b</code> → <code>357c53fb659c</code>) is captured in the <code>runs</code> table when the run starts. Re-running the same spec against a different digest is detectable as a hash mismatch.</td>
+</tr>
+<tr>
+<td>Bi-temporal SQLite audit trail</td>
+<td><code>runs</code>, <code>instances</code>, <code>predictions</code>, <code>metrics</code>, <code>emissions</code>, <code>profile_snapshots</code> tables. Every row carries <code>created_at</code>; no row is mutated post-write.</td>
+</tr>
+<tr>
+<td><code>predictions_summary_hash</code></td>
+<td>Computed deterministically over the (instance_id, prediction) pairs in canonical order; recorded on the run and shipped in every PUMA Community submission. Byte-identical across re-runs of the same spec on the same hardware-and-runtime profile.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>puma validate-baseline</code> command compares the current canonical
+spec's metrics against a reference value and exits <code>1</code> on drift —
+the gate that turns determinism into a release-blocking check.</p>
+<hr />
+<h2 id="4-no-outbound-telemetry-by-default">4. No outbound telemetry by default<a class="headerlink" href="#4-no-outbound-telemetry-by-default" title="Permanent link">&para;</a></h2>
+<p>The default configuration of PUMA makes no outbound network calls
+during a benchmark run.</p>
+<table>
+<thead>
+<tr>
+<th>Surface</th>
+<th>Default</th>
+<th>How to opt in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inference</td>
+<td>Local Ollama daemon (<code>http://localhost:11434</code>) — no outbound calls.</td>
+<td>The endpoint can be reconfigured via <code>OLLAMA_HOST</code> for advanced setups; PUMA itself never reaches a remote inference provider.</td>
+</tr>
+<tr>
+<td>Carbon tracking (CodeCarbon)</td>
+<td>Off-line measurement — energy and CO₂ are computed from local CPU/GPU counters; no network call required.</td>
+<td><code>sustainability.codecarbon: true</code> in the run-spec enables the measurement; even when enabled, CodeCarbon's default emission factors are used locally.</td>
+</tr>
+<tr>
+<td>Publishing (PUMA Community)</td>
+<td>Off — <code>puma share-results --dry-run</code> packages the artifact locally without any network call.</td>
+<td><code>puma share-results</code> (no <code>--dry-run</code>) opens a PR against <code>pumacp/puma-community</code> over <code>api.github.com</code> after <code>puma auth login</code> has stored a PAT locally at <code>~/.puma/credentials.toml</code> (<code>0600</code>).</td>
+</tr>
+<tr>
+<td>Server-side verification</td>
+<td>Off — local <code>puma community verify-hash</code> recomputes the hash on-disk.</td>
+<td><code>puma community verify-hash --remote</code> calls the public verifier service.</td>
+</tr>
+<tr>
+<td>Web fetches inside the CLI</td>
+<td>Off — there are no <code>web_search</code> / <code>web_fetch</code> paths in the production CLI.</td>
+<td>N/A.</td>
+</tr>
+</tbody>
+</table>
+<p>If you need a fully air-gapped operation, set <code>sustainability.codecarbon: false</code>,
+do not invoke <code>puma share-results</code>, and run only on a host where the
+Ollama daemon is local.</p>
+<hr />
+<h2 id="5-submission-integrity-puma-community">5. Submission integrity (PUMA Community)<a class="headerlink" href="#5-submission-integrity-puma-community" title="Permanent link">&para;</a></h2>
+<p>Every artifact shared with the public benchmark hub is integrity-checked
+end-to-end.</p>
+<ul>
+<li><strong>Hash format</strong>: <code>SHA-256</code> hex digest over the canonical tuple
+  <code>(instance_id, prediction)</code> for every row, sorted by <code>instance_id</code>,
+  serialized as compact JSON with stable key order.</li>
+<li><strong>Where it is stored</strong>: in the submission JSON itself
+  (<code>predictions_summary_hash</code> field) and as a row in the <code>metrics</code>
+  table of the originating run.</li>
+<li><strong>Schema</strong>: <code>schema/submission.v1.json</code> is <strong>immutable</strong> (P3 constraint).
+  Any drift is detected by JSON Schema validation in the <code>puma
+  community validate</code> path and rejected before submission.</li>
+<li><strong>Local verification</strong>: <code>puma community verify-hash &lt;submission.json&gt; --predictions &lt;jsonl&gt;</code>
+  recomputes the hash on-disk and compares it to the declared value.
+  Exit <code>0</code> means verified, exit <code>1</code> means mismatch, exit <code>2</code> means
+  the input could not be read.</li>
+<li><strong>Server-side verification</strong>: <code>puma community verify-hash --remote</code>
+  calls the public verifier service; the service hashes a different
+  input shape (D23 — tracked in <code>docs/known_debt.md</code>) so the
+  <code>--remote</code> flag returns <code>mismatch</code> by construction for schema v1.0.0
+  submissions even when the local hash is correct. Reconciliation is
+  deferred to v4.x with a schema decision; the canonical verification
+  path is <strong>local</strong>.</li>
+<li><strong>Auto-merge</strong>: the <code>pumacp/puma-community</code> repository's auto-merge
+  workflow only accepts PRs that touch path-restricted submission
+  files, refuses any diff outside that path filter, and requires the
+  client-side hash to match the schema-declared one.</li>
+</ul>
+<hr />
+<h2 id="6-git-history-sanitization">6. Git history sanitization<a class="headerlink" href="#6-git-history-sanitization" title="Permanent link">&para;</a></h2>
+<p>The repository's history was sanitized in <strong>Phase Z-2 (May 2026)</strong> to
+remove AI-assistant co-author trailers that had accumulated on
+machine-drafted commits. The rewrite:</p>
+<ul>
+<li>Used <code>git filter-repo</code> to remove <code>Co-Authored-By:</code> trailer lines on
+  every commit and every annotated tag, repo-wide.</li>
+<li>Was verified to have no external dependents on the rewritten SHAs
+  before force-pushing (no open PRs, no published packages that
+  pinned a pre-rewrite SHA).</li>
+<li>Was followed by a <code>git push --force-with-lease</code> on <code>develop</code> and
+  <code>main</code> and a re-tag pass to keep <code>vX.Y.Z</code> pointing at the
+  rewritten commits.</li>
+</ul>
+<p>The repo-root <code>.githooks/commit-msg</code> hook now strips three classes of
+trailer from every future commit locally:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Co-authored-by:        # any AI-assistant Co-authored-by line
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Signed-off-by: …&lt;AI tool&gt;   # any Signed-off-by line that names an AI tool
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>Generated-by:          # any Generated-by footer
+</code></pre></div>
+<p>Activation is one-time per fresh clone: <code>git config core.hooksPath
+.githooks</code>. The new-contributor procedure for setting this is
+documented in <a href="../development-workflow/"><code>development-workflow.md</code></a>
+§§6 and 10.6.</p>
+<p>The GitHub UI for the repository surfaces commits with the
+maintainer's identity as the only author; no AI-tool branding
+appears in <code>git log</code> output.</p>
+<hr />
+<h2 id="7-dependency-management">7. Dependency management<a class="headerlink" href="#7-dependency-management" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Workflow</th>
+<th>Cadence</th>
+<th>Severity gate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pip-audit</code></td>
+<td><code>.github/workflows/pip-audit.yml</code></td>
+<td>Every push to <code>develop</code>/<code>main</code> + every PR + weekly <code>0 6 * * 1</code> UTC + manual dispatch</td>
+<td>Fails on <code>HIGH</code> or <code>CRITICAL</code> advisory in any production dependency listed in <code>requirements.txt</code>.</td>
+</tr>
+<tr>
+<td><code>bandit</code></td>
+<td><code>.github/workflows/bandit.yml</code></td>
+<td>Every push to <code>develop</code>/<code>main</code> + every PR + manual dispatch</td>
+<td>Reports <code>MEDIUM</code>+ via <code>-ll</code>; fails the build on <code>HIGH</code> (<code>-l</code>).</td>
+</tr>
+<tr>
+<td><code>Trivy</code> (container)</td>
+<td>Appended to <code>.github/workflows/publish-docker.yml</code></td>
+<td>Every tag push (<code>v*</code>)</td>
+<td>Fails on <code>HIGH</code> or <code>CRITICAL</code> OS or library CVE in the published image; results uploaded as SARIF to the GitHub Security tab.</td>
+</tr>
+</tbody>
+</table>
+<p>The production dependency surface is small and reads from
+<code>requirements.txt</code> (27 entries: typer, httpx, pydantic, pyyaml,
+jinja2, jsonschema, pandas, numpy, scikit-learn, scipy, sqlalchemy,
+alembic, psutil, codecarbon, PyGithub, streamlit, langdetect,
+structlog, rich, pyfiglet, tomli-w, requests, gradio-client,
+matplotlib, seaborn — see the file for the canonical list). The
+development-only surface (<code>requirements-dev.txt</code>: pytest, pytest-cov,
+pytest-asyncio, respx, ruff, mypy, pre-commit) is excluded from
+<code>pip-audit</code> to avoid blocking on advisories that cannot reach an
+end user.</p>
+<p>License-compatibility automation is <strong>deferred</strong> from this MVP — see
+<strong>§13 Known security debt</strong> entry D32.</p>
+<hr />
+<h2 id="8-container-image-security">8. Container image security<a class="headerlink" href="#8-container-image-security" title="Permanent link">&para;</a></h2>
+<p>The published image at <code>ghcr.io/pumacp/puma:vX.Y.Z</code> is built from
+<code>Dockerfile.publish</code> (added in S12.15). Properties:</p>
+<ul>
+<li><strong>Multi-stage build</strong>: a <code>builder</code> stage produces the wheel; the
+  <code>final</code> stage installs it into a clean image. Build tooling does
+  not ship in the final layer.</li>
+<li><strong>Slim base</strong>: <code>python:3.11-slim</code> — minimal Debian-derived layer.</li>
+<li><strong>Non-root user</strong>: a <code>puma</code> user (<code>uid=1000</code>) is created in the
+  final stage and the <code>USER puma</code> directive switches to it before
+  <code>ENTRYPOINT</code>. The image never runs as <code>root</code>.</li>
+<li><strong>OCI labels</strong>: <code>org.opencontainers.image.title</code>,
+  <code>description</code>, <code>source</code>, <code>documentation</code>, <code>licenses</code> — set at the
+  Dockerfile level and reinforced by the
+  <code>docker/metadata-action@v5</code> step in the publish workflow.</li>
+<li><strong>Entrypoint</strong>: <code>puma</code> — the published image is the CLI; the
+  default command is <code>--help</code>.</li>
+<li><strong>No bundled Ollama</strong>: the image expects an Ollama service to be
+  reachable on the network (see the project's <code>docker-compose.yml</code>
+  for the canonical multi-service layout).</li>
+<li><strong>Trivy scan</strong>: every tag push triggers a <code>Trivy</code> scan with
+  <code>severity: CRITICAL,HIGH</code> and <code>exit-code: 1</code>; results upload to the
+  GitHub Security tab as SARIF.</li>
+</ul>
+<p>SBOM generation (CycloneDX) is <strong>deferred</strong> from this MVP — see
+<strong>§13 Known security debt</strong> entry D33.</p>
+<hr />
+<h2 id="9-github-actions-security-posture">9. GitHub Actions security posture<a class="headerlink" href="#9-github-actions-security-posture" title="Permanent link">&para;</a></h2>
+<p>PUMA's CI uses GitHub-hosted <code>ubuntu-latest</code> runners with explicit
+least-privilege <code>permissions:</code> blocks per workflow / per job.</p>
+<p>Audit at the time of S12-N2 (current state, develop branch):</p>
+<table>
+<thead>
+<tr>
+<th>Workflow</th>
+<th>Permissions</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docs.yml</code> (build job)</td>
+<td><code>contents: read</code></td>
+<td>Minimal — checkout + mkdocs build.</td>
+</tr>
+<tr>
+<td><code>docs.yml</code> (deploy job)</td>
+<td><code>contents: write</code></td>
+<td>Required to push to <code>gh-pages</code>.</td>
+</tr>
+<tr>
+<td><code>release.yml</code></td>
+<td><code>contents: write</code></td>
+<td>Required by <code>softprops/action-gh-release@v2</code>.</td>
+</tr>
+<tr>
+<td><code>publish-docker.yml</code></td>
+<td><code>contents: read</code> + <code>packages: write</code></td>
+<td><code>packages: write</code> is required by <code>docker/login-action</code> + GHCR push. No long-lived registry credential — <code>GITHUB_TOKEN</code> only.</td>
+</tr>
+<tr>
+<td><code>publish-pypi.yml</code></td>
+<td><code>id-token: write</code></td>
+<td>OIDC-based trusted publishing — no PyPI token in repo secrets.</td>
+</tr>
+<tr>
+<td><code>wiki-sync.yml</code></td>
+<td><code>contents: write</code></td>
+<td>Required to push to the <code>puma.wiki.git</code> companion repo.</td>
+</tr>
+<tr>
+<td><code>lint-and-test.yml</code></td>
+<td>(none declared)</td>
+<td>Inherits the repo-default permissions. Worth tightening to explicit <code>contents: read</code> in a follow-up — tracked as an audit finding, not blocking this PR.</td>
+</tr>
+<tr>
+<td><code>smoke.yml</code></td>
+<td>(none declared)</td>
+<td>Same as above — audit finding.</td>
+</tr>
+<tr>
+<td><code>pip-audit.yml</code> (S12-N2)</td>
+<td><code>contents: read</code></td>
+<td>Minimal.</td>
+</tr>
+<tr>
+<td><code>bandit.yml</code> (S12-N2)</td>
+<td><code>contents: read</code></td>
+<td>Minimal.</td>
+</tr>
+<tr>
+<td><code>gitleaks.yml</code> (S12-N2)</td>
+<td><code>contents: read</code></td>
+<td>Minimal.</td>
+</tr>
+</tbody>
+</table>
+<p>GitHub branch protection on <code>develop</code> and <code>main</code> requires the
+<code>Lint and Test</code>, <code>Smoke Test</code>, and <code>Docs/build</code> checks to be green
+before merge; the security-tooling checks added in S12-N2 (<code>pip-audit</code>,
+<code>bandit</code>, <code>gitleaks</code>) become required after one clean cycle on
+<code>develop</code> to give time to remediate any first-pass findings.</p>
+<hr />
+<h2 id="10-brand-scanner-enforcement">10. Brand-scanner enforcement<a class="headerlink" href="#10-brand-scanner-enforcement" title="Permanent link">&para;</a></h2>
+<p><code>tests/integration/test_agent_agnostic_remote.py::test_no_brand_references_in_tracked_tree</code>
+scans the entire tracked tree (via <code>git grep -i -E</code>) for the assistant
+brand token and its case variants. The test enforces the project's
+tool-agnostic posture documented in
+<a href="../development-workflow/"><code>development-workflow.md</code></a> §13.</p>
+<p>If you add a test, a config, or a doc that needs to <strong>reason about</strong>
+the brand token (e.g., an audit that asserts the brand does not
+appear elsewhere), the token must be <strong>assembled from fragments at
+runtime</strong>, exactly as <code>test_agent_agnostic_remote.py</code> does:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">_BRAND</span> <span class="o">=</span> <span class="s2">&quot;cl&quot;</span> <span class="o">+</span> <span class="s2">&quot;aude&quot;</span>   <span class="c1"># not the literal token</span>
+</code></pre></div>
+<p>This idiom is mandatory for any code that handles the brand token as
+data; otherwise the repo-wide scanner trips on the literal in your
+own file. The pattern is also applied in
+<code>tests/integration/test_security_doc.py</code> (added in S12-N2) and in
+<code>tests/integration/test_development_workflow_doc.py</code> (added in
+S12-N4).</p>
+<hr />
+<h2 id="11-vulnerability-reporting">11. Vulnerability reporting<a class="headerlink" href="#11-vulnerability-reporting" title="Permanent link">&para;</a></h2>
+<p>The canonical private-disclosure path is documented in
+<a href="https://github.com/pumacp/puma/blob/develop/SECURITY.md"><code>SECURITY.md</code></a>
+at the repository root.</p>
+<p>In short: email <code>pumacapstoneproject@gmail.com</code> with a description,
+reproduction steps, the affected version(s), and any suggested
+mitigation. Acknowledgement within 72 hours; remediation plan within
+30 days; public advisory within 90 days under the standard
+coordinated-disclosure timeline.</p>
+<hr />
+<h2 id="12-audit-cadence">12. Audit cadence<a class="headerlink" href="#12-audit-cadence" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Audit</th>
+<th>Frequency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pip-audit</code> weekly cron</td>
+<td>Every Monday at 06:00 UTC.</td>
+</tr>
+<tr>
+<td><code>pip-audit</code> / <code>bandit</code> / <code>gitleaks</code> on push</td>
+<td>Every push to <code>develop</code>/<code>main</code> + every PR.</td>
+</tr>
+<tr>
+<td><code>Trivy</code> on published image</td>
+<td>Every tag push (<code>v*</code>).</td>
+</tr>
+<tr>
+<td>Full re-audit (this page, the threat model, the workflow permissions table)</td>
+<td>Every minor release (e.g. v4.1.0, v4.2.0) at minimum; on demand otherwise.</td>
+</tr>
+<tr>
+<td>Hard re-audit (penetration test, dependency tree review)</td>
+<td>Annually — first slot post-v4.0.0 release.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="13-known-security-debt">13. Known security debt<a class="headerlink" href="#13-known-security-debt" title="Permanent link">&para;</a></h2>
+<p>Tracked in <a href="../known_debt/"><code>docs/known_debt.md</code></a>. The S12-N2 MVP
+deliberately right-sizes scope; the items below are queued for a
+post-Sprint-12 backlog or a future audit cycle:</p>
+<ul>
+<li><strong>D32</strong> — License compatibility automation. Add <code>pip-licenses</code> in
+  CI to fail the build on non-permissive licenses entering the
+  dependency tree.</li>
+<li><strong>D33</strong> — SBOM CycloneDX generation. Produce a Software Bill of
+  Materials in CycloneDX format and attach it to every published
+  release artifact.</li>
+<li><strong>D34</strong> — Mutation testing on <code>src/puma/community/integrity.py</code>.
+  Use <code>mutmut</code> or equivalent to verify the integrity-hash test
+  coverage actually catches subtle mutations of the canonical hash
+  procedure.</li>
+<li><strong>D35</strong> — Cross-platform install test. Verify the published wheel
+  installs and the CLI starts on Linux, macOS (x86_64 + arm64), and
+  Windows; today only Linux is exercised in CI.</li>
+</ul>
+<hr />
+<p>Last reviewed: 2026-05-31 (S12-N2 MVP).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "content.code.copy", "content.tabs.link", "search.suggest", "search.highlight"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
