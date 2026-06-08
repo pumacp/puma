@@ -161,13 +161,6 @@ single CLI command.
 
 ## Quick start
 
-### Released packages (available with the v4.0.0 release)
-
-```bash
-pip install puma-cp                          # from PyPI
-docker pull ghcr.io/pumacp/puma:latest       # from GitHub Container Registry
-```
-
 ### Docker (recommended)
 
 ```bash
@@ -204,6 +197,19 @@ source .venv/bin/activate
 pip install -e .
 # Install Ollama separately: https://ollama.com/download
 puma --help
+```
+
+### Released packages (available with the v4.0.0 release)
+
+> ⚠️ **Recommended path:** `git clone` + `docker compose` (builds the image locally
+> and works without external dependencies). The published packages currently have
+> known issues pending resolution: the PyPI wheel (`pip install puma-cp`) does not
+> package a required configuration file, and the `docker pull ghcr.io/...` image is
+> not available in the registry. See [`known_debt.md`](docs/known_debt.md).
+
+```bash
+pip install puma-cp                          # from PyPI
+docker pull ghcr.io/pumacp/puma:latest       # from GitHub Container Registry
 ```
 
 ### Share your results with the community (optional)
