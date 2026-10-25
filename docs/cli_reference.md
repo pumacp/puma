@@ -15,6 +15,7 @@ These apply to every command (place them before the subcommand):
 | `--quiet`, `-q` | Suppress the progress display. |
 | `--verbose`, `-v` | Show the full traceback on errors. |
 | `--no-summary` | Suppress the post-run summary table. |
+| `--version` | Print the installed `puma-cp` version and exit. |
 | `--help` | Show help for any command or subcommand. |
 
 ```bash
