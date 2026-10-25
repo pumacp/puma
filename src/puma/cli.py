@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
 import typer
@@ -19,6 +20,24 @@ app = typer.Typer(
 # top-level main() wrapper can render errors with the same theme/verbosity.
 _CLI_STATE: dict[str, Any] = {}
 
+# Distribution name on PyPI; the import package is ``puma``.
+_DIST_NAME = "puma-cp"
+
+
+def _resolve_version() -> str:
+    """Return the installed ``puma-cp`` distribution version or a fallback."""
+    try:
+        return version(_DIST_NAME)
+    except PackageNotFoundError:
+        return "0.0.0-unknown"
+
+
+def _version_callback(value: bool) -> None:
+    """Eager ``--version`` handler: print the version and exit before anything else runs."""
+    if value:
+        typer.echo(f"{_DIST_NAME} {_resolve_version()}")
+        raise typer.Exit()
+
 
 @app.callback(invoke_without_command=True)
 def _main(
@@ -33,6 +52,13 @@ def _main(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show full traceback on errors."),
     no_summary: bool = typer.Option(
         False, "--no-summary", help="Suppress the post-run summary table."
+    ),
+    version_flag: bool = typer.Option(
+        False,
+        "--version",
+        help="Show the installed puma-cp version and exit.",
+        callback=_version_callback,
+        is_eager=True,
     ),
 ) -> None:
     """PUMA — Local LLM benchmarking for project management tasks."""
