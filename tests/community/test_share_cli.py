@@ -212,3 +212,124 @@ def test_run_id_not_found_exits_one(cli: CliRunner) -> None:
     )
     assert result.exit_code == 1
     assert "not found" in result.stdout.lower()
+
+
+def _publishing_client() -> MagicMock:
+    from puma.community.github_client import SubmissionPRResult
+
+    fake_client = MagicMock()
+    fake_client.authenticated_user_login.return_value = "pumacp"
+    fake_client.ensure_fork.return_value = "pumacp"
+    fake_client.create_submission_branch.side_effect = lambda *, fork_owner, submission_id: (
+        f"submission/{submission_id}"
+    )
+    fake_client.open_pull_request.side_effect = lambda **kw: SubmissionPRResult(
+        pr_url="https://github.com/pumacp/puma-community/pull/9",
+        pr_number=9,
+        fork_owner=kw["fork_owner"],
+        branch_name=kw["branch"],
+    )
+    return fake_client
+
+
+def test_publish_mode_transport_failure_exits_one_with_github_error(
+    cli: CliRunner, isolated_env
+) -> None:
+    """D40: a RetryError inside the client is mapped to GitHubError and rendered."""
+    from puma.community.github_client import GitHubError
+
+    _store_github_token(isolated_env)
+    fake_client = _publishing_client()
+    fake_client.ensure_fork.side_effect = GitHubError(
+        "GitHub request failed (RetryError). Check connectivity and the API rate limit, then retry."
+    )
+    with patch("puma.community.share_cli.CommunityGitHubClient", return_value=fake_client):
+        result = cli.invoke(
+            share_results_app,
+            ["--yes", "--run-id", "run-A", "--submitter-alias", "alice_42"],
+        )
+    assert result.exit_code == 1
+    assert "GitHub error" in result.stdout
+    assert "RetryError" in result.stdout
+    fake_client.open_pull_request.assert_not_called()
+
+
+def test_publish_mode_prints_progress_line_between_panel_and_pr(
+    cli: CliRunner, isolated_env
+) -> None:
+    _store_github_token(isolated_env)
+    fake_client = _publishing_client()
+    with patch("puma.community.share_cli.CommunityGitHubClient", return_value=fake_client):
+        result = cli.invoke(
+            share_results_app,
+            ["--yes", "--run-id", "run-A", "--submitter-alias", "alice_42"],
+        )
+    assert result.exit_code == 0, result.stdout
+    out = result.stdout
+    panel = out.index("Review submission")
+    progress = out.index("Contacting GitHub")
+    opened = out.index("Pull request opened")
+    assert panel < progress < opened
+
+
+def test_publish_mode_upstream_owner_pr_head_matches_inaugural_shape(
+    cli: CliRunner, isolated_env
+) -> None:
+    """Owner path: branch and file go to the upstream; PR head is owner:submission/<id>."""
+    _store_github_token(isolated_env)
+    fake_client = _publishing_client()
+    with patch("puma.community.share_cli.CommunityGitHubClient", return_value=fake_client):
+        result = cli.invoke(
+            share_results_app,
+            ["--yes", "--run-id", "run-A", "--submitter-alias", "alice_42"],
+        )
+    assert result.exit_code == 0, result.stdout
+    sid = fake_client.create_submission_branch.call_args.kwargs["submission_id"]
+    assert fake_client.create_submission_branch.call_args.kwargs["fork_owner"] == "pumacp"
+    write_kwargs = fake_client.write_submission_file.call_args.kwargs
+    assert write_kwargs["fork_owner"] == "pumacp"
+    assert write_kwargs["branch"] == f"submission/{sid}"
+    pr_kwargs = fake_client.open_pull_request.call_args.kwargs
+    assert pr_kwargs["fork_owner"] == "pumacp"
+    assert pr_kwargs["branch"] == f"submission/{sid}"
+    assert f"PR #9 from pumacp:submission/{sid}" in result.stdout
+
+
+def test_publish_mode_artifacts_consumed_by_puma_community_are_unchanged(
+    cli: CliRunner, isolated_env
+) -> None:
+    """Invariants for pumacp/puma-community: schema v1.0.0 payload, file path,
+    branch name, commit message, PR title and body shape."""
+    from puma.community.validator import validate_submission_dict
+
+    _store_github_token(isolated_env)
+    fake_client = _publishing_client()
+    with patch("puma.community.share_cli.CommunityGitHubClient", return_value=fake_client):
+        result = cli.invoke(
+            share_results_app,
+            ["--yes", "--run-id", "run-A", "--submitter-alias", "alice_42"],
+        )
+    assert result.exit_code == 0, result.stdout
+
+    write_kwargs = fake_client.write_submission_file.call_args.kwargs
+    payload = json.loads(write_kwargs["payload_json"])
+    sid = payload["submission_id"]
+    # Payload: schema-valid, canonical serialisation, same id everywhere.
+    validate_submission_dict(payload)
+    assert payload["schema_version"] == "1.0.0"
+    assert write_kwargs["payload_json"] == json.dumps(payload, indent=2, sort_keys=True)
+    assert write_kwargs["submission_id"] == sid
+    assert write_kwargs["commit_message"] == f"data(community): add submission {sid}"
+    assert write_kwargs["branch"] == f"submission/{sid}"
+    # PR title/body: produced by the unchanged helpers.
+    pr_kwargs = fake_client.open_pull_request.call_args.kwargs
+    assert (
+        pr_kwargs["title"] == f"Submission {sid[:12]}: estimation_tawos / qwen2.5:3b / few-shot-3"
+    )
+    body = pr_kwargs["body"]
+    assert body.startswith(f"# PUMA Community submission `{sid}`")
+    assert "This submission was generated by `puma share-results`." in body
+    assert (
+        f"- predictions_summary_hash: `{payload['integrity']['predictions_summary_hash']}`" in body
+    )
+    assert "https://pumacp.github.io/puma-community/schema/submission.v1.json" in body

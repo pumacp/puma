@@ -9,11 +9,14 @@ import pytest
 
 from puma.community.credentials import CredentialStore
 from puma.community.github_client import (
+    APIRateLimitError,
     AuthenticationError,
     CommunityGitHubClient,
     ConflictError,
     GitHubError,
 )
+
+UPSTREAM = "pumacp/puma-community"
 
 # Mirrors the regex in credentials.py for "github" so tests don't break on
 # format validation. These are clearly synthetic placeholders.
@@ -41,6 +44,23 @@ def _make_github_exception(status: int):
     return GithubException(status=status, data={}, headers={})
 
 
+def _github_instance(login: str = "alice", remaining: int = 4000) -> tuple[MagicMock, MagicMock]:
+    """A fake ``Github`` instance with an authenticated user and a healthy rate limit."""
+    instance = MagicMock()
+    user = MagicMock()
+    user.login = login
+    instance.get_user.return_value = user
+    instance.get_rate_limit.return_value.core.remaining = remaining
+    return instance, user
+
+
+def _fork_of(parent_full_name: str, owner: str = "alice") -> MagicMock:
+    repo = MagicMock(fork=True)
+    repo.owner.login = owner
+    repo.parent.full_name = parent_full_name
+    return repo
+
+
 def test_raises_authentication_error_when_no_token(empty_store: CredentialStore) -> None:
     with pytest.raises(AuthenticationError):
         CommunityGitHubClient(store=empty_store)
@@ -59,12 +79,8 @@ def test_ensure_fork_returns_existing_fork_owner_without_creating(
     configured_store: CredentialStore,
 ) -> None:
     with patch("puma.community.github_client.Github") as gh_class:
-        instance = MagicMock()
-        user = MagicMock()
-        existing_fork = MagicMock(fork=True)
-        existing_fork.owner.login = "alice"
-        user.get_repo.return_value = existing_fork
-        instance.get_user.return_value = user
+        instance, user = _github_instance()
+        user.get_repo.return_value = _fork_of(UPSTREAM)
         gh_class.return_value = instance
 
         client = CommunityGitHubClient(store=configured_store)
@@ -75,16 +91,12 @@ def test_ensure_fork_returns_existing_fork_owner_without_creating(
 
 def test_ensure_fork_creates_when_missing(configured_store: CredentialStore) -> None:
     with patch("puma.community.github_client.Github") as gh_class:
-        instance = MagicMock()
-        user = MagicMock()
+        instance, user = _github_instance()
         # First call: 404; subsequent calls: success
-        new_fork = MagicMock(fork=True)
-        new_fork.owner.login = "alice"
         user.get_repo.side_effect = [
             _make_github_exception(404),
-            new_fork,
+            _fork_of(UPSTREAM),
         ]
-        instance.get_user.return_value = user
         instance.get_repo.return_value = MagicMock()
         gh_class.return_value = instance
 
@@ -92,6 +104,166 @@ def test_ensure_fork_creates_when_missing(configured_store: CredentialStore) -> 
         result = client.ensure_fork()
         assert result == "alice"
         user.create_fork.assert_called_once()
+
+
+def test_ensure_fork_upstream_owner_publishes_without_forking(
+    configured_store: CredentialStore,
+) -> None:
+    """D40: the owner of pumacp/puma-community cannot fork it into the same account."""
+    with patch("puma.community.github_client.Github") as gh_class:
+        instance, user = _github_instance(login="pumacp")
+        gh_class.return_value = instance
+
+        client = CommunityGitHubClient(store=configured_store)
+        assert client.ensure_fork() == "pumacp"
+        user.create_fork.assert_not_called()
+        user.get_repo.assert_not_called()
+
+
+def test_ensure_fork_ignores_same_named_repo_that_is_not_a_fork(
+    configured_store: CredentialStore,
+) -> None:
+    with patch("puma.community.github_client.Github") as gh_class:
+        instance, user = _github_instance()
+        unrelated = MagicMock(fork=False)
+        unrelated.owner.login = "alice"
+        user.get_repo.side_effect = [unrelated, _fork_of(UPSTREAM)]
+        instance.get_repo.return_value = MagicMock()
+        gh_class.return_value = instance
+
+        client = CommunityGitHubClient(store=configured_store)
+        assert client.ensure_fork() == "alice"
+        user.create_fork.assert_called_once()
+
+
+def test_ensure_fork_ignores_fork_of_another_repository(
+    configured_store: CredentialStore,
+) -> None:
+    with patch("puma.community.github_client.Github") as gh_class:
+        instance, user = _github_instance()
+        user.get_repo.side_effect = [_fork_of("someone-else/puma-community"), _fork_of(UPSTREAM)]
+        instance.get_repo.return_value = MagicMock()
+        gh_class.return_value = instance
+
+        client = CommunityGitHubClient(store=configured_store)
+        assert client.ensure_fork() == "alice"
+        user.create_fork.assert_called_once()
+
+
+def test_ensure_fork_checks_rate_limit_before_any_write(
+    configured_store: CredentialStore,
+) -> None:
+    with patch("puma.community.github_client.Github") as gh_class:
+        instance, user = _github_instance(remaining=0)
+        gh_class.return_value = instance
+
+        client = CommunityGitHubClient(store=configured_store)
+        with pytest.raises(APIRateLimitError, match="rate limit exhausted"):
+            client.ensure_fork()
+        user.create_fork.assert_not_called()
+        user.get_repo.assert_not_called()
+
+
+def test_github_constructed_with_bounded_retry_and_explicit_timeout(
+    configured_store: CredentialStore,
+) -> None:
+    from github.GithubRetry import GithubRetry
+
+    with patch("puma.community.github_client.Github") as gh_class:
+        gh_class.return_value = MagicMock()
+        CommunityGitHubClient(store=configured_store)
+
+    gh_class.assert_called_once()
+    kwargs = gh_class.call_args.kwargs
+    assert kwargs["timeout"] == 30
+    retry = kwargs["retry"]
+    assert isinstance(retry, GithubRetry)
+    assert retry.total == 2
+    assert {500, 502, 503, 504} <= set(retry.status_forcelist)
+    assert 404 not in retry.status_forcelist
+    assert 422 not in retry.status_forcelist
+
+
+@pytest.mark.parametrize(
+    "method_name",
+    ["authenticated_user_login", "ensure_fork", "create_submission_branch"],
+)
+def test_transport_errors_map_to_github_error(
+    configured_store: CredentialStore, method_name: str
+) -> None:
+    """``requests`` errors (RetryError after the bounded retry, timeouts) are not
+    ``GithubException`` instances; they must still surface as ``GitHubError``."""
+    from requests.exceptions import RetryError
+
+    with patch("puma.community.github_client.Github") as gh_class:
+        instance, _ = _github_instance()
+        instance.get_user.side_effect = RetryError("Max retries exceeded with url: /user")
+        instance.get_repo.side_effect = RetryError("Max retries exceeded with url: /repos")
+        instance.get_rate_limit.side_effect = RetryError("Max retries exceeded")
+        gh_class.return_value = instance
+
+        client = CommunityGitHubClient(store=configured_store)
+        kwargs = (
+            {"fork_owner": "alice", "submission_id": "abc-123"}
+            if method_name == "create_submission_branch"
+            else {}
+        )
+        with pytest.raises(GitHubError) as captured:
+            getattr(client, method_name)(**kwargs)
+        assert not isinstance(captured.value, ConflictError)
+        assert "RetryError" in str(captured.value)
+        assert FAKE_TOKEN not in str(captured.value)
+
+
+def test_open_pull_request_transport_error_is_not_a_conflict(
+    configured_store: CredentialStore,
+) -> None:
+    from requests.exceptions import ConnectionError as RequestsConnectionError
+
+    with patch("puma.community.github_client.Github") as gh_class:
+        instance = MagicMock()
+        upstream = MagicMock()
+        upstream.create_pull.side_effect = RequestsConnectionError("connection reset")
+        instance.get_repo.return_value = upstream
+        gh_class.return_value = instance
+
+        client = CommunityGitHubClient(store=configured_store)
+        with pytest.raises(GitHubError) as captured:
+            client.open_pull_request(
+                fork_owner="alice",
+                branch="submission/abc",
+                submission_id="abc",
+                title="t",
+                body="b",
+            )
+        assert not isinstance(captured.value, ConflictError)
+
+
+def test_write_submission_file_keeps_path_and_payload_unchanged(
+    configured_store: CredentialStore,
+) -> None:
+    """Invariant: puma-community consumes ``submissions/<id>.json`` verbatim."""
+    with patch("puma.community.github_client.Github") as gh_class:
+        instance = MagicMock()
+        fork = MagicMock()
+        instance.get_repo.return_value = fork
+        gh_class.return_value = instance
+
+        client = CommunityGitHubClient(store=configured_store)
+        client.write_submission_file(
+            fork_owner="pumacp",
+            branch="submission/abc-123",
+            submission_id="abc-123",
+            payload_json='{"schema_version": "1.0.0"}',
+            commit_message="data(community): add submission abc-123",
+        )
+        instance.get_repo.assert_called_once_with("pumacp/puma-community")
+        fork.create_file.assert_called_once_with(
+            path="submissions/abc-123.json",
+            message="data(community): add submission abc-123",
+            content='{"schema_version": "1.0.0"}',
+            branch="submission/abc-123",
+        )
 
 
 def test_create_submission_branch_raises_conflict_if_branch_exists(

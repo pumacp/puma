@@ -362,6 +362,7 @@ def share_results(
         return
 
     assert client is not None  # type-narrow for mypy; AuthenticationError exits above
+    console.print(f"[{theme.muted}]Contacting GitHub to open the pull request…[/{theme.muted}]")
     try:
         fork_owner = client.ensure_fork()
         branch = client.create_submission_branch(
