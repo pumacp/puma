@@ -200,6 +200,13 @@ class TestVersionFlag:
         assert "Local LLM benchmarks" not in result.stdout
 
     def test_version_is_listed_in_root_help(self):
+        from rich.text import Text
+
         result = runner.invoke(app, ["--no-banner", "--help"], env={"COLUMNS": "200"})
         assert result.exit_code == 0
-        assert "--version" in result.stdout
+        # Rich colours the option name when a terminal is forced (CI sets
+        # FORCE_COLOR), splitting "--version" across escape sequences; compare
+        # against the plain text instead of the raw stream.
+        plain_help = Text.from_ansi(result.stdout).plain
+        assert "--version" in plain_help
+        assert "Show the installed puma-cp version and exit." in plain_help
