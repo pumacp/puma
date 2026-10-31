@@ -20,6 +20,16 @@ Versions follow [Semantic Versioning](https://semver.org/).
   `docs/known_debt.md` (PR #64).
 - D27 — commit reference in `docs/known_debt.md` corrected to `7a753b9`, the
   commit reachable on `develop` and `main`.
+- `check_rate_limit()` reads the core bucket compatibly with PyGithub >= 2.7
+  (`RateLimitOverview.resources.core`) as well as 2.4 (`RateLimit.core`), so
+  `puma share-results` no longer fails before its first GitHub write on a
+  resolver-chosen PyGithub release (PR #66).
+
+### Infrastructure
+- D41 — `Dockerfile.publish` pins `python:3.11-slim` by digest and upgrades
+  setuptools in the final stage so the Trivy gate passes; marked RESOLVED in
+  `docs/known_debt.md` (PR #67). The GHCR image publishes on the next release
+  tag.
 
 ## [4.0.0] — 2026-05-31
 
