@@ -33,7 +33,7 @@ def expected_calibration_error(
             continue
         bin_conf = float(confs[mask].mean())
         bin_acc = float(hits[mask].mean())
-        ece += (mask.sum() / n) * abs(bin_conf - bin_acc)
+        ece += (float(mask.sum()) / n) * abs(bin_conf - bin_acc)
 
     return float(ece)
 
