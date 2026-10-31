@@ -540,8 +540,7 @@ submission to upgrade its `verification_status`.
 
 ### D40 — `puma share-results` CLI hangs after the Review panel (since S12-N1)
 
-**Status:** OPEN — owner: maintainer. Target: S12.19 (investigation) +
-post-Sprint-12 (v4.0.1 / patch sprint, full fix).
+**Status:** RESOLVED in v4.0.1 (PR #64, merged to `develop` 2026-10-31).
 **Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
 
 **File.** `src/puma/community/share_results.py` (likely) in `pumacp/puma`.
@@ -556,6 +555,38 @@ all stopped at the same point; no PR was opened by the CLI. A manual
 **Investigation needed.** Instrument the post-review-panel code path with debug
 logging; verify the fork + push + PR-creation pipeline; check whether `--yes`
 is honored by all confirmation prompts in the chain.
+
+**Root cause (PR #64 investigation).** Two defects in
+`src/puma/community/github_client.py` (`ensure_fork`), reproduced against an
+in-process fake GitHub API; `--yes` was honoured, every prompt sits before the
+Review panel.
+1. `ensure_fork` assumed every authenticated user has, or can create, a fork
+   named `puma-community` under their own account. For the upstream owner,
+   `user.get_repo("puma-community")` returns the upstream itself
+   (`fork == False`), so the client requested a fork of its own repository and
+   polled 20 s for one that can never appear before failing. The inaugural
+   submitter was the owner, which is why `pumacp/puma-community#8` carries a
+   branch on the upstream rather than on a fork.
+2. `Github(auth=...)` kept PyGithub's default `GithubRetry(total=10)`, which
+   sleeps silently on 403 rate-limit answers (until the limit resets, up to an
+   hour) and on 5xx, re-sending the fork request each time, and finally raises
+   a `requests` `RetryError` that is not a `GithubException`, so it escaped both
+   the client and the `except GitHubError` chain in `share_cli.py`.
+
+**Resolution (PR #64).** Commit `88d843a`: the upstream owner publishes straight
+to `pumacp/puma-community` (PR head `pumacp:submission/<id>`, the shape of
+PR #8); a same-named repository that is not a fork of the upstream counts as
+"no fork"; the client is built with `GithubRetry(total=2)` for transient 5xx
+and an explicit 30 s timeout, calls `check_rate_limit()` before the first
+write so an exhausted limit raises `APIRateLimitError`, and maps `requests`
+transport errors to `GitHubError` so they reach the themed CLI handler; the
+CLI prints one progress line before contacting GitHub. The submission payload
+(schema v1.0.0), `submissions/<id>.json` path, `submission/<id>` branch name,
+commit message and PR title/body are unchanged and asserted by tests. Covered
+by `tests/community/test_github_client.py`,
+`tests/community/test_share_cli.py` and
+`tests/integration/test_share_results_fake_github.py` (owner, ordinary user,
+exhausted rate limit, secondary-limit and 5xx fork failures; no network).
 
 ### D41 — Container image v4.0.0 blocked by Trivy on 3 HIGH base-image CVEs (since S12.18)
 
@@ -604,7 +635,7 @@ v4.0.1.
 
 ### D43 — CLI does not expose a top-level `--version` flag (since S12.18)
 
-**Status:** OPEN — owner: maintainer. Target: post-Sprint-12 (v4.0.1 / patch sprint).
+**Status:** RESOLVED in v4.0.1 (PR #63, merged to `develop` 2026-10-31).
 **Discovered:** Post-S12.18 verification.
 
 **File.** `src/puma/cli.py` — the root Typer/Click command group.
@@ -617,6 +648,16 @@ v4.0.1.
 
 **Resolution path.** Add `@click.version_option(package_name="puma-cp")` to the
 root group (or the Typer equivalent). Ship in v4.0.1.
+
+**Resolution (PR #63).** The root Typer callback in `src/puma/cli.py` now takes
+an eager `--version` option that prints `puma-cp <version>` from
+`importlib.metadata.version("puma-cp")` and exits 0, falling back to
+`0.0.0-unknown` when no distribution is installed (plain source-tree runs).
+Commits `5fdf755` (flag, unit tests, CLI reference row) and `8bd598d`
+(colour-independent help assertion for CI) on `develop`. Verified on a wheel
+built from the branch and installed in a fresh venv: `puma --version` →
+`puma-cp 4.0.0`, exit 0, also when the flag precedes a subcommand. Covered by
+`tests/unit/test_cli_flags.py::TestVersionFlag`.
 
 ### D44 — H2 estimation inferential test computed on preserved N=100 data with a global-mean baseline (since post-Sprint-12)
 
@@ -819,7 +860,7 @@ so the `<id>.predictions.jsonl` that `puma community verify-hash` and
 `validate --strict` consume had no producer. The S12.1 E2E test worked around
 this by exporting the JSONL directly from the database via `integrity._COLUMNS`.
 
-**Resolution.** Commit `76c0ce1` — `integrity.export_predictions_jsonl` writes
+**Resolution.** Commit `7a753b9` — `integrity.export_predictions_jsonl` writes
 the predictions JSONL using the existing 4-field canonical column list
 (`integrity._COLUMNS`: `instance_id`, `predicted_label`, `predicted_value`,
 `prompt_hash`), and `share-results --dry-run` now emits
