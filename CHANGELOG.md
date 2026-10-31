@@ -8,6 +8,19 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- Top-level `puma --version` flag printing the installed `puma-cp` version
+  (D43 RESOLVED, PR #63).
+
+### Fixed
+- D40 — `puma share-results` no longer stalls after the Review panel: the
+  upstream owner publishes directly to `pumacp/puma-community`, GitHub retries
+  are bounded with an explicit timeout and a rate-limit pre-check, and
+  transport errors surface as themed CLI errors; marked RESOLVED in
+  `docs/known_debt.md` (PR #64).
+- D27 — commit reference in `docs/known_debt.md` corrected to `7a753b9`, the
+  commit reachable on `develop` and `main`.
+
 ## [4.0.0] — 2026-05-31
 
 The Sprint 12 closure release. PUMA's federated community-submission
