@@ -13,7 +13,7 @@ import logging
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import ParamSpec, TypeVar
+from typing import Any, ParamSpec, TypeVar
 
 from github import Auth, Github
 from github.GithubException import GithubException
@@ -141,9 +141,16 @@ class CommunityGitHubClient:
     @_translate_request_errors
     def check_rate_limit(self) -> None:
         try:
-            core = self._client.get_rate_limit().core
+            limits: Any = self._client.get_rate_limit()
         except GithubException as exc:
             raise GitHubError(f"Cannot read rate limit: {exc.status}") from exc
+        # PyGithub < 2.7 returns ``RateLimit`` with the buckets as attributes
+        # (``.core``); 2.7+ returns ``RateLimitOverview`` and nests them under
+        # ``.resources``. Accept both so the pin in requirements.txt and a
+        # resolver-chosen newer release behave the same.
+        core = getattr(limits, "core", None)
+        if core is None:
+            core = limits.resources.core
         if core.remaining <= 0:
             reset = getattr(core, "reset", None)
             raise APIRateLimitError(f"GitHub API rate limit exhausted. Resets at {reset}.")
