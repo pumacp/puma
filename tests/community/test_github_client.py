@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -162,6 +164,50 @@ def test_ensure_fork_checks_rate_limit_before_any_write(
             client.ensure_fork()
         user.create_fork.assert_not_called()
         user.get_repo.assert_not_called()
+
+
+def _rate_limit_legacy(remaining: int) -> SimpleNamespace:
+    """``RateLimit`` as returned by PyGithub < 2.7: buckets are attributes."""
+    core = SimpleNamespace(remaining=remaining, reset=datetime(2026, 1, 1, tzinfo=UTC))
+    return SimpleNamespace(core=core, search=core, graphql=core)
+
+
+def _rate_limit_overview(remaining: int) -> SimpleNamespace:
+    """``RateLimitOverview`` as returned by PyGithub >= 2.7: no ``.core``,
+    buckets nested under ``.resources`` plus the legacy ``.rate`` mirror."""
+    core = SimpleNamespace(remaining=remaining, reset=datetime(2026, 1, 1, tzinfo=UTC))
+    return SimpleNamespace(
+        resources=SimpleNamespace(core=core, search=core, graphql=core), rate=core
+    )
+
+
+@pytest.mark.parametrize("shape", [_rate_limit_legacy, _rate_limit_overview])
+def test_check_rate_limit_accepts_both_pygithub_shapes_with_quota(
+    configured_store: CredentialStore, shape
+) -> None:
+    with patch("puma.community.github_client.Github") as gh_class:
+        instance, _ = _github_instance()
+        instance.get_rate_limit.return_value = shape(4000)
+        gh_class.return_value = instance
+
+        client = CommunityGitHubClient(store=configured_store)
+        client.check_rate_limit()  # must not raise
+
+
+@pytest.mark.parametrize("shape", [_rate_limit_legacy, _rate_limit_overview])
+def test_check_rate_limit_accepts_both_pygithub_shapes_when_exhausted(
+    configured_store: CredentialStore, shape
+) -> None:
+    with patch("puma.community.github_client.Github") as gh_class:
+        instance, user = _github_instance()
+        instance.get_rate_limit.return_value = shape(0)
+        gh_class.return_value = instance
+
+        client = CommunityGitHubClient(store=configured_store)
+        with pytest.raises(APIRateLimitError, match="rate limit exhausted") as captured:
+            client.ensure_fork()
+        assert "Resets at 2026-01-01" in str(captured.value)
+        user.create_fork.assert_not_called()
 
 
 def test_github_constructed_with_bounded_retry_and_explicit_timeout(
