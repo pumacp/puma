@@ -67,7 +67,8 @@ recommended phase for resolution.
 
 ### D23 — Verifier Space algorithmic mismatch with the client (since v3.0.0)
 
-**Status:** open. Scheduled for resolution: v4.x with a schema decision.
+**Status:** RESOLVED (`pumaproject/puma-verifier` Space commit `0975ea5`,
+2026-11-01); D29 stays deferred (see the follow-ups below).
 **Severity:** low — affects only `puma community verify-hash --remote`; local
 verification is unaffected and remains canonical.
 
@@ -146,6 +147,49 @@ constraint).
 adopts the client's 4-field canonical form (`instance_id`, `predicted_label`,
 `predicted_value`, `prompt_hash`; LF-joined CSV; SHA-256 as plain 64-hex). No
 schema change; existing submissions are untouched; implementation pending.
+
+**Resolution (Space commit `0975ea5`).** `app.py` in `pumaproject/puma-verifier`
+now reads the 4-key predictions JSONL that the client exports (D27) and
+rebuilds the client's canonical CSV exactly as
+`integrity.compute_predictions_hash` and `verify_cli.hash_predictions_jsonl`
+do: rows sorted by `instance_id`, columns in the order above, floats as
+`.6f`, `None` as empty, `csv` minimal quoting with LF line endings and no
+trailing newline, then a plain 64-hex SHA-256 compared with the declared hash.
+The 2-field `prediction` path is removed. The Space's API is unchanged (one
+`/verify` endpoint taking `raw_predictions_url` and `declared_hash`, returning
+`status`, `computed_hash`, `declared_hash` and `message`); the status values
+and the fetch, size-cap and JSONL error paths are as before, and the
+missing-key error now names the four expected keys. No client file, schema or
+submission changed; `integrity.py` is untouched.
+
+Acceptance evidence (2026-11-01), all local:
+- On the inaugural submission's `.predictions.jsonl`, used read-only as a
+  fixture, the new verifier function, `verify_cli.hash_predictions_jsonl` and
+  `puma community verify-hash` (local) all give
+  `f60423ca6a6e9b033f0f89ac5a5a127d889a6e2627fc07c480c44bfdf53857ec`, the
+  `integrity.predictions_summary_hash` recorded in the submission JSON. A
+  one-character change to the file gives `mismatch`.
+- On 300 synthetic runs (floats, integers, `None`, labels with commas, quotes,
+  newlines and non-ASCII text, rows inserted out of order),
+  `compute_predictions_hash` on the database, `hash_predictions_jsonl` on the
+  exported JSONL and the verifier agree on every run.
+- The Gradio app, run on 127.0.0.1 with the Space's pinned requirements,
+  returns `verified`, `mismatch`, `error` (unreadable URL) and
+  `not_applicable` (no declared hash) through `/verify`, both from
+  gradio_client 1.5.2 and from 2.7.2 (the version the puma-community verify
+  workflow currently resolves).
+
+After the push the Space rebuilt and reached `RUNNING` with head `0975ea5`;
+the live endpoint schema is unchanged. The inaugural submission was **not**
+re-verified or re-published: it has no `raw_predictions_url`, its
+`verification_status` stays `self-attested` (D53), and the Hugging Face
+dataset is unchanged.
+
+**Remaining follow-ups.** D29 stays deferred: estimation hashes still depend
+on the label's string form, now identically on both sides. New submissions
+should set `raw_predictions_url` so the Verifier has a file to fetch; without
+it the Verifier returns `not_applicable` and `verify-hash --remote` falls back
+to the local result.
 
 ### D24 — Canonical baseline specs missing `profile_required` (since v1.0.0)
 
@@ -1072,7 +1116,8 @@ that page, citing this entry.
 
 ### D56 — Erratum to D23: the Verifier no longer emits the `sha256:` prefix (documentation)
 
-**Status:** OPEN (documentation) — owner: maintainer. Target: v4.0.1 / patch sprint.
+**Status:** RESOLVED (documentation, 2026-11-01): superseded by the D23
+resolution.
 **Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
 
 **File.** This file — the **D23** entry (description, blocker 2 and open
@@ -1085,6 +1130,11 @@ D23 are moot; the remaining difference is the 2-field versus 4-field input,
 settled by the Decision paragraph above.
 
 **Resolution path.** Record only; D23 closes with the pending implementation.
+
+**Resolution (2026-11-01).** D23 is resolved by Space commit `0975ea5`. The
+Verifier hashes the client's 4-field canonical CSV and returns a plain 64-hex
+digest, so the `sha256:` prefix and the 2-field input described in D23 no
+longer apply. The D23 text above its Resolution paragraph stays as written.
 
 ### D57 — Erratum to `pumacp/puma-community` docs: automatic merging is described but does not happen (documentation)
 
