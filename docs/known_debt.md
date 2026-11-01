@@ -508,7 +508,7 @@ target platforms.
 
 ### D38 — validate-submission workflow uses a non-existent action version (since S12-N1)
 
-**Status:** OPEN — owner: maintainer. Target: S12.19 → post-Sprint-12 (v4.0.1 / patch sprint).
+**Status:** RESOLVED (`pumacp/puma-community` PR #12, merged to `main` 2026-10-31).
 **Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
 
 **File.** `.github/workflows/validate-submission.yml` in `pumacp/puma-community`.
@@ -521,9 +521,20 @@ at the "Prepare all required actions" step, before any validation logic ran.
 **Resolution path.** Pin the action to `@v1.3.0` (latest stable) or to a
 current commit SHA.
 
+**Resolution (`pumacp/puma-community` PR #12).** Commit `fba79b9`: both
+labelling steps pin `actions-ecosystem/action-add-labels` to commit
+`18f1af5e3544586314bbe15c0273249c770b2daf`, the `v1.1.3` release (see D52).
+A new step fails the check when a PR modifies, deletes or renames any existing
+file under `submissions/`, so only added files pass; the trigger now covers
+every path under `submissions/` so such changes reach that guard. On a
+`synchronize` event the `valid` label is removed before the new head is
+validated, so a label earned by an earlier commit does not carry over.
+
 ### D39 — Verify submission integrity workflow broken by gradio_client API drift (since S12-N1)
 
-**Status:** OPEN — owner: maintainer. Target: S12.19 → post-Sprint-12 (v4.0.1 / patch sprint).
+**Status:** RESOLVED (`pumacp/puma-community` PRs #10, #11 and #13, merged to
+`main` 2026-10-31); the labelling of PRs from forks remains a limitation (see
+below).
 **Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
 
 **File.** `scripts/verify_submissions.py` in `pumacp/puma-community`, line 54.
@@ -542,6 +553,27 @@ submissions dataset.
 **Resolution path.** Rename the `hf_token` kwarg to `token` in
 `scripts/verify_submissions.py`; re-run verification on the inaugural
 submission to upgrade its `verification_status`.
+
+**Resolution (`pumacp/puma-community` PRs #11, #10 and #13).** Commit
+`e9dc524` (PR #11): `scripts/verify_submissions.py` passes `token=` to
+`gradio_client.Client`, reads the declared hash from
+`integrity.predictions_summary_hash` (schema v1.0.0 has no top-level
+`predictions_summary_hash`), and verifies only submission files newly added in
+`HEAD~1..HEAD`; the fallback that globbed every file in `submissions/` is
+removed, so existing submissions are never re-verified. A
+`<id>.verified.json` sidecar is written only when the Verifier returns
+`verified`; every other status is logged without writing a file. The inaugural
+submission is not re-run (D53). Commit `a0da178` (PR #10):
+`scripts/generate_badges.py` skips `*.verified.json` sidecars, so they are not
+counted as submissions. Commit `653a9b3` (PR #13): `auto-merge-valid.yml` reads
+each file's status from the pull-request files API and refuses auto-merge
+unless every changed file is added.
+
+**Remaining limitation.** `validate-submission.yml` runs on `pull_request` and
+labels with `GITHUB_TOKEN`. On a PR opened from a fork that token is read-only,
+so the `valid` / `invalid` labels cannot be applied and `auto-merge-valid.yml`,
+which triggers on the `valid` label, does not run. A maintainer has to label
+fork submissions by hand.
 
 ### D40 — `puma share-results` CLI hangs after the Review panel (since S12-N1)
 
@@ -750,7 +782,8 @@ Supersede `h1_triage_wilcoxon.md` with the fresh result.
 
 ### D46 — Leaderboard reads `verification.status` instead of `integrity.verification_status` (since post-Sprint-12)
 
-**Status:** OPEN — owner: maintainer. Target: v4.0.1 / patch sprint.
+**Status:** RESOLVED (`pumaproject/puma-leaderboard` Space commit `7de208b`,
+2026-10-31).
 **Discovered:** Sprint 12 community diagnostic.
 
 **File.** `app.py` in `pumaproject/puma-leaderboard` (HF Space).
@@ -765,6 +798,14 @@ self-attested submission the visible effect is nil today.
 
 **Resolution path.** Read the correct key and map
 `self-attested` / `verified` / `mismatch`. Ship in v4.0.1.
+
+**Resolution (Space commit `7de208b`).** `app.py` loads only the UUID-named
+submission records (`submissions/????????-????-????-????-????????????.json`),
+so `*.predictions.jsonl` and other sidecar files next to them are no longer
+read, and the "verified" column reads `integrity.verification_status`. On the
+running Space (2026-11-01) the leaderboard lists the inaugural submission
+(`1d88e49b-5b49-46b9-a8a6-df7bdd5bf80b`, qwen2.5:3b / triage_jira /
+zero_shot) with "verified" shown as `self-attested`.
 
 ### D47 — D39's description of leaderboard filtering is inaccurate (since post-Sprint-12)
 
@@ -786,7 +827,7 @@ local source is authoritative.
 
 ### D48 — `pyproject.toml` dependencies omit runtime imports; `puma dashboard` fails from a pip install (since S12.15)
 
-**Status:** OPEN — owner: maintainer. Target: v4.0.1 / patch sprint.
+**Status:** RESOLVED in v4.0.1 (PR #71, merged to `develop` 2026-11-01).
 **Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
 
 **Files.** `pyproject.toml` (`[project].dependencies`), `requirements.txt`,
@@ -823,6 +864,29 @@ because `requirements.txt` already lists it); extend
 module-level third-party import under `src/puma/` resolves to a declared
 dependency); decide whether `seaborn` stays in `requirements.txt` as a
 scripts-only tool or is declared. Ship in v4.0.1.
+
+**Resolution (PR #71).** Commit `4335e61`: `matplotlib>=3.8` is declared in
+`[project].dependencies` with the same lower bound as `requirements.txt`;
+`seaborn` is not declared. `test_requirements_consistency.py` gains
+`test_module_level_imports_are_declared_in_pyproject`, which parses the top
+level of every module under `src/puma/`, maps each third-party import to its
+distribution through `importlib.metadata.packages_distributions()` and fails
+if that distribution is not declared in the dependencies or an extra; imports
+inside functions are out of scope because they are lazy. Before the fix, a
+`pip install -e .` of `develop` and a `pip install puma-cp` (4.0.0) both lacked
+matplotlib and the dashboard app raised `No module named 'matplotlib'`; a
+wheel built from the branch carries `Requires-Dist: matplotlib>=3.8` and
+`import puma.dashboard.app` works from a wheel-only venv. A module-level
+`import ollama` added to a scratch copy makes the new test fail.
+
+**Correction (2026-11-01).** Two statements above are inaccurate and are left
+as written. `seaborn` is not used by `scripts/generate_phase_b_plots.py`:
+nothing in the repository imports it, and the only dependency file that lists
+it is `requirements.txt`. Clone installs are affected too: the README "Manual
+install", `docs/development-workflow.md` §6 and `start_puma.sh` install from
+pyproject (`pip install -e .` or `pip install -e ".[dev]"`), not from
+`requirements.txt`; the Compose image (`Dockerfile`) and the `lint-and-test`
+and `smoke` CI workflows install the requirements files.
 
 ### D49 — CI never runs `tests/community/` or `tests/cli/`, skips the mkdocs test and only installs pinned requirements (since S12-N2)
 
@@ -890,8 +954,9 @@ installed wheel. Ship in v4.0.1.
 
 ### D51 — Minor hygiene findings: test artefacts in the checkout, deprecated license table, mypy on Python 3.12 (since v4.0.0)
 
-**Status:** OPEN (low) — owner: maintainer. Target: v4.0.1 / patch sprint or
-next maintenance pass.
+**Status:** Items 1 and 3 RESOLVED in v4.0.1 (PR #70 and PR #69, merged to
+`develop` 2026-10-31). Item 2 OPEN (low) — owner: maintainer. Target: next
+maintenance pass, before 2027-02-18.
 **Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
 
 **Finding and triage.**
@@ -924,6 +989,21 @@ next maintenance pass.
 
 **Resolution path.** Three small independent PRs (`test/`, `build/`, `fix/`),
 none touching locked paths. Ship when convenient; item 2 before 2027-02.
+
+**Resolution of item 1 (PR #70).** Commit `e98db3a`: an autouse fixture in
+`tests/conftest.py` points `runner.RESULTS_ROOT` at `tmp_path` and redirects
+relative `InferenceCache` paths there; absolute paths, as used by the cache
+unit tests, are untouched. No `src/` change. After a full unit, community,
+integration (`-m "not ollama"`) and smoke run, `git status --short --ignored`
+shows no new entry under `results/` or `data/cache/`, and the test counts are
+those of `develop` before the change.
+
+**Resolution of item 3 (PR #69).** Commit `d24aeaa`:
+`src/puma/metrics/calibration.py` computes `float(mask.sum()) / n`, so
+`mypy src/puma/` passes on Python 3.11 and 3.12. The ECE value is unchanged
+(bit-identical on 5000 random inputs).
+
+Item 2 (license metadata) remains open.
 
 ### D52 — Erratum to D38: the proposed action tag `v1.3.0` does not exist (documentation)
 
@@ -1025,6 +1105,14 @@ and the validation workflow that applies the label fails before labelling
 once D38 is fixed and the label-to-merge path has been exercised on a real
 submission; until then describe the maintainer-driven merge as the current
 path.
+
+**Update (2026-11-01).** Two related `pumacp/puma-community` PRs are merged:
+PR #3 (`1ee1376`) grants `wiki-sync.yml` `contents: write` so the wiki push
+can succeed, and PR #14 (`224c4a8`) points the Hugging Face dataset references
+in `README.md`, `docs/mirrors-setup.md` and three `wiki/` pages at
+`pumaproject/puma-community-submissions`. The published wiki pages change
+only when the maintainer dispatches `wiki-sync`. The three passages named
+above are unchanged.
 
 ### P1 captures (Sprint 12)
 

@@ -24,12 +24,36 @@ Versions follow [Semantic Versioning](https://semver.org/).
   (`RateLimitOverview.resources.core`) as well as 2.4 (`RateLimit.core`), so
   `puma share-results` no longer fails before its first GitHub write on a
   resolver-chosen PyGithub release (PR #66).
+- D48 — `matplotlib>=3.8` is declared in `[project].dependencies`, so the
+  dashboard works after `pip install puma-cp` or `pip install -e .`; a unit
+  test now checks that every module-level third-party import under
+  `src/puma/` is declared in pyproject; marked RESOLVED in
+  `docs/known_debt.md` (PR #71).
+- D51 (items 1 and 3) — tests no longer leave run artefacts under `results/`
+  or `data/cache/` (PR #70), and `mypy src/puma/` passes on Python 3.12 with
+  an unchanged ECE value (PR #69); item 2 stays open in `docs/known_debt.md`.
 
 ### Infrastructure
 - D41 — `Dockerfile.publish` pins `python:3.11-slim` by digest and upgrades
   setuptools in the final stage so the Trivy gate passes; marked RESOLVED in
   `docs/known_debt.md` (PR #67). The GHCR image publishes on the next release
   tag.
+
+### Companion repositories (not in this repo's git log)
+- `pumacp/puma-community#12` (`fba79b9`): `validate-submission.yml` pins
+  `action-add-labels` to the `v1.1.3` commit, accepts only added files under
+  `submissions/` and drops the `valid` label on new pushes (D38 RESOLVED).
+- `pumacp/puma-community#11` (`e9dc524`), `#10` (`a0da178`) and `#13`
+  (`653a9b3`): verification of newly added submissions with `token=` and the
+  `integrity` hash key, sidecars only when verified, badges that skip
+  sidecars, and auto-merge refused unless every file is added (D39 RESOLVED;
+  labelling of fork PRs remains a limitation).
+- `pumaproject/puma-leaderboard` HF Space @ commit `7de208b`: loads only
+  UUID-named submission records and reads `integrity.verification_status`
+  (D46 RESOLVED).
+- `pumacp/puma-community#3` (`1ee1376`) and `#14` (`224c4a8`): `wiki-sync.yml`
+  granted `contents: write`, and the Hugging Face dataset references moved to
+  `pumaproject/`; the wiki updates when `wiki-sync` is dispatched (D57 note).
 
 ## [4.0.0] — 2026-05-31
 
