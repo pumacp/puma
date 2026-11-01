@@ -25,7 +25,7 @@ _TAGLINE = "Local LLM benchmarks for project management"
 def _resolve_puma_version() -> str:
     """Return the installed PUMA distribution version or a fallback."""
     try:
-        return version("puma")
+        return version("puma-cp")
     except PackageNotFoundError:
         return "0.0.0-unknown"
 
