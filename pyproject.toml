@@ -47,6 +47,7 @@ dependencies = [
     "tomli-w>=1.0.0",
     "PyGithub>=2.4,<3",
     "gradio-client>=1.5,<2.0",
+    "matplotlib>=3.8",
 ]
 
 [project.optional-dependencies]
