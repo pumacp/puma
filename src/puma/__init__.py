@@ -4,4 +4,9 @@ PUMA Understanding & Management w Agents.
 Local, reproducible benchmarking of open LLMs on project management tasks.
 """
 
-__version__ = "2.0.0-dev"
+from importlib.metadata import PackageNotFoundError, version
+
+try:
+    __version__ = version("puma-cp")
+except PackageNotFoundError:  # bare source tree without an installed distribution
+    __version__ = "0.0.0-unknown"

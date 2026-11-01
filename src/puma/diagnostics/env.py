@@ -24,7 +24,7 @@ class EnvironmentInfo:
 
 def _resolve_puma_version() -> str:
     try:
-        return version("puma")
+        return version("puma-cp")
     except PackageNotFoundError:
         return "0.0.0-unknown"
 
