@@ -32,12 +32,20 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - D51 (items 1 and 3) — tests no longer leave run artefacts under `results/`
   or `data/cache/` (PR #70), and `mypy src/puma/` passes on Python 3.12 with
   an unchanged ECE value (PR #69); item 2 stays open in `docs/known_debt.md`.
+- D50 — the banner, `puma env`, `ProfileSnapshot.puma_version` and
+  `puma.__version__` read the installed `puma-cp` version instead of falling
+  back to `0.0.0-unknown` (or the stale `2.0.0-dev`); marked RESOLVED in
+  `docs/known_debt.md` (PR #74).
 
 ### Infrastructure
 - D41 — `Dockerfile.publish` pins `python:3.11-slim` by digest and upgrades
   setuptools in the final stage so the Trivy gate passes; marked RESOLVED in
   `docs/known_debt.md` (PR #67). The GHCR image publishes on the next release
   tag.
+- D51 (item 2) — `pyproject.toml` uses the SPDX `license = "MIT"` expression
+  with `license-files` and requires `setuptools>=77`, so builds no longer emit
+  the license deprecation warnings; D51 marked RESOLVED in
+  `docs/known_debt.md` (PR #75).
 
 ### Companion repositories (not in this repo's git log)
 - `pumacp/puma-community#12` (`fba79b9`): `validate-submission.yml` pins

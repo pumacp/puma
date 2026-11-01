@@ -966,8 +966,7 @@ Report the resolved PyGithub version in the job log.
 
 ### D50 — Version lookups query distribution `puma` instead of `puma-cp`; `0.0.0-unknown` everywhere (since S12.15)
 
-**Status:** OPEN — owner: maintainer. Target: v4.0.1 / patch sprint (needs the
-`runner.py` lock lifted).
+**Status:** RESOLVED in v4.0.1 (PR #74, merged to `develop` 2026-11-01).
 **Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
 
 **Files.** `src/puma/ui/banner.py:28`, `src/puma/diagnostics/env.py:27`,
@@ -996,11 +995,25 @@ metrics), refresh or remove the `__init__.__version__` sentinel, and add a
 unit test asserting the queried distribution name and the resolved value on an
 installed wheel. Ship in v4.0.1.
 
+**Resolution (PR #74).** Commit `9cfd441`: `ui/banner.py`,
+`diagnostics/env.py` and `orchestrator/runner.py` query `version("puma-cp")`;
+the `runner.py` change is that one token only, under the maintainer's lock
+lift for this change. `src/puma/__init__.__version__` is derived from the same
+lookup with the same `0.0.0-unknown` fallback, the pattern `cli.py` uses for
+`--version`, so the `"2.0.0-dev"` sentinel is gone.
+`tests/unit/test_version_lookup.py` (7 tests) asserts the queried
+distribution name and the fallback for the three resolvers and the package
+attribute. Verified in an editable install and in a wheel-only venv run from
+outside the repository: the three resolvers and `__version__` return `4.0.0`,
+and `puma env` prints `PUMA version 4.0.0`; on `develop` before the change the
+same checks gave `0.0.0-unknown` (and `2.0.0-dev` for `__version__`). The
+metric, runner and validate-baseline tests pass unchanged. The inaugural
+submission is unchanged.
+
 ### D51 — Minor hygiene findings: test artefacts in the checkout, deprecated license table, mypy on Python 3.12 (since v4.0.0)
 
-**Status:** Items 1 and 3 RESOLVED in v4.0.1 (PR #70 and PR #69, merged to
-`develop` 2026-10-31). Item 2 OPEN (low) — owner: maintainer. Target: next
-maintenance pass, before 2027-02-18.
+**Status:** RESOLVED in v4.0.1: items 1 and 3 by PR #70 and PR #69 (merged to
+`develop` 2026-10-31), item 2 by PR #75 (merged to `develop` 2026-11-01).
 **Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
 
 **Finding and triage.**
@@ -1048,6 +1061,16 @@ those of `develop` before the change.
 (bit-identical on 5000 random inputs).
 
 Item 2 (license metadata) remains open.
+
+**Resolution of item 2 (PR #75).** Commit `8476e1c`: `pyproject.toml` declares
+`license = "MIT"` (SPDX expression) and `license-files = ["LICENSE"]`, drops
+the `License :: OSI Approved :: MIT License` classifier and requires
+`setuptools>=77` in `[build-system]`. `python -m build` no longer prints the
+license deprecation warnings (12 warning lines before, none after); the wheel
+METADATA carries `License-Expression: MIT` and `License-File: LICENSE`, and
+`LICENSE` ships in the wheel and the sdist. setuptools 76.1.0 rejects the new
+fields and 77.0.1 accepts them. The wheel installs in a fresh venv, and
+`pip install -e .` works in a venv with the pinned requirements.
 
 ### D52 — Erratum to D38: the proposed action tag `v1.3.0` does not exist (documentation)
 
