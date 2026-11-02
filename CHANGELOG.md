@@ -46,6 +46,10 @@ Versions follow [Semantic Versioning](https://semver.org/).
   with `license-files` and requires `setuptools>=77`, so builds no longer emit
   the license deprecation warnings; D51 marked RESOLVED in
   `docs/known_debt.md` (PR #75).
+- D49 — CI now runs `tests/community/` and `tests/cli/` in `lint-and-test`,
+  and a new `unpinned-deps` job tests the pyproject dependency ranges
+  (`pip install -e ".[dev,docs]"`) and runs the mkdocs strict-build test
+  instead of skipping it; marked RESOLVED in `docs/known_debt.md` (PR #77).
 
 ### Companion repositories (not in this repo's git log)
 - `pumacp/puma-community#12` (`fba79b9`): `validate-submission.yml` pins
