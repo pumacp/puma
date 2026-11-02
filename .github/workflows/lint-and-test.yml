@@ -51,6 +51,53 @@ jobs:
           PYTHONPATH: src
         run: pytest tests/integration/ -q --no-header --tb=short -m "not ollama"
 
+      - name: Community tests
+        # The `puma community` / `share-results` surface that produces the
+        # artefacts pumacp/puma-community consumes; previously run nowhere in CI.
+        env:
+          PYTHONPATH: src
+        run: pytest tests/community/ -q --no-header --tb=short
+
+      - name: CLI tests
+        env:
+          PYTHONPATH: src
+        run: pytest tests/cli/ -q --no-header --tb=short
+
+  unpinned-deps:
+    name: Tests with unpinned dependencies
+    # Installs from pyproject.toml only, so the declared dependency ranges are
+    # exercised with whatever the resolver picks today (the pinned requirements
+    # files above never do). This is how the PyGithub >= 2.7 rate-limit
+    # regression escaped. Also the only job with the [docs] extra, so
+    # test_mkdocs_build.py runs instead of being skipped.
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install from pyproject (no requirements pins)
+        run: pip install -e ".[dev,docs]"
+
+      - name: Report resolved versions
+        run: >
+          python -c "from importlib.metadata import version as v;
+          [print(f'{p}=={v(p)}') for p in
+          ('PyGithub', 'gradio-client', 'jsonschema', 'matplotlib', 'pytest')]"
+
+      - name: Community tests
+        run: pytest tests/community/ -q --no-header --tb=short
+
+      - name: share-results against the in-process fake GitHub API
+        run: pytest tests/integration/test_share_results_fake_github.py -q --no-header --tb=short
+
+      - name: mkdocs strict build test
+        run: pytest tests/integration/test_mkdocs_build.py -q --no-header --tb=short
+
   integration-tests-ollama:
     name: Integration tests with Ollama
     runs-on: ubuntu-latest
