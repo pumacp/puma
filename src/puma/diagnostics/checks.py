@@ -16,6 +16,8 @@ from typing import Any, Literal
 
 import httpx
 
+from puma.resources import resolve
+
 Status = Literal["ok", "warn", "fail"]
 
 _DEFAULT_ENDPOINT = "http://localhost:11434"
@@ -169,7 +171,7 @@ def run_all_checks(
     """Run all environment checks in a sensible order and return their results."""
     models = required_models if required_models is not None else list(_DEFAULT_REQUIRED_MODELS)
     db = db_path if db_path is not None else Path("data/puma.db")
-    specs = specs_dir if specs_dir is not None else Path("specs/runs")
+    specs = specs_dir if specs_dir is not None else resolve("specs/runs")
     return [
         check_python_version(),
         check_codecarbon_available(),

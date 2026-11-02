@@ -24,9 +24,10 @@ from puma.dashboard.views import (
     robustness,
     sustainability,
 )
+from puma.resources import resolve
 
 DB_PATH = Path("data/puma.db")
-LOGO_PATH = Path(__file__).resolve().parents[3] / "assets" / "img" / "PUMA.png"
+LOGO_PATH = resolve("assets/img/PUMA.png")
 
 VIEWS = {
     "📊 Overview": overview.render,

@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
+from puma.resources import resolve
+
 if TYPE_CHECKING:
     from puma.scenarios.base import Scenario
 
-PROMPTS_DIR = Path(__file__).parent.parent.parent.parent / "specs" / "prompts"
+PROMPTS_DIR = resolve("specs/prompts")
 
 
 def _get_jinja_env(scenario_name: str) -> Environment:

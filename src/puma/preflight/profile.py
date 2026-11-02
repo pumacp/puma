@@ -8,8 +8,9 @@ from pathlib import Path
 import yaml
 
 from puma.preflight.detect import SystemCapabilities
+from puma.resources import resolve
 
-_PROFILES_PATH = Path(__file__).parent.parent.parent.parent / "config" / "profiles.yaml"
+_PROFILES_PATH = resolve("config/profiles.yaml")
 
 
 class InsufficientHardwareError(RuntimeError):
