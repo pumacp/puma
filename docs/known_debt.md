@@ -934,7 +934,7 @@ and `smoke` CI workflows install the requirements files.
 
 ### D49 — CI never runs `tests/community/` or `tests/cli/`, skips the mkdocs test and only installs pinned requirements (since S12-N2)
 
-**Status:** OPEN — owner: maintainer. Target: v4.0.1 / patch sprint (own `ci/` PR).
+**Status:** RESOLVED in v4.0.1 (PR #77, merged to `develop` 2026-11-02).
 **Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
 
 **Files.** `.github/workflows/lint-and-test.yml`, `.github/workflows/smoke.yml`,
@@ -963,6 +963,21 @@ the development workflow §3): add `pytest tests/community/ tests/cli/` to
 `tests/integration/test_share_results_fake_github.py` and
 `tests/integration/test_mkdocs_build.py`, which also un-skips the mkdocs test.
 Report the resolved PyGithub version in the job log.
+
+**Resolution (PR #77).** Commit `8e9d4f4`: the `lint-and-test` job in
+`.github/workflows/lint-and-test.yml` also runs `pytest tests/community/` and
+`pytest tests/cli/`, and a new `unpinned-deps` job installs with
+`pip install -e ".[dev,docs]"` (no requirements pins), prints the resolved
+PyGithub, gradio-client, jsonschema, matplotlib and pytest versions, and runs
+`tests/community/`, `tests/integration/test_share_results_fake_github.py` and
+`tests/integration/test_mkdocs_build.py`. Triggers, permissions, existing job
+names and the Ollama job are unchanged; `lint-and-test` stays the required
+check. On the PR run both jobs passed: `lint-and-test` ran community (208
+passed, 1 skipped) and cli (23 passed); `unpinned-deps` resolved PyGithub
+2.10.0 and gradio-client 1.14.0, ran community (208 passed, 1 skipped), the
+fake-GitHub test (5 passed) and `test_mkdocs_build.py` (4 passed, none
+skipped). The `smoke.yml` and `requirements-dev.txt` files listed above were
+not changed.
 
 ### D50 — Version lookups query distribution `puma` instead of `puma-cp`; `0.0.0-unknown` everywhere (since S12.15)
 
