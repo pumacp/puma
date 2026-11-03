@@ -1,8 +1,9 @@
 name: Docs
 
-# Build the MkDocs site on every docs-affecting push/PR to develop or main, and
-# publish it to GitHub Pages (gh-pages branch) on pushes to develop. Uses only
-# the auto-provided GITHUB_TOKEN.
+# Build the MkDocs site on every docs-affecting push to develop or main and on
+# every pull request to develop or main (so the build job can be a required
+# check), and publish it to GitHub Pages (gh-pages branch) on pushes to
+# develop. Uses only the auto-provided GITHUB_TOKEN.
 
 on:
   push:
@@ -14,11 +15,6 @@ on:
       - '.github/workflows/docs.yml'
   pull_request:
     branches: [develop, main]
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - 'pyproject.toml'
-      - '.github/workflows/docs.yml'
   workflow_dispatch: {}
 
 concurrency:
