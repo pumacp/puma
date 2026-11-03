@@ -1,13 +1,11 @@
 name: bandit
 
-# Python SAST scan against src/puma/. -lll sets the severity threshold
-# to HIGH: only HIGH-severity findings surface in the output and only
-# HIGH causes a non-zero exit. LOW and MEDIUM findings are deliberately
-# left to local-run review — the S12-N2 baseline run on develop
-# surfaced 3 MEDIUM findings that are all design-justified (intentional
-# 0.0.0.0 dashboard bind, controlled-input SQL, hardcoded localhost
-# urlopen). Tests (tests/) are excluded — bandit's defaults flag
-# assert statements as B101, which is the canonical test idiom and
+# Python SAST scan against src/puma/, as documented in docs/security.md:
+# MEDIUM and higher findings are reported, and only HIGH fails the build.
+# Step 1 runs with -ll (MEDIUM+) and --exit-zero so the findings are visible
+# in the log without failing the job; step 2 runs with -lll so any HIGH
+# finding makes the job fail. Tests (tests/) are excluded — bandit's defaults
+# flag assert statements as B101, which is the canonical test idiom and
 # would generate noise.
 #
 # Cadence: every push to develop / main, every PR, manual dispatch.
@@ -36,5 +34,8 @@ jobs:
       - name: Install bandit
         run: pip install --upgrade pip bandit
 
-      - name: Run bandit against src/puma/
+      - name: Report MEDIUM and higher findings (never fails)
+        run: bandit -r src/puma/ -ll --exit-zero
+
+      - name: Fail on HIGH findings
         run: bandit -r src/puma/ -lll
