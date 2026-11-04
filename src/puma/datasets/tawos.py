@@ -12,9 +12,11 @@ from pathlib import Path
 
 import pandas as pd
 
+from puma.resources import resolve_cwd
+
 logger = logging.getLogger(__name__)
 
-_CSV_PATH = Path("data") / "tawos_clean.csv"
+_CSV_PATH = resolve_cwd("data/tawos_clean.csv")
 _DB_CSV = Path("db") / "tawos.csv"
 _SQL_PATH = Path("db") / "TAWOS.sql"
 

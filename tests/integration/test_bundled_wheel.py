@@ -139,3 +139,36 @@ print(json.dumps({
     assert "gpu-entry" in info["profile_ids"]
     assert info["n_catalog"] > 0
     assert (workdir / "bundled.db").exists(), "init_db ran the bundled migrations"
+
+
+def test_installed_wheel_prefers_data_in_the_working_directory(wheel_path, tmp_path):
+    """A wheel install run from a directory that holds its own data/ uses that
+    directory, as the code did before the data was bundled; the bundled copy is
+    used only when the working directory has no such file."""
+    site = tmp_path / "site"
+    with zipfile.ZipFile(wheel_path) as zf:
+        zf.extractall(site)
+    workdir = tmp_path / "project"
+    (workdir / "data").mkdir(parents=True)
+    shutil.copyfile(
+        _REPO_ROOT / "data" / "jira_balanced_200.csv", workdir / "data" / "jira_balanced_200.csv"
+    )
+    env = dict(os.environ, PYTHONPATH=str(site))
+    env.pop("PUMA_DATA_DIR", None)
+    code = (
+        "import json; from puma.datasets import jira_sr, tawos; "
+        "print(json.dumps({'jira': str(jira_sr._CSV_PATH), 'tawos': str(tawos._CSV_PATH)}))"
+    )
+    result = subprocess.run(
+        [sys.executable, "-c", code], cwd=workdir, env=env, capture_output=True, text=True
+    )
+    assert result.returncode == 0, result.stderr
+    info = json.loads(result.stdout.strip().splitlines()[-1])
+    assert info["jira"] == "data/jira_balanced_200.csv"  # the working directory copy, relative
+    assert info["tawos"] == "data/tawos_clean.csv"  # absent everywhere: the relative path
+    (workdir / "data" / "jira_balanced_200.csv").unlink()
+    result = subprocess.run(
+        [sys.executable, "-c", code], cwd=workdir, env=env, capture_output=True, text=True
+    )
+    info = json.loads(result.stdout.strip().splitlines()[-1])
+    assert Path(info["jira"]) == site / "puma" / "_bundled" / "data" / "jira_balanced_200.csv"
