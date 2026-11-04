@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pandas as pd
 
-from puma.resources import resolve
+from puma.resources import resolve_cwd
 
 logger = logging.getLogger(__name__)
 
-_CSV_PATH = resolve("data/jira_balanced_200.csv")
+_CSV_PATH = resolve_cwd("data/jira_balanced_200.csv")
 _DB_CSV = Path("db") / "jira_sr.csv"
 
 _REQUIRED_COLS = {"issue_key", "title", "description", "priority"}

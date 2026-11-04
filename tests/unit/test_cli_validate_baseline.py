@@ -17,7 +17,7 @@ from typer.testing import CliRunner
 
 import puma.cli as cli_module
 from puma.cli import app
-from puma.resources import resolve
+from puma.resources import resolve_cwd
 
 
 @pytest.fixture
@@ -150,7 +150,7 @@ def test_validate_baseline_mae_path_uses_estimation_spec_by_default(
         ["validate-baseline", "--expected-mae", "2.91", "--tolerance", "0.10"],
     )
     assert result.exit_code == 0, result.stdout
-    # The default is resolved through puma.resources (D42): in a clone it is the
-    # repository's own spec file.
-    assert Path(captured["spec"]) == resolve("specs/runs/baseline_estimation_canonical.yaml")
-    assert Path(captured["spec"]).name == "baseline_estimation_canonical.yaml"
+    # The default is resolved through puma.resources: from the repository root it
+    # is the same relative path the command used before the data was bundled.
+    assert Path(captured["spec"]) == resolve_cwd("specs/runs/baseline_estimation_canonical.yaml")
+    assert captured["spec"] == "specs/runs/baseline_estimation_canonical.yaml"

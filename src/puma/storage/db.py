@@ -3,10 +3,10 @@
 Schema lifecycle is driven by Alembic migrations (see
 ``specs/storage-migrations.spec.md``). ``init_db`` invokes
 ``alembic upgrade head`` programmatically; there is no fallback to
-``Base.metadata.create_all`` (decision I3). In a source tree ``alembic.ini``
-must be reachable from the working directory and ``init_db`` raises a clear
-``RuntimeError`` when it is not (AC-08). Only an installed wheel, which has
-no source tree, uses the bundled migrations under ``puma/_bundled/alembic``.
+``Base.metadata.create_all`` (decision I3). ``alembic.ini`` is loaded from
+the working directory when it is there. Otherwise a source tree raises a
+clear ``RuntimeError`` (AC-08), and an installed wheel, which has no source
+tree, uses the bundled migrations under ``puma/_bundled/alembic``.
 """
 
 from __future__ import annotations
@@ -31,26 +31,27 @@ _SessionLocal: sessionmaker[Session] | None = None
 def _alembic_config_for(url: str) -> Config:
     """Build an Alembic ``Config`` bound to ``url``.
 
-    In a source tree (``<repository root>/alembic`` exists) ``alembic.ini`` is
-    loaded from the current working directory and a ``RuntimeError`` is raised
-    when it is not there, so the failure mode stays explicit (decision I3 — no
-    silent fallback). In an installed wheel there is no source tree, so the
-    configuration is built programmatically with ``script_location`` pointing
-    at the bundled migrations (``puma/_bundled/alembic``). Either way
-    ``sqlalchemy.url`` is overridden with the caller-provided one.
+    When ``alembic.ini`` exists in the current working directory it is loaded,
+    as it always was. Otherwise, in a source tree (``<repository root>/alembic``
+    exists) a ``RuntimeError`` is raised so the failure mode stays explicit
+    (decision I3 — no silent fallback), and in an installed wheel, which has
+    no source tree, the configuration is built programmatically with
+    ``script_location`` pointing at the bundled migrations
+    (``puma/_bundled/alembic``). Either way ``sqlalchemy.url`` is overridden
+    with the caller-provided one.
     """
     from alembic.config import Config
 
     from puma.resources import in_source_tree, resolve
 
-    if in_source_tree("alembic"):
-        if not _ALEMBIC_INI.exists():
-            raise RuntimeError(
-                f"Alembic configuration not found at {_ALEMBIC_INI.resolve()}. "
-                "init_db() requires alembic.ini reachable from the working "
-                "directory. Run from the project root or set CWD accordingly."
-            )
+    if _ALEMBIC_INI.exists():
         cfg = Config(str(_ALEMBIC_INI))
+    elif in_source_tree("alembic"):
+        raise RuntimeError(
+            f"Alembic configuration not found at {_ALEMBIC_INI.resolve()}. "
+            "init_db() requires alembic.ini reachable from the working "
+            "directory. Run from the project root or set CWD accordingly."
+        )
     else:
         cfg = Config()
         cfg.set_main_option("script_location", str(resolve("alembic")))

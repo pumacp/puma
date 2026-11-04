@@ -1,4 +1,4 @@
-"""Locate PUMA's runtime data files (D42 prototype).
+"""Locate PUMA's runtime data files.
 
 PUMA reads several non-Python files at run time: the hardware profiles and the
 model catalog under ``config/``, the prompt templates and run-specs under
@@ -8,18 +8,26 @@ about that changes. A wheel built with ``python -m build`` additionally
 carries byte-identical copies of them under ``puma/_bundled/`` (see
 ``setup.py``), so a ``pip install puma-cp`` works without a clone.
 
-This module is the single place that decides which copy a lookup uses:
+Two kinds of lookup exist, matching how the paths were computed before the
+data was bundled:
 
-1. the source tree, ``<repository root>/<relative path>``, whenever it exists,
-   so an editable install or ``PYTHONPATH=src`` behaves exactly as before;
-2. the bundled copy, ``puma/_bundled/<relative path>``.
-
-When neither exists the source-tree path is returned unchanged, so the callers
-keep today's error messages and ``exists()`` checks.
+* :func:`resolve` for paths that were derived from the package location
+  (``config/``, ``specs/prompts``, ``assets/``, the ``alembic/`` directory):
+  the source tree ``<repository root>/<relative path>`` when it exists, then
+  the bundled copy ``puma/_bundled/<relative path>``. When neither exists the
+  source-tree path is returned unchanged, so callers keep their error messages.
+* :func:`resolve_cwd` for paths that were relative to the working directory
+  (datasets under ``data/``, run-specs under ``specs/runs``): the directory
+  named by ``PUMA_DATA_DIR`` (for ``data/``) or ``PUMA_SPECS_DIR`` (for
+  ``specs/``) when the variable is set and the file exists there, then the
+  working-directory path exactly as before (returned as the same relative
+  ``Path``), then the source tree, then the bundled copy. When none exists the
+  relative path is returned unchanged, so callers keep their error messages.
 """
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 _PACKAGE_DIR = Path(__file__).resolve().parent
@@ -46,9 +54,33 @@ BUNDLED_PATTERNS: tuple[str, ...] = (
 )
 
 
+#: Top-level directory of a working-directory-relative path -> environment
+#: variable naming a replacement directory for that domain.
+DOMAIN_ENV_VARS: dict[str, str] = {
+    "data": "PUMA_DATA_DIR",
+    "specs": "PUMA_SPECS_DIR",
+}
+
+
 def search_roots() -> tuple[Path, Path]:
     """Return the roots searched by :func:`resolve`: the source tree, then the bundle."""
     return (SOURCE_ROOT, BUNDLED_ROOT)
+
+
+def domain_override(relative: str) -> Path | None:
+    """Return ``<env dir>/<rest of path>`` for an overridable domain, else ``None``.
+
+    ``relative`` is ``<domain>/<rest>``; the override applies only when the
+    domain is in :data:`DOMAIN_ENV_VARS` and its variable is set and non-empty,
+    so ``data/tawos_clean.csv`` becomes ``$PUMA_DATA_DIR/tawos_clean.csv`` and
+    ``specs/runs/x.yaml`` becomes ``$PUMA_SPECS_DIR/runs/x.yaml``.
+    """
+    domain, _, rest = relative.partition("/")
+    variable = DOMAIN_ENV_VARS.get(domain)
+    value = os.environ.get(variable, "") if variable else ""
+    if not value or not rest:
+        return None
+    return Path(value) / rest
 
 
 def in_source_tree(relative: str) -> bool:
@@ -67,6 +99,27 @@ def resolve(relative: str) -> Path:
         if candidate.exists():
             return candidate
     return SOURCE_ROOT / relative
+
+
+def resolve_cwd(relative: str) -> Path:
+    """Resolve a path that used to be relative to the working directory.
+
+    Order: the :func:`domain_override` directory when set and the file exists
+    there; the working-directory path ``Path(relative)`` when it exists (returned
+    relative, as it was before); the source tree; the bundled copy. When none
+    exists ``Path(relative)`` is returned, so callers keep their error messages.
+    """
+    override = domain_override(relative)
+    if override is not None and override.exists():
+        return override
+    local = Path(relative)
+    if local.exists():
+        return local
+    for root in search_roots():
+        candidate = root / relative
+        if candidate.exists():
+            return candidate
+    return local
 
 
 def bundled_files(root: Path = SOURCE_ROOT) -> list[Path]:

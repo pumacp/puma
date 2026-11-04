@@ -299,7 +299,7 @@ def validate_baseline(
     0.5867 on the triage baseline), so existing CI commands continue to
     work unchanged.
     """
-    from puma.resources import resolve
+    from puma.resources import resolve_cwd
 
     if expected_f1 is not None and expected_mae is not None:
         typer.secho(
@@ -314,11 +314,11 @@ def validate_baseline(
         expected_f1 = 0.5867
 
     if expected_mae is not None:
-        resolved_spec = spec or str(resolve("specs/runs/baseline_estimation_canonical.yaml"))
+        resolved_spec = spec or str(resolve_cwd("specs/runs/baseline_estimation_canonical.yaml"))
         metric_key = "mae"
         expected_value = expected_mae
     else:
-        resolved_spec = spec or str(resolve("specs/runs/baseline_triage.yaml"))
+        resolved_spec = spec or str(resolve_cwd("specs/runs/baseline_triage.yaml"))
         metric_key = "f1_macro"
         expected_value = expected_f1  # type: ignore[assignment]
 
