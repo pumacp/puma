@@ -45,6 +45,7 @@ _PUBLIC_DOCS = [
     "HARDWARE.md",
     "MACOS_NOTES.md",
     # Releases
+    "RELEASES/v4.0.1.md",
     "RELEASES/v3.1.0.md",
     "RELEASES/v3.0.0.md",
     # Project

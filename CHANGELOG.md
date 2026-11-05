@@ -8,9 +8,20 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.0.1] — 2026-11-05
+
 ### Added
 - Top-level `puma --version` flag printing the installed `puma-cp` version
   (D43 RESOLVED, PR #63).
+- D42 — the wheel bundles the runtime data under `puma/_bundled/`
+  (`config/profiles.yaml`, `config/models_catalog.yaml`, the prompt
+  templates, the run-specs, the Alembic configuration and migrations,
+  `assets/img/PUMA.png` and `data/jira_balanced_200.csv`) and
+  `puma.resources.resolve()` falls back to that copy when the source tree is
+  absent (PR #79); marked RESOLVED in `docs/known_debt.md`.
+- `PUMA_DATA_DIR` and `PUMA_SPECS_DIR` name the directories searched first
+  for `data/` files and `specs/` run-specs, followed by the working
+  directory, the source tree and the bundled copy (PR #81, D42).
 
 ### Fixed
 - D40 — `puma share-results` no longer stalls after the Review panel: the
@@ -50,6 +61,15 @@ Versions follow [Semantic Versioning](https://semver.org/).
   and a new `unpinned-deps` job tests the pyproject dependency ranges
   (`pip install -e ".[dev,docs]"`) and runs the mkdocs strict-build test
   instead of skipping it; marked RESOLVED in `docs/known_debt.md` (PR #77).
+- `bandit.yml` reports MEDIUM and higher findings with `-ll --exit-zero` and
+  fails only on HIGH with `-lll`; the `docs.yml` build job runs on every pull
+  request to `develop` or `main` (PR #80).
+
+### Documentation
+- `docs/known_debt.md` registers D58–D68: errata to the security, CI and
+  `pumacp/puma-community` documentation, documented `PUMA_` environment
+  variables the code does not read, the D42 behaviour for installed wheels,
+  and the `puma db migrate` failure in a directory without `data/` (PR #82).
 
 ### Companion repositories (not in this repo's git log)
 - `pumacp/puma-community#12` (`fba79b9`): `validate-submission.yml` pins
