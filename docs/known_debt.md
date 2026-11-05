@@ -1202,6 +1202,295 @@ in `README.md`, `docs/mirrors-setup.md` and three `wiki/` pages at
 only when the maintainer dispatches `wiki-sync`. The three passages named
 above are unchanged.
 
+### D58 — `docs/security.md` describes PyPI publishing as OIDC trusted publishing; the workflow uses an API token (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: next patch.
+**Discovered:** v4.0.1 release preparation (2026-11-02).
+
+**Files.** `docs/security.md:50` and `docs/security.md:244`;
+`.github/workflows/publish-pypi.yml:46-52`.
+
+**Finding.** `docs/security.md` line 50 states that PyPI "publishes via OIDC
+`id-token: write` (trusted publishing)", and the workflow table on line 244
+describes `publish-pypi.yml` as "OIDC-based trusted publishing — no PyPI
+token in repo secrets". The workflow does declare `id-token: write` on the
+`publish-pypi` job, but its publish step passes
+`password: ${{ secrets.PYPI_API_TOKEN }}` to `pypa/gh-action-pypi-publish`,
+and the comment above that line (lines 49-51) says "Token auth until trusted
+publishing is configured". The `publish-testpypi` job likewise uses
+`secrets.TEST_PYPI_API_TOKEN`. Publication therefore depends on a long-lived
+API token stored as a repository secret, which is what the document says is
+not the case.
+
+**Consequence.** Documentation only; the workflow works as written. Readers
+of the threat model are told the token-leak class does not apply to PyPI
+publishing when it does, and the trusted-publisher configuration on PyPI
+that the document implies has not been verified.
+
+**Resolution path.** Either configure a trusted publisher for `puma-cp` on
+PyPI (and TestPyPI), remove the two `password:` lines so the action uses the
+`id-token` permission, and delete the token secrets; or correct the two
+passages in `docs/security.md` to describe token authentication. The
+document is unchanged by this entry.
+
+### D59 — Erratum: the Trivy scan covers one image, on tag pushes only, with unfixed CVEs ignored (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of the security documentation (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** `docs/security.md` (threat-model and workflow tables),
+`.github/workflows/publish-docker.yml`.
+
+**Finding.** The only Trivy step in `pumacp/puma` is in
+`publish-docker.yml`: it scans `ghcr.io/pumacp/puma:<version>` with
+`severity: 'CRITICAL,HIGH'`, `exit-code: '1'` and `ignore-unfixed: true`, and
+the workflow runs on `push: tags: ['v*']` (plus manual dispatch). The Compose
+images built from the repo-root `Dockerfile` are never scanned, findings
+without an upstream fix are ignored, and no workflow in `pumacp/puma-community`
+mentions Trivy. The GitHub Security tab holds seven open alerts from the
+v4.0.0 analysis, per the repository maintainer.
+
+**Resolution path.** Describe the scope precisely in `docs/security.md`
+(one published image, tag pushes, unfixed CVEs ignored, Security-tab alerts
+from the v4.0.0 run). Scanning the Compose images is not planned.
+
+### D60 — Erratum: CI workflow names and the scope of mypy strict (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of the CI documentation (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** `.github/workflows/` in `pumacp/puma` and `pumacp/puma-vault`;
+`pyproject.toml` (`[tool.mypy]`).
+
+**Finding.** `pumacp/puma` has no `ci.yml`; the lint, type-check and test job
+lives in `lint-and-test.yml` (the other workflows are `bandit.yml`,
+`docs.yml`, `gitleaks.yml`, `pip-audit.yml`, `publish-docker.yml`,
+`publish-pypi.yml`, `release.yml`, `smoke.yml`, `wiki-sync.yml`). mypy runs
+with `strict = false` globally and `strict = true` only for the override
+modules `puma.metrics.*`, `puma.runtime.*` and `puma.preflight.*`. There is
+no `publish-vault.yml`: `pumacp/puma-vault` deploys from its `v4` branch
+through three workflows that all declare `name: Deploy Quartz to GitHub
+Pages` and trigger on `push: branches: ["v4"]` (`deploy.yaml`, `deploy.yml`,
+`static.yml`), alongside `ci.yaml`, `docker-build-push.yaml`,
+`build-preview.yaml`, `deploy-preview.yaml` and two `*_example.yml` files.
+
+**Resolution path.** Name the workflows as they exist and state the mypy
+strict scope. Renaming workflows and enabling global strict mode are not
+planned.
+
+### D61 — Erratum: verification runs only for submissions added in the latest commit (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of `pumacp/puma-community` (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** `pumacp/puma-community` `scripts/verify_submissions.py`,
+`.github/workflows/verify-submission.yml`.
+
+**Finding.** `verify-submission.yml` runs `scripts/verify_submissions.py`,
+which lists `git diff --name-only --diff-filter=A HEAD~1..HEAD` under
+`submissions/` and verifies only those files, so a submission modified in
+place is never re-verified. This is the behaviour since PR #11 (`e9dc524`,
+2026-10-31, "verify only added submissions and write verified sidecars
+only"), introduced so that historical submissions keep their original
+verification record.
+
+**Resolution path.** Document the added-files-only rule and its rationale.
+Re-verifying modified submissions is not planned.
+
+### D62 — Erratum: submissions are not signed and the schema check is not an enforced pre-merge gate (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of `pumacp/puma-community` (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** `pumacp/puma-community` `README.md:170`
+("signs the integrity hash"), `.github/workflows/validate-submission.yml`;
+`pumacp/puma` `src/puma/community/schema.py` (`payload_signature`),
+`src/puma/community/builder.py`.
+
+**Finding.** `payload_signature` is an optional `string | null` field that
+nothing in `src/puma/community/` sets; the builder fills
+`integrity=Integrity(predictions_summary_hash=...)` only, so no submission
+carries a signature. The `validate` check of `validate-submission.yml` is not
+enforced before merge: on PR #8 (the inaugural submission) the check run
+`validate` concluded `failure` on 2026-05-31 and the PR was merged as
+`111cee3`.
+
+**Resolution path.** Remove the signing claim and describe the validation
+check as advisory until branch protection requires it. Adding submission
+signatures is not planned.
+
+### D63 — Erratum: the "9-check programmatic validation pipeline" has three rejecting checks (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of `pumacp/puma-community` (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** `CHANGELOG.md` (`[4.0.0]`, Security: "A 9-check programmatic
+validation pipeline"), `docs/sprint12-retrospective.md:32` and `:97`;
+`pumacp/puma-community` `.github/workflows/validate-submission.yml`.
+
+**Finding.** `validate-submission.yml` rejects a pull request for three
+reasons: a file under `submissions/` that is not an addition (step "Refuse
+changes to existing submission files"), a JSON Schema violation or unparsable
+JSON (`Draft202012Validator` over `schema/submission.v1.json`), and a filename
+that differs from `submissions/<submission_id>.json`. No other check in that
+workflow rejects a submission.
+
+**Resolution path.** Describe the three checks; the figure "9" has no
+counterpart in the workflow. Extending the pipeline is not planned.
+
+### D64 — Errata to `pumacp/puma-community` documentation: hash recompute, signing, PII scan scope, version range, "merged" label, auto-merge (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of `pumacp/puma-community` (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** In `pumacp/puma-community`: `README.md`, `docs/index.md`,
+`wiki/Validation-Process.md`, `wiki/Why-PUMA-Community.md`,
+`wiki/Anonymity-And-Privacy.md`, `wiki/Home.md`, `wiki/Submitting-Results.md`.
+
+**Finding.** Compared with `validate-submission.yml`, `auto-merge-valid.yml`
+and the `submission.v1.json` schema:
+
+- `docs/index.md:120`, `wiki/Validation-Process.md:30-33`,
+  `wiki/Why-PUMA-Community.md:22` and `wiki/Anonymity-And-Privacy.md:61` say
+  the validation workflow recomputes `predictions_summary_hash`; the workflow
+  contains no hash computation. Only the post-merge `verify-submission`
+  workflow checks the hash, for newly added files that publish
+  `raw_predictions_url`.
+- `README.md:170` says the tool "signs the integrity hash"; no signature is
+  produced (see D62).
+- `wiki/Home.md:5` describes submissions as "PII-scanned before" acceptance;
+  the server-side workflow has no PII scan. The canonical scan is client-side
+  in `puma share-results`, as `wiki/FAQ.md:24` and `docs/maintainer-guide.md`
+  state.
+- `wiki/Validation-Process.md:24` says "The PUMA version matches the supported
+  range"; the schema only constrains `puma_version` to the pattern
+  `^\d+\.\d+\.\d+(-[a-zA-Z0-9\.]+)?$`.
+- `wiki/Submitting-Results.md:78` says a "merged" label appears once
+  auto-merge runs; no workflow applies a `merged` label.
+- `README.md:186`, `docs/index.md:62` and `wiki/Validation-Process.md:35-40`
+  describe automatic merging; the `auto-merge-valid.yml` workflow has zero
+  recorded runs (GitHub Actions run list on 2026-11-03), and the only merged
+  submission (PR #8) was merged by hand (see D57).
+
+**Resolution path.** Correct the passages in `pumacp/puma-community` when its
+documentation is revised.
+
+### D65 — Backlog: documented `PUMA_` environment variables that the code does not read (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Audit of `src/puma/` against the project's documented table of
+`PUMA_` environment variables (2026-11-03).
+
+**Files.** `src/puma/` (all `os.environ` reads), `docker-compose.yml`,
+`Dockerfile`, `Dockerfile.publish`, `start_puma.sh`.
+
+**Finding.** Eight variables of the project's documented table of `PUMA_`
+environment variables are not read anywhere under `src/puma/` on `develop`
+(`cab0729`); the code does the following instead:
+
+- `PUMA_DB_PATH`: the database path is the `--db` option of `puma run` and
+  `puma db …`, default `data/puma.db` (`storage/db.py` `_DEFAULT_DB`).
+- `PUMA_LANG`: no language setting exists.
+- `PUMA_OUTPUT_DIR`: run artefacts go to the working-directory `results/`
+  (`orchestrator/runner.py` `RESULTS_ROOT`), plots to the `--output-dir`
+  option of `puma generate-plots`.
+- `PUMA_OLLAMA_HOST`: the code reads `OLLAMA_HOST` (`cli.py`,
+  `scenarios/triage_jira.py:25`, `scenarios/estimation_tawos.py:25`, default
+  `http://localhost:11434`). `start_puma.sh:97` exports `PUMA_OLLAMA_HOST`,
+  which nothing reads.
+- `PUMA_VERBOSE`: the `--verbose` / `-v` flag of the root command
+  (`cli.py:52`).
+- `PUMA_NO_PROGRESS`: no equivalent; `--quiet` suppresses the progress
+  display; the banner and the summary are controlled by `--no-banner` and
+  `--no-summary` (cli.py:45, :53).
+- `PUMA_DASHBOARD_PORT`: the `--port` option of `puma dashboard`, default
+  8501 (`cli.py:440`); `docker-compose.yml` passes `--server.port 8501`.
+- `PUMA_TRACKING_MODE`: the CodeCarbon tracking mode is chosen in code by
+  `get_tracking_mode_and_warnings()` (codecarbon_wrapper.py:39), which
+  returns `machine` or falls back to `process` (codecarbon_wrapper.py:68);
+  it is not configurable.
+
+`docker-compose.yml` sets none of the eight; it sets `OLLAMA_HOST`,
+`LLM_MODEL`, `PYTHONPATH` and the three `PUMA_GPU_*` variables.
+
+**Resolution path.** Decide per variable whether to implement it or to drop it
+from the table, then align the documentation with the implemented set.
+
+### D66 — Note: D42 resolution behaviour for installed wheels (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** D42 merge to `develop` (`be68d4b`, 2026-11-02).
+
+**Files.** `src/puma/resources.py`, `src/puma/storage/db.py`, `setup.py`,
+`MANIFEST.in`.
+
+**Finding.** Since `be68d4b` a wheel built with `python -m build` carries
+byte-identical copies of the runtime data under `puma/_bundled/` and
+`puma.resources.resolve()` falls back to them when the source tree is
+absent. For the database, `storage/db.py` keeps the clone behaviour
+unchanged: when `<repository root>/alembic` exists, `alembic.ini` must be in
+the working directory and `init_db` raises the AC-08 `RuntimeError` when it
+is not. Only an installed wheel, which has no source tree, builds the Alembic
+configuration programmatically with `script_location` set to the bundled
+migrations. The user documentation does not yet describe either behaviour.
+
+**Resolution path.** Describe both cases (clone unchanged; wheel uses the
+bundled copies and migrations) in the next documentation version, and close
+the D42 entry above when that revision lands.
+
+### D67 — Erratum: `docs/security.md` line 182 names the bandit HIGH threshold flag as `-l` (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Review of `docs/security.md` against `.github/workflows/bandit.yml`
+(2026-11-03).
+
+**File.** `docs/security.md:182`, left unchanged.
+
+**Finding.** The workflow table says bandit "fails the build on `HIGH` (`-l`)".
+In bandit, `-l` is the LOW threshold; HIGH is `-lll`, which is what
+`.github/workflows/bandit.yml` runs in its "Fail on HIGH findings" step since
+`cab0729`. The surrounding text ("Reports `MEDIUM`+ via `-ll`") is correct.
+
+**Resolution path.** Replace `-l` by `-lll` in that cell when the document is
+revised.
+
+### D68 — `puma db migrate` with the default `--db` fails in a working directory without `data/` (since v2.x)
+
+**Status:** OPEN — owner: maintainer. Target: next patch.
+**Discovered:** D42 verification from a wheel-only install (2026-11-03).
+
+**Files.** `src/puma/cli.py` (`db_migrate`, `db_downgrade`, `db_history`),
+`src/puma/storage/db.py` (`_alembic_config_for`).
+
+**Finding.** `puma db migrate` (default `--db data/puma.db`) run from a
+directory that has no `data/` subdirectory fails with
+`(sqlite3.OperationalError) unable to open database file`, exit code 1, and
+creates nothing. The `db` commands build the Alembic configuration and call
+`command.upgrade` directly, without the `path.parent.mkdir(parents=True,
+exist_ok=True)` that `init_db()` performs, so SQLite cannot create the file.
+With an existing `data/` directory the same command succeeds ("Database
+migrated to revision: head"). Reproduced on 2026-11-03 with the develop
+(`cab0729`) wheel in an empty directory.
+
+**Resolution path.** Create the parent directory of the `--db` path in the
+`db` commands (or route them through the same helper as `init_db()`), with a
+CLI test that runs `puma db migrate` from an empty temporary directory.
+
 ### P1 captures (Sprint 12)
 
 Coordinator-level prompt-drift captures. Earlier captures are embedded in the
