@@ -708,7 +708,8 @@ tag.
 
 ### D42 — PyPI wheel does not bundle config/profiles.yaml and other data files (since S12.18)
 
-**Status:** OPEN — owner: maintainer. Target: post-Sprint-12 (v4.0.1 / patch sprint).
+**Status:** RESOLVED in v4.0.1 (PR #79, merged to `develop` 2026-11-02, and
+PR #81, merged to `develop` 2026-11-05).
 **Discovered:** Post-S12.18 verification (`pip install puma-cp==4.0.0` in a clean venv).
 
 **File.** `pyproject.toml` — missing `include-package-data = true` or a
@@ -730,6 +731,22 @@ working tree.
 Verify by rebuilding the wheel and inspecting it:
 `python -m zipfile -l dist/puma_cp-*.whl | grep -E "(config|schema)"`. Ship in
 v4.0.1.
+
+**Resolution (PRs #79 and #81).** Commit `be68d4b` (PR #79): `setup.py`
+copies the files matched by `puma.resources.BUNDLED_PATTERNS`
+(`config/profiles.yaml`, `config/models_catalog.yaml`,
+`specs/prompts/*/*.jinja`, `specs/runs/*.yaml`, `alembic.ini`, the Alembic
+environment, template and migrations, `assets/img/PUMA.png` and
+`data/jira_balanced_200.csv`) into `puma/_bundled/` in the wheel,
+`pyproject.toml` declares `puma/community/schema_data/*.json` as package
+data, and the runtime lookups call `puma.resources.resolve()`, which falls
+back to the bundled copy when the source tree is absent. Commit `58d9b56`
+(PR #81): `data/` files and `specs/` run-specs are looked up in
+`PUMA_DATA_DIR` or `PUMA_SPECS_DIR` when set, then the working directory,
+the source tree and the bundled copy; `alembic.ini` is loaded from the
+working directory when present. Covered by `tests/unit/test_resources.py`
+and `tests/integration/test_bundled_wheel.py`. The TAWOS dataset is not
+bundled. D66 records the user-documentation follow-up.
 
 ### D43 — CLI does not expose a top-level `--version` flag (since S12.18)
 

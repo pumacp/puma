@@ -37,6 +37,7 @@ _PUBLIC_DOCS = [
     "CROSS_ARCH_REPRODUCIBILITY.md",
     "HARDWARE.md",
     "MACOS_NOTES.md",
+    "RELEASES/v4.0.1.md",
     "RELEASES/v3.1.0.md",
     "RELEASES/v3.0.0.md",
     "PROJECT_TECHNICAL_CLOSURE.md",
