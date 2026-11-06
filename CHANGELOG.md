@@ -8,7 +8,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [4.0.1] — 2026-11-05
+## [4.0.1] — 2026-11-06
 
 ### Added
 - Top-level `puma --version` flag printing the installed `puma-cp` version
