@@ -706,6 +706,19 @@ Python 3.11.18, application packages, entrypoint, user and workdir are
 unchanged. Nothing was pushed to GHCR; the image publishes on the next `v*`
 tag.
 
+**Follow-up (2026-11-07).** The first manual `publish-docker.yml` dry run on
+`develop` (run 42276392230, 2026-11-06) failed the Trivy gate on a new HIGH
+finding in the pinned base: apt and libapt-pkg7.0 3.0.3, CVE-2026-109518,
+fixed in 3.0.4. Both stages of `Dockerfile.publish` now pull the current
+`python:3.11-slim` multi-arch index `sha256:65bd3d9f…` (Python 3.11.18,
+Debian 13.7), which ships apt and libapt-pkg7.0 3.0.4. The setuptools
+upgrade is unchanged. Against the image built from `develop`, the only
+package changes are apt and libapt-pkg7.0 (3.0.3 → 3.0.4) and tzdata
+(2026e → 2026f); the Python packages are identical. Local Trivy 0.76.2 with
+the workflow flags: exit 1 before (2 HIGH: CVE-2026-109518 in apt and
+libapt-pkg7.0), exit 0 after. The remaining pip 24.0 findings are tracked in
+D69.
+
 ### D42 — PyPI wheel does not bundle config/profiles.yaml and other data files (since S12.18)
 
 **Status:** RESOLVED in v4.0.1 (PR #79, merged to `develop` 2026-11-02, and
@@ -1507,6 +1520,27 @@ migrated to revision: head"). Reproduced on 2026-11-03 with the develop
 **Resolution path.** Create the parent directory of the `--db` path in the
 `db` commands (or route them through the same helper as `init_db()`), with a
 CLI test that runs `puma db migrate` from an empty temporary directory.
+
+### D69 — Image built from Dockerfile.publish keeps pip CVE-2026-13346 below the Trivy gate
+
+**Status:** OPEN — owner: maintainer. Target: next patch.
+**Discovered:** D41 follow-up, `publish-docker.yml` dry run on `develop`
+(2026-11-06).
+
+**File.** `Dockerfile.publish` (final stage) in `pumacp/puma`.
+
+**Finding.** The final stage pins pip 26.1.2, which fixes CVE-2025-8869,
+CVE-2026-1703, CVE-2026-3219, CVE-2026-6357 and CVE-2026-8643.
+CVE-2026-13346 is fixed only in pip 26.2.0 and later, whose vendored SBOM
+(`pip/_vendor/bom.cdx.json`) makes Trivy report HIGH or CRITICAL findings in
+bundled libraries: pip 26.2 (1 CRITICAL, 5 HIGH), 26.2.2 (5 HIGH) and 26.3
+(1 HIGH, setuptools 70.3.0 CVE-2025-47273). pip 26.1.2 ships no SBOM, so
+Trivy does not inspect the libraries it bundles.
+
+**Resolution path.** Options recorded: remove pip from the final stage; a
+documented ignore entry for the bundled-library findings; wait for a pip
+release whose bundled libraries pass the gate. Decision 2026-11-07:
+deferred.
 
 ### P1 captures (Sprint 12)
 
