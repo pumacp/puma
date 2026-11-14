@@ -66,6 +66,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 - `bandit.yml` reports MEDIUM and higher findings with `-ll --exit-zero` and
   fails only on HIGH with `-lll`; the `docs.yml` build job runs on every pull
   request to `develop` or `main` (PR #80).
+- `publish-docker.yml`: the Trivy step sets `limit-severities-for-sarif: true`, so the gate and the uploaded SARIF report only CRITICAL and HIGH findings, as documented (D41).
 
 ### Documentation
 - `docs/known_debt.md` registers D58–D68: errata to the security, CI and
