@@ -8,7 +8,7 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-## [4.0.1] — 2026-11-06
+## [4.0.1] — 2026-11-14
 
 ### Added
 - Top-level `puma --version` flag printing the installed `puma-cp` version
@@ -53,6 +53,8 @@ Versions follow [Semantic Versioning](https://semver.org/).
   setuptools in the final stage so the Trivy gate passes; marked RESOLVED in
   `docs/known_debt.md` (PR #67). The GHCR image publishes on the next release
   tag.
+- D41, D69 — `Dockerfile.publish` pins the current `python:3.11-slim` digest,
+  applies Debian security updates at build time and pins pip to 26.1.2.
 - D51 (item 2) — `pyproject.toml` uses the SPDX `license = "MIT"` expression
   with `license-files` and requires `setuptools>=77`, so builds no longer emit
   the license deprecation warnings; D51 marked RESOLVED in
