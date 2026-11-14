@@ -706,6 +706,21 @@ Python 3.11.18, application packages, entrypoint, user and workdir are
 unchanged. Nothing was pushed to GHCR; the image publishes on the next `v*`
 tag.
 
+**Follow-up (2026-11-14).** The Trivy database changes daily, and new HIGH
+findings with fixes available in Debian packages blocked the image after
+PR #67: the `publish-docker.yml` dry run of 2026-11-06 (run 42276392230)
+failed on `apt` and `libapt-pkg7.0` 3.0.3 (CVE-2026-109518, fixed in 3.0.4),
+and on 2026-11-14 a local scan of the `develop` image also reports `zlib1g`
+(CVE-2026-76844, CVE-2026-85091, fixed in 1:1.3.dfsg+really1.3.1-1+deb13u1).
+The final stage now runs `apt-get upgrade` to apply Debian security updates
+at build time, so the image's OS packages depend on the build date and the
+image is not byte-reproducible across builds; the base digest stays pinned
+(`sha256:07d48240…`, Python 3.11.18 on Debian 13.7 as of 2026-11-14). Local
+Trivy 0.76.2 with the workflow flags (`CRITICAL,HIGH`, `ignore-unfixed`,
+`exit-code 1`) on 2026-11-14: exit 0, 0 findings; without those filters the
+image reports 0 CRITICAL, 47 HIGH, 90 MEDIUM, 65 LOW and 5 UNKNOWN, all
+without a fix except the pip MEDIUM finding recorded in D69.
+
 ### D42 — PyPI wheel does not bundle config/profiles.yaml and other data files (since S12.18)
 
 **Status:** RESOLVED in v4.0.1 (PR #79, merged to `develop` 2026-11-02, and
@@ -1507,6 +1522,28 @@ migrated to revision: head"). Reproduced on 2026-11-03 with the develop
 **Resolution path.** Create the parent directory of the `--db` path in the
 `db` commands (or route them through the same helper as `init_db()`), with a
 CLI test that runs `puma db migrate` from an empty temporary directory.
+
+### D69 — Image built from Dockerfile.publish keeps pip CVE-2026-13346 below the Trivy gate
+
+**Status:** OPEN — owner: maintainer. Target: next patch.
+**Discovered:** D41 follow-up (2026-11-14).
+
+**File.** `Dockerfile.publish` (final stage) in `pumacp/puma`.
+
+**Finding.** The final stage pins pip to 26.1.2, which fixes CVE-2025-8869,
+CVE-2026-1703, CVE-2026-3219, CVE-2026-6357 and CVE-2026-8643 reported for
+the base image's pip 24.0. CVE-2026-13346 (MEDIUM in Trivy) is fixed only
+from pip 26.2.0, whose vendored SBOM (`pip/_vendor/bom.cdx.json`) exposes
+pip's bundled libraries to Trivy. The latest released pip, 26.3, fails the
+gate on 2026-11-14 (measured): its SBOM lists setuptools 70.3.0, reported as
+HIGH CVE-2025-47273 (fixed in 78.1.1), while the installed setuptools is
+84.2.1. pip 26.1.2 ships no SBOM, so Trivy does not inspect its bundled
+libraries.
+
+**Options.** Remove pip from the final stage; add a documented ignore entry;
+or wait for a pip release that passes the gate.
+
+**Decision 2026-11-14:** deferred.
 
 ### P1 captures (Sprint 12)
 
