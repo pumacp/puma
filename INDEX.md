@@ -14,7 +14,7 @@ results, and releases.
 
 ## Project status
 
-**Current version**: v4.0.0 (released 2026-06-02)
+**Current version**: v4.0.1 (released 2026-11-14)
 
 | Phase | Description | Status |
 |-------|-------------|--------|
@@ -34,6 +34,7 @@ results, and releases.
 
 | Tag | Date | Highlights |
 |-----|------|------------|
+| [v4.0.1](https://github.com/pumacp/puma/releases/tag/v4.0.1) | 2026-11-14 | Patch release — `puma share-results` stall (D40), Trivy gate (D41), runtime data in the wheel (D42), `--version` flag (D43), verifier canonical hash (D23), community workflows (D38, D39), leaderboard loading (D46) |
 | [v4.0.0](https://github.com/pumacp/puma/releases/tag/v4.0.0) | 2026-06-02 | Sprint 12 — integration hardening (D24–D26), security audit (pip-audit, bandit, gitleaks, Trivy), community subsystem inauguration, HF Dataset mirror, leaderboard render |
 | [v3.1.0](https://github.com/pumacp/puma/releases/tag/v3.1.0) | 2026-05-25 | Sprint 11' — post-v3.0.0 reconciliation + `puma community` CLI (browse/pull/verify-hash/validate) + wiki/Verifier minimal repairs + docs cleanup; deuda técnica D23 documented (deferred to v4.x) |
 | [v3.0.0](https://github.com/pumacp/puma/releases/tag/v3.0.0) | 2026-05-20 | First public release — public documentation overhaul (Wiki + README + sync workflow) + mypy remediation from 104 errors to zero |

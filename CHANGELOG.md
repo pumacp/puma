@@ -8,6 +8,9 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Infrastructure
+- D70 — the Ollama integration job installs the package and reads `OLLAMA_HOST` (PR #89).
+
 ## [4.0.1] — 2026-11-14
 
 ### Added

@@ -7,13 +7,13 @@ are backported to the latest minor release on the active major line.
 
 | Version | Supported |
 | ------- | --------- |
-| 4.x (when released) | yes |
-| 3.x | yes |
+| 4.0.x | yes |
+| 3.x | no |
 | < 3.0 | no |
 
-The active major line is updated on each release. When `v4.0.0` ships,
-the 3.x line stays supported for a 90-day grace period before moving
-to "no" — see `docs/security.md` for the full backport policy.
+The active major line is updated on each release. The 3.x line stayed
+supported for a 90-day grace period after `v4.0.0` (2026-06-02), which
+ended on 2026-08-31 — see `docs/security.md` for the full backport policy.
 
 ## Reporting a Vulnerability
 
