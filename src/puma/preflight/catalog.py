@@ -20,7 +20,9 @@ from pathlib import Path
 
 import yaml
 
-_CATALOG_PATH = Path(__file__).parent.parent.parent.parent / "config" / "models_catalog.yaml"
+from puma.resources import resolve
+
+_CATALOG_PATH = resolve("config/models_catalog.yaml")
 
 
 @dataclass(frozen=True)

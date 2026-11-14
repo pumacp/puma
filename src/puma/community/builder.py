@@ -33,12 +33,13 @@ from puma.community.schema import (
     Sustainability,
     validate_no_pii,
 )
+from puma.resources import resolve
 from puma.storage.models import Emission, Metric, Prediction, ProfileSnapshot, Run
 
 log = logging.getLogger("puma.community.builder")
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-_CATALOG_PATH = REPO_ROOT / "config" / "models_catalog.yaml"
+_CATALOG_PATH = resolve("config/models_catalog.yaml")
 
 # ``config/models_catalog.yaml`` does not use ``excluded: true`` or
 # ``pending_validation: true`` flags, and there is no top-level

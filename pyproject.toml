@@ -1,21 +1,21 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "puma-cp"
-version = "4.0.0"
+version = "4.0.1"
 description = "Local, reproducible benchmarking of open LLMs on project management tasks"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 authors = [{ name = "PUMA", email = "pumacapstoneproject@gmail.com" }]
 keywords = ["benchmark", "llm", "project-management", "evaluation", "reproducible"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
@@ -47,6 +47,7 @@ dependencies = [
     "tomli-w>=1.0.0",
     "PyGithub>=2.4,<3",
     "gradio-client>=1.5,<2.0",
+    "matplotlib>=3.8",
 ]
 
 [project.optional-dependencies]
@@ -75,6 +76,9 @@ puma = "puma.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"puma.community" = ["schema_data/*.json"]
 
 [tool.ruff]
 line-length = 100

@@ -35,6 +35,8 @@ from pydantic import (
     model_validator,
 )
 
+from puma.resources import resolve
+
 log = logging.getLogger("puma.community.schema")
 
 
@@ -55,7 +57,7 @@ def _load_valid_profile_ids() -> frozenset[str]:
     should treat this as a degraded mode (profile_id validation will reject every
     value).
     """
-    profiles_path = Path(__file__).resolve().parents[3] / "config" / "profiles.yaml"
+    profiles_path = resolve("config/profiles.yaml")
     try:
         with open(profiles_path, encoding="utf-8") as fh:
             raw = yaml.safe_load(fh)

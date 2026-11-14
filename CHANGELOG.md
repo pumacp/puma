@@ -8,6 +8,88 @@ Versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [4.0.1] — 2026-11-14
+
+### Added
+- Top-level `puma --version` flag printing the installed `puma-cp` version
+  (D43 RESOLVED, PR #63).
+- D42 — the wheel bundles the runtime data under `puma/_bundled/`
+  (`config/profiles.yaml`, `config/models_catalog.yaml`, the prompt
+  templates, the run-specs, the Alembic configuration and migrations,
+  `assets/img/PUMA.png` and `data/jira_balanced_200.csv`) and
+  `puma.resources.resolve()` falls back to that copy when the source tree is
+  absent (PR #79); marked RESOLVED in `docs/known_debt.md`.
+- `PUMA_DATA_DIR` and `PUMA_SPECS_DIR` name the directories searched first
+  for `data/` files and `specs/` run-specs, followed by the working
+  directory, the source tree and the bundled copy (PR #81, D42).
+
+### Fixed
+- D40 — `puma share-results` no longer stalls after the Review panel: the
+  upstream owner publishes directly to `pumacp/puma-community`, GitHub retries
+  are bounded with an explicit timeout and a rate-limit pre-check, and
+  transport errors surface as themed CLI errors; marked RESOLVED in
+  `docs/known_debt.md` (PR #64).
+- D27 — commit reference in `docs/known_debt.md` corrected to `7a753b9`, the
+  commit reachable on `develop` and `main`.
+- `check_rate_limit()` reads the core bucket compatibly with PyGithub >= 2.7
+  (`RateLimitOverview.resources.core`) as well as 2.4 (`RateLimit.core`), so
+  `puma share-results` no longer fails before its first GitHub write on a
+  resolver-chosen PyGithub release (PR #66).
+- D48 — `matplotlib>=3.8` is declared in `[project].dependencies`, so the
+  dashboard works after `pip install puma-cp` or `pip install -e .`; a unit
+  test now checks that every module-level third-party import under
+  `src/puma/` is declared in pyproject; marked RESOLVED in
+  `docs/known_debt.md` (PR #71).
+- D51 (items 1 and 3) — tests no longer leave run artefacts under `results/`
+  or `data/cache/` (PR #70), and `mypy src/puma/` passes on Python 3.12 with
+  an unchanged ECE value (PR #69); item 2 stays open in `docs/known_debt.md`.
+- D50 — the banner, `puma env`, `ProfileSnapshot.puma_version` and
+  `puma.__version__` read the installed `puma-cp` version instead of falling
+  back to `0.0.0-unknown` (or the stale `2.0.0-dev`); marked RESOLVED in
+  `docs/known_debt.md` (PR #74).
+
+### Infrastructure
+- D41 — `Dockerfile.publish` pins `python:3.11-slim` by digest and upgrades
+  setuptools in the final stage so the Trivy gate passes; marked RESOLVED in
+  `docs/known_debt.md` (PR #67). The GHCR image publishes on the next release
+  tag.
+- D41, D69 — `Dockerfile.publish` pins the current `python:3.11-slim` digest,
+  applies Debian security updates at build time and pins pip to 26.1.2.
+- D51 (item 2) — `pyproject.toml` uses the SPDX `license = "MIT"` expression
+  with `license-files` and requires `setuptools>=77`, so builds no longer emit
+  the license deprecation warnings; D51 marked RESOLVED in
+  `docs/known_debt.md` (PR #75).
+- D49 — CI now runs `tests/community/` and `tests/cli/` in `lint-and-test`,
+  and a new `unpinned-deps` job tests the pyproject dependency ranges
+  (`pip install -e ".[dev,docs]"`) and runs the mkdocs strict-build test
+  instead of skipping it; marked RESOLVED in `docs/known_debt.md` (PR #77).
+- `bandit.yml` reports MEDIUM and higher findings with `-ll --exit-zero` and
+  fails only on HIGH with `-lll`; the `docs.yml` build job runs on every pull
+  request to `develop` or `main` (PR #80).
+- `publish-docker.yml`: the Trivy step sets `limit-severities-for-sarif: true`, so the gate and the uploaded SARIF report only CRITICAL and HIGH findings, as documented (D41).
+
+### Documentation
+- `docs/known_debt.md` registers D58–D68: errata to the security, CI and
+  `pumacp/puma-community` documentation, documented `PUMA_` environment
+  variables the code does not read, the D42 behaviour for installed wheels,
+  and the `puma db migrate` failure in a directory without `data/` (PR #82).
+
+### Companion repositories (not in this repo's git log)
+- `pumacp/puma-community#12` (`fba79b9`): `validate-submission.yml` pins
+  `action-add-labels` to the `v1.1.3` commit, accepts only added files under
+  `submissions/` and drops the `valid` label on new pushes (D38 RESOLVED).
+- `pumacp/puma-community#11` (`e9dc524`), `#10` (`a0da178`) and `#13`
+  (`653a9b3`): verification of newly added submissions with `token=` and the
+  `integrity` hash key, sidecars only when verified, badges that skip
+  sidecars, and auto-merge refused unless every file is added (D39 RESOLVED;
+  labelling of fork PRs remains a limitation).
+- `pumaproject/puma-leaderboard` HF Space @ commit `7de208b`: loads only
+  UUID-named submission records and reads `integrity.verification_status`
+  (D46 RESOLVED).
+- `pumacp/puma-community#3` (`1ee1376`) and `#14` (`224c4a8`): `wiki-sync.yml`
+  granted `contents: write`, and the Hugging Face dataset references moved to
+  `pumaproject/`; the wiki updates when `wiki-sync` is dispatched (D57 note).
+
 ## [4.0.0] — 2026-05-31
 
 The Sprint 12 closure release. PUMA's federated community-submission

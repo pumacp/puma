@@ -715,7 +715,7 @@ def _resolve_runner_puma_version() -> str:
     from importlib.metadata import PackageNotFoundError, version
 
     try:
-        return version("puma")
+        return version("puma-cp")
     except PackageNotFoundError:
         return "0.0.0-unknown"
 

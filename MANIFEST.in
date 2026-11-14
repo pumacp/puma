@@ -1,0 +1,12 @@
+# Runtime data bundled into wheels by setup.py (D42 prototype). Keep in step with
+# puma.resources.BUNDLED_PATTERNS so a wheel built from the sdist is complete.
+include alembic.ini
+include config/profiles.yaml
+include config/models_catalog.yaml
+recursive-include specs/prompts *.jinja
+include specs/runs/*.yaml
+include alembic/env.py
+include alembic/script.py.mako
+include alembic/versions/*.py
+include assets/img/PUMA.png
+include data/jira_balanced_200.csv

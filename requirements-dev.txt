@@ -5,3 +5,4 @@ respx>=0.21
 ruff==0.15.12
 mypy>=1.10
 pre-commit>=3.7
+setuptools>=77

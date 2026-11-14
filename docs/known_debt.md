@@ -67,7 +67,8 @@ recommended phase for resolution.
 
 ### D23 — Verifier Space algorithmic mismatch with the client (since v3.0.0)
 
-**Status:** open. Scheduled for resolution: v4.x with a schema decision.
+**Status:** RESOLVED (`pumaproject/puma-verifier` Space commit `0975ea5`,
+2026-11-01); D29 stays deferred (see the follow-ups below).
 **Severity:** low — affects only `puma community verify-hash --remote`; local
 verification is unaffected and remains canonical.
 
@@ -141,6 +142,54 @@ after v4.0.0.** Cross-references: S12.2 HALT report; D27 (the exporter, RESOLVED
 in S12.2, which productizes the *existing* 4-field canonical and is decoupled
 from this decision); `schema_data/submission.v1.json:78-81` (the immutable
 constraint).
+
+**Decision (2026-10-31).** Option (a) approved by the maintainer: the Verifier
+adopts the client's 4-field canonical form (`instance_id`, `predicted_label`,
+`predicted_value`, `prompt_hash`; LF-joined CSV; SHA-256 as plain 64-hex). No
+schema change; existing submissions are untouched; implementation pending.
+
+**Resolution (Space commit `0975ea5`).** `app.py` in `pumaproject/puma-verifier`
+now reads the 4-key predictions JSONL that the client exports (D27) and
+rebuilds the client's canonical CSV exactly as
+`integrity.compute_predictions_hash` and `verify_cli.hash_predictions_jsonl`
+do: rows sorted by `instance_id`, columns in the order above, floats as
+`.6f`, `None` as empty, `csv` minimal quoting with LF line endings and no
+trailing newline, then a plain 64-hex SHA-256 compared with the declared hash.
+The 2-field `prediction` path is removed. The Space's API is unchanged (one
+`/verify` endpoint taking `raw_predictions_url` and `declared_hash`, returning
+`status`, `computed_hash`, `declared_hash` and `message`); the status values
+and the fetch, size-cap and JSONL error paths are as before, and the
+missing-key error now names the four expected keys. No client file, schema or
+submission changed; `integrity.py` is untouched.
+
+Acceptance evidence (2026-11-01), all local:
+- On the inaugural submission's `.predictions.jsonl`, used read-only as a
+  fixture, the new verifier function, `verify_cli.hash_predictions_jsonl` and
+  `puma community verify-hash` (local) all give
+  `f60423ca6a6e9b033f0f89ac5a5a127d889a6e2627fc07c480c44bfdf53857ec`, the
+  `integrity.predictions_summary_hash` recorded in the submission JSON. A
+  one-character change to the file gives `mismatch`.
+- On 300 synthetic runs (floats, integers, `None`, labels with commas, quotes,
+  newlines and non-ASCII text, rows inserted out of order),
+  `compute_predictions_hash` on the database, `hash_predictions_jsonl` on the
+  exported JSONL and the verifier agree on every run.
+- The Gradio app, run on 127.0.0.1 with the Space's pinned requirements,
+  returns `verified`, `mismatch`, `error` (unreadable URL) and
+  `not_applicable` (no declared hash) through `/verify`, both from
+  gradio_client 1.5.2 and from 2.7.2 (the version the puma-community verify
+  workflow currently resolves).
+
+After the push the Space rebuilt and reached `RUNNING` with head `0975ea5`;
+the live endpoint schema is unchanged. The inaugural submission was **not**
+re-verified or re-published: it has no `raw_predictions_url`, its
+`verification_status` stays `self-attested` (D53), and the Hugging Face
+dataset is unchanged.
+
+**Remaining follow-ups.** D29 stays deferred: estimation hashes still depend
+on the label's string form, now identically on both sides. New submissions
+should set `raw_predictions_url` so the Verifier has a file to fetch; without
+it the Verifier returns `not_applicable` and `verify-hash --remote` falls back
+to the local result.
 
 ### D24 — Canonical baseline specs missing `profile_required` (since v1.0.0)
 
@@ -503,7 +552,7 @@ target platforms.
 
 ### D38 — validate-submission workflow uses a non-existent action version (since S12-N1)
 
-**Status:** OPEN — owner: maintainer. Target: S12.19.
+**Status:** RESOLVED (`pumacp/puma-community` PR #12, merged to `main` 2026-10-31).
 **Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
 
 **File.** `.github/workflows/validate-submission.yml` in `pumacp/puma-community`.
@@ -516,9 +565,20 @@ at the "Prepare all required actions" step, before any validation logic ran.
 **Resolution path.** Pin the action to `@v1.3.0` (latest stable) or to a
 current commit SHA.
 
+**Resolution (`pumacp/puma-community` PR #12).** Commit `fba79b9`: both
+labelling steps pin `actions-ecosystem/action-add-labels` to commit
+`18f1af5e3544586314bbe15c0273249c770b2daf`, the `v1.1.3` release (see D52).
+A new step fails the check when a PR modifies, deletes or renames any existing
+file under `submissions/`, so only added files pass; the trigger now covers
+every path under `submissions/` so such changes reach that guard. On a
+`synchronize` event the `valid` label is removed before the new head is
+validated, so a label earned by an earlier commit does not carry over.
+
 ### D39 — Verify submission integrity workflow broken by gradio_client API drift (since S12-N1)
 
-**Status:** OPEN — owner: maintainer. Target: S12.19.
+**Status:** RESOLVED (`pumacp/puma-community` PRs #10, #11 and #13, merged to
+`main` 2026-10-31); the labelling of PRs from forks remains a limitation (see
+below).
 **Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
 
 **File.** `scripts/verify_submissions.py` in `pumacp/puma-community`, line 54.
@@ -538,10 +598,30 @@ submissions dataset.
 `scripts/verify_submissions.py`; re-run verification on the inaugural
 submission to upgrade its `verification_status`.
 
+**Resolution (`pumacp/puma-community` PRs #11, #10 and #13).** Commit
+`e9dc524` (PR #11): `scripts/verify_submissions.py` passes `token=` to
+`gradio_client.Client`, reads the declared hash from
+`integrity.predictions_summary_hash` (schema v1.0.0 has no top-level
+`predictions_summary_hash`), and verifies only submission files newly added in
+`HEAD~1..HEAD`; the fallback that globbed every file in `submissions/` is
+removed, so existing submissions are never re-verified. A
+`<id>.verified.json` sidecar is written only when the Verifier returns
+`verified`; every other status is logged without writing a file. The inaugural
+submission is not re-run (D53). Commit `a0da178` (PR #10):
+`scripts/generate_badges.py` skips `*.verified.json` sidecars, so they are not
+counted as submissions. Commit `653a9b3` (PR #13): `auto-merge-valid.yml` reads
+each file's status from the pull-request files API and refuses auto-merge
+unless every changed file is added.
+
+**Remaining limitation.** `validate-submission.yml` runs on `pull_request` and
+labels with `GITHUB_TOKEN`. On a PR opened from a fork that token is read-only,
+so the `valid` / `invalid` labels cannot be applied and `auto-merge-valid.yml`,
+which triggers on the `valid` label, does not run. A maintainer has to label
+fork submissions by hand.
+
 ### D40 — `puma share-results` CLI hangs after the Review panel (since S12-N1)
 
-**Status:** OPEN — owner: maintainer. Target: S12.19 (investigation) +
-post-Sprint-12 (full fix).
+**Status:** RESOLVED in v4.0.1 (PR #64, merged to `develop` 2026-10-31).
 **Discovered:** Sprint 12 / S12-N1 inaugural submission (2026-05-31).
 
 **File.** `src/puma/community/share_results.py` (likely) in `pumacp/puma`.
@@ -556,6 +636,914 @@ all stopped at the same point; no PR was opened by the CLI. A manual
 **Investigation needed.** Instrument the post-review-panel code path with debug
 logging; verify the fork + push + PR-creation pipeline; check whether `--yes`
 is honored by all confirmation prompts in the chain.
+
+**Root cause (PR #64 investigation).** Two defects in
+`src/puma/community/github_client.py` (`ensure_fork`), reproduced against an
+in-process fake GitHub API; `--yes` was honoured, every prompt sits before the
+Review panel.
+1. `ensure_fork` assumed every authenticated user has, or can create, a fork
+   named `puma-community` under their own account. For the upstream owner,
+   `user.get_repo("puma-community")` returns the upstream itself
+   (`fork == False`), so the client requested a fork of its own repository and
+   polled 20 s for one that can never appear before failing. The inaugural
+   submitter was the owner, which is why `pumacp/puma-community#8` carries a
+   branch on the upstream rather than on a fork.
+2. `Github(auth=...)` kept PyGithub's default `GithubRetry(total=10)`, which
+   sleeps silently on 403 rate-limit answers (until the limit resets, up to an
+   hour) and on 5xx, re-sending the fork request each time, and finally raises
+   a `requests` `RetryError` that is not a `GithubException`, so it escaped both
+   the client and the `except GitHubError` chain in `share_cli.py`.
+
+**Resolution (PR #64).** Commit `88d843a`: the upstream owner publishes straight
+to `pumacp/puma-community` (PR head `pumacp:submission/<id>`, the shape of
+PR #8); a same-named repository that is not a fork of the upstream counts as
+"no fork"; the client is built with `GithubRetry(total=2)` for transient 5xx
+and an explicit 30 s timeout, calls `check_rate_limit()` before the first
+write so an exhausted limit raises `APIRateLimitError`, and maps `requests`
+transport errors to `GitHubError` so they reach the themed CLI handler; the
+CLI prints one progress line before contacting GitHub. The submission payload
+(schema v1.0.0), `submissions/<id>.json` path, `submission/<id>` branch name,
+commit message and PR title/body are unchanged and asserted by tests. Covered
+by `tests/community/test_github_client.py`,
+`tests/community/test_share_cli.py` and
+`tests/integration/test_share_results_fake_github.py` (owner, ordinary user,
+exhausted rate limit, secondary-limit and 5xx fork failures; no network).
+
+### D41 — Container image v4.0.0 blocked by Trivy on 3 HIGH base-image CVEs (since S12.18)
+
+**Status:** RESOLVED in v4.0.1 (PR #67, merged to `develop` 2026-10-31); the
+GHCR image remains unpublished until the next release tag runs
+`publish-docker.yml`.
+**Discovered:** Sprint 12 / S12.18 release ceremony (2026-05-31).
+
+**File.** `Dockerfile.publish` (base image) in `pumacp/puma`.
+
+**Finding.** During the v4.0.0 release ceremony the `publish-docker.yml` run
+(26795071210) built the image successfully, but the Trivy scan reported 3 HIGH,
+3 MEDIUM, and 1 LOW finding (0 CRITICAL) in the base image. The configured
+`severity: CRITICAL,HIGH` / `exit-code: 1` gate failed the step, so the GHCR
+push never ran; `ghcr.io/pumacp/puma:4.0.0` was not published. The SARIF was
+uploaded to the GitHub Security tab under ref `refs/tags/v4.0.0`. This is the
+security gate working as designed, not a code defect.
+
+**Resolution path.** Update the base image in `Dockerfile.publish` to a
+Trivy-clean patched tag (e.g. the most recent `python:3.11-slim` /
+`python:3.12-slim` patch), rebuild, and re-run `publish-docker.yml`; ship as a
+v4.0.1 patch release.
+
+**Resolution (PR #67).** Commit `7d9496c`: both stages of `Dockerfile.publish`
+pull `python:3.11-slim` by digest (the multi-arch index
+`sha256:673719e0…` for 3.11.18-slim-trixie as of 2026-10-31). A rebuild
+showed the pin alone does not clear the gate: the base ships setuptools
+79.0.1, whose vendored wheel 0.45.1 (CVE-2026-24049) and jaraco.context
+5.3.0 (CVE-2026-23949) are HIGH with fixes available, so `ignore-unfixed`
+keeps them. The final stage therefore upgrades setuptools to 84.2.1 (vendors
+wheel 0.46.3, no jaraco.context, no `pkg_resources`; no runtime dependency
+imports `pkg_resources`). Local Trivy 0.76.1 with the workflow flags
+(`CRITICAL,HIGH`, `ignore-unfixed`, `exit-code 1`): 2 HIGH before, 0 after;
+`puma --version`, `puma --help` and the banner path run from the image.
+Python 3.11.18, application packages, entrypoint, user and workdir are
+unchanged. Nothing was pushed to GHCR; the image publishes on the next `v*`
+tag.
+
+**Follow-up (2026-11-14).** The Trivy database changes daily, and new HIGH
+findings with fixes available in Debian packages blocked the image after
+PR #67: the `publish-docker.yml` dry run of 2026-11-06 (run 42276392230)
+failed on `apt` and `libapt-pkg7.0` 3.0.3 (CVE-2026-109518, fixed in 3.0.4),
+and on 2026-11-14 a local scan of the `develop` image also reports `zlib1g`
+(CVE-2026-76844, CVE-2026-85091, fixed in 1:1.3.dfsg+really1.3.1-1+deb13u1).
+The final stage now runs `apt-get upgrade` to apply Debian security updates
+at build time, so the image's OS packages depend on the build date and the
+image is not byte-reproducible across builds; the base digest stays pinned
+(`sha256:07d48240…`, Python 3.11.18 on Debian 13.7 as of 2026-11-14). Local
+Trivy 0.76.2 with the workflow flags (`CRITICAL,HIGH`, `ignore-unfixed`,
+`exit-code 1`) on 2026-11-14: exit 0, 0 findings; without those filters the
+image reports 0 CRITICAL, 47 HIGH, 90 MEDIUM, 65 LOW and 5 UNKNOWN, all
+without a fix except the pip MEDIUM finding recorded in D69.
+
+### D42 — PyPI wheel does not bundle config/profiles.yaml and other data files (since S12.18)
+
+**Status:** RESOLVED in v4.0.1 (PR #79, merged to `develop` 2026-11-02, and
+PR #81, merged to `develop` 2026-11-05).
+**Discovered:** Post-S12.18 verification (`pip install puma-cp==4.0.0` in a clean venv).
+
+**File.** `pyproject.toml` — missing `include-package-data = true` or a
+`[tool.setuptools.package-data]` entry for non-Python data files.
+
+**Finding.** A clean-venv install of `puma-cp==4.0.0` (at `/tmp/verify-v400`)
+emits the runtime warning "Profile catalog not found at
+`<venv>/lib/python3.12/config/profiles.yaml` — profile_id validation will
+reject all values". The wheel bundles no `config/*.yaml` or JSON schema data.
+
+**Consequence.** End users who install from PyPI cannot run benchmarks; hardware
+profile validation rejects all values. Source-clone installs
+(`pip install -e .[dev]`) are unaffected because `config/` is present in the
+working tree.
+
+**Resolution path.** Add `include-package-data = true` to the
+`[tool.setuptools]` section, or enumerate package data via
+`[tool.setuptools.package-data]` (`puma = ["config/*.yaml", "schema_data/*.json"]`).
+Verify by rebuilding the wheel and inspecting it:
+`python -m zipfile -l dist/puma_cp-*.whl | grep -E "(config|schema)"`. Ship in
+v4.0.1.
+
+**Resolution (PRs #79 and #81).** Commit `be68d4b` (PR #79): `setup.py`
+copies the files matched by `puma.resources.BUNDLED_PATTERNS`
+(`config/profiles.yaml`, `config/models_catalog.yaml`,
+`specs/prompts/*/*.jinja`, `specs/runs/*.yaml`, `alembic.ini`, the Alembic
+environment, template and migrations, `assets/img/PUMA.png` and
+`data/jira_balanced_200.csv`) into `puma/_bundled/` in the wheel,
+`pyproject.toml` declares `puma/community/schema_data/*.json` as package
+data, and the runtime lookups call `puma.resources.resolve()`, which falls
+back to the bundled copy when the source tree is absent. Commit `58d9b56`
+(PR #81): `data/` files and `specs/` run-specs are looked up in
+`PUMA_DATA_DIR` or `PUMA_SPECS_DIR` when set, then the working directory,
+the source tree and the bundled copy; `alembic.ini` is loaded from the
+working directory when present. Covered by `tests/unit/test_resources.py`
+and `tests/integration/test_bundled_wheel.py`. The TAWOS dataset is not
+bundled. D66 records the user-documentation follow-up.
+
+### D43 — CLI does not expose a top-level `--version` flag (since S12.18)
+
+**Status:** RESOLVED in v4.0.1 (PR #63, merged to `develop` 2026-10-31).
+**Discovered:** Post-S12.18 verification.
+
+**File.** `src/puma/cli.py` — the root Typer/Click command group.
+
+**Finding.** `puma --version` returns "No such option '--version'. Did you mean
+'--verbose'?". The CLI does not implement the standard `--version` convention.
+
+**Consequence.** Cosmetic. Users expect `--version`; the current workaround is
+`pip show puma-cp`.
+
+**Resolution path.** Add `@click.version_option(package_name="puma-cp")` to the
+root group (or the Typer equivalent). Ship in v4.0.1.
+
+**Resolution (PR #63).** The root Typer callback in `src/puma/cli.py` now takes
+an eager `--version` option that prints `puma-cp <version>` from
+`importlib.metadata.version("puma-cp")` and exits 0, falling back to
+`0.0.0-unknown` when no distribution is installed (plain source-tree runs).
+Commits `5fdf755` (flag, unit tests, CLI reference row) and `8bd598d`
+(colour-independent help assertion for CI) on `develop`. Verified on a wheel
+built from the branch and installed in a fresh venv: `puma --version` →
+`puma-cp 4.0.0`, exit 0, also when the flag precedes a subcommand. Covered by
+`tests/unit/test_cli_flags.py::TestVersionFlag`.
+
+### D44 — H2 estimation inferential test computed on preserved N=100 data with a global-mean baseline (since post-Sprint-12)
+
+**Status:** OPEN — owner: maintainer. Target: when Ollama hardware is available and
+instance-level project persistence (D22) is fixed.
+**Discovered:** Post-Sprint-12 H2 reproducibility task (2026-06-04).
+**Related:** **D22** (root cause for the baseline deviation), `D26`/RT3 (version sentinel).
+
+**Files.** `docs/results/h2_estimation_wilcoxon.md`, `data/puma_h2_estimation.db`.
+
+**Finding.** The pre-registered hypothesis H2 requires a Wilcoxon signed-rank test
+of enriched-instruction configs against the project's **per-project** historical-mean
+predictor on `estimation_tawos`. A real, independently-recomputable test was produced
+(decision: **fail to reject H0_2**; best config `qwen2.5:7b` MAE = 1.86 vs global-mean
+baseline 2.03, reduction 0.17 SP, p = 0.104, r = −0.16, N = 100), but under four
+deviations from the pre-registration:
+
+1. **Global-mean baseline instead of per-project mean** — the evaluated `instances`
+   rows persist only a hashed id + gold label; `input_text`/project are empty
+   (**D22**), so instances cannot be mapped to their TAWOS project.
+2. **N = 100** — the only `contextual-anchoring` estimation data preserved at
+   per-prediction granularity; the N = 200 canonical baseline was `zero-shot`.
+3. **Preserved May-10 Phase-B predictions, not a fresh live run** — Ollama/Docker
+   were unavailable in the environment.
+4. **No run-twice determinism re-check** — requires live inference (the underlying
+   run used seed = 42 / T = 0.0; the test computation itself is deterministic).
+
+**Consequence.** The committed H2 result is valid for what it measures (global-mean
+baseline, N = 100) but is not the full pre-registered test. It is labelled
+data-availability-limited in the results doc.
+
+**Resolution path (closure).** On hardware with Ollama: (a) fix **D22** so
+`instances` persist project id + `input_text`; (b) re-run `estimation_tawos`
+`contextual-anchoring` at N = 200 (seed = 42, T = 0.0) with per-prediction logging;
+(c) compute the Wilcoxon test against the **per-project** historical-mean baseline;
+(d) run the best config twice to confirm bit-exact MAE. Supersede
+`h2_estimation_wilcoxon.md` with the fresh result.
+
+### D45 — H1 triage inferential test uses a no-information majority-class baseline, not the pre-registered keyword heuristic (since post-Sprint-12)
+
+**Status:** OPEN — owner: maintainer. Target: when `input_text` is re-ingested
+(D22 fix) and Ollama hardware is available.
+**Discovered:** Post-Sprint-12 H1 reproducibility task (2026-06-04).
+**Related:** **D22** (root cause — empty `input_text`), **D44** (parallel H2 case).
+
+**Files.** `docs/results/h1_triage_wilcoxon.md`, `data/puma_h1_triage.db`.
+
+**Finding.** The pre-registered H1 test compares the triage model against a
+**keyword-rule heuristic** baseline. That heuristic needs the ticket text, but the
+preserved `instances` rows have empty `input_text` in 200/200 triage rows (**D22**),
+so the heuristic is irrecoverable. A real, independently-recomputable test was
+produced (decision: **REJECT H0_1**; qwen2.5:3b + contextual-anchoring F1-macro
+0.5894 vs a no-information majority-class floor acc 0.25 / F1 0.10; Wilcoxon
+p = 6.9e-13, r = -0.51, N = 200) under a **baseline substitution**: the keyword
+heuristic was replaced by a constant-class floor computable from gold labels alone.
+
+**Consequence.** H0_1 is rejected, but only against the weakest possible (chance-level)
+baseline on a perfectly balanced 4-class set — a low bar. The result does not
+establish superiority over a competitive heuristic. Other deviations: preserved
+May-10 data (not a fresh live run); no run-twice re-check (the 5 stable N=200 runs
+are byte-identical; the computation is deterministic); model digest not recorded.
+
+**Resolution path (closure).** On hardware with Ollama: (a) fix **D22** so triage
+`instances` persist `input_text`; (b) implement/run the keyword-rule heuristic
+per-instance on the same N=200 set; (c) recompute the Wilcoxon test of model vs
+keyword heuristic; (d) re-run the model config twice to confirm bit-exact F1.
+Supersede `h1_triage_wilcoxon.md` with the fresh result.
+
+### D46 — Leaderboard reads `verification.status` instead of `integrity.verification_status` (since post-Sprint-12)
+
+**Status:** RESOLVED (`pumaproject/puma-leaderboard` Space commit `7de208b`,
+2026-10-31).
+**Discovered:** Sprint 12 community diagnostic.
+
+**File.** `app.py` in `pumaproject/puma-leaderboard` (HF Space).
+
+**Finding.** The leaderboard reads `record["verification"]["status"]`, but the
+v1.0.0 submission schema exposes the status at
+`record["integrity"]["verification_status"]`. The key path never matches, so the
+"verified" column renders "—" for every submission regardless of its real status.
+
+**Consequence.** Display-only; no effect on data or metrics. With a single
+self-attested submission the visible effect is nil today.
+
+**Resolution path.** Read the correct key and map
+`self-attested` / `verified` / `mismatch`. Ship in v4.0.1.
+
+**Resolution (Space commit `7de208b`).** `app.py` loads only the UUID-named
+submission records (`submissions/????????-????-????-????-????????????.json`),
+so `*.predictions.jsonl` and other sidecar files next to them are no longer
+read, and the "verified" column reads `integrity.verification_status`. On the
+running Space (2026-11-01) the leaderboard lists the inaugural submission
+(`1d88e49b-5b49-46b9-a8a6-df7bdd5bf80b`, qwen2.5:3b / triage_jira /
+zero_shot) with "verified" shown as `self-attested`.
+
+### D47 — D39's description of leaderboard filtering is inaccurate (since post-Sprint-12)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: v4.0.1 / patch sprint.
+**Discovered:** Sprint 12 community diagnostic.
+
+**File.** This file — the **D39** entry.
+
+**Finding.** D39 states the leaderboard "appears to filter for verified
+submissions, so the inaugural row is not yet visible". Inspection of `app.py`
+(`get_leaderboard`) shows it filters only by scenario / model / profile; there is
+no verification-status filter, so the row is shown with "—", not hidden.
+
+**Consequence.** Documentation only — D39's stated consequence overstates the
+effect. The deployed Space was not verified from the academic environment; the
+local source is authoritative.
+
+**Resolution path.** Correct the wording of the **D39** entry. Ship in v4.0.1.
+
+### D48 — `pyproject.toml` dependencies omit runtime imports; `puma dashboard` fails from a pip install (since S12.15)
+
+**Status:** RESOLVED in v4.0.1 (PR #71, merged to `develop` 2026-11-01).
+**Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
+
+**Files.** `pyproject.toml` (`[project].dependencies`), `requirements.txt`,
+`tests/unit/test_requirements_consistency.py`.
+
+**Finding.** `requirements.txt:25-26` list `matplotlib>=3.8` and
+`seaborn>=0.13`, but `[project].dependencies` declares neither, and the
+published 4.0.0 wheel's `Requires-Dist` confirms they are absent. A reverse
+check of every third-party import under `src/puma/` against the declared
+dependencies finds one real gap: `matplotlib`, imported at module level by
+`src/puma/dashboard/views/{model_comparison,reliability,robustness,sustainability}.py`
+and lazily by `metrics/calibration.py` and `dashboard/components.py`. In a
+clean `pip install puma-cp==4.0.0` venv, `import puma.dashboard.app` fails
+with `ModuleNotFoundError: No module named 'matplotlib'`, so `puma dashboard`
+cannot start; the CLI, runner and metrics still import because their uses are
+lazy. `seaborn` is imported nowhere in the package (only
+`scripts/generate_phase_b_plots.py`). The remaining undeclared imports are
+intentional and guarded: `ollama` (lazy, inside the live evaluators),
+`pyarrow` (explicit ImportError message for parquet output), `torch` (CUDA
+probe in a try block) and `click` (a dependency of typer).
+`test_requirements_consistency.py` checks only that pyproject names appear in
+the requirements files, so this direction is unguarded.
+
+**Consequence.** Users of the PyPI wheel and of the published container image
+(built from the same wheel) cannot open the dashboard. Clone, Compose and CI
+installs are unaffected because they install `requirements.txt`. Together
+with **D42** (data files) this is the second wheel-completeness gap: D42 is
+about files the package needs, D48 about dependency metadata.
+
+**Resolution path.** Add `matplotlib>=3.8` to `[project].dependencies`
+(`pyproject.toml` is not locked; the existing consistency test stays green
+because `requirements.txt` already lists it); extend
+`test_requirements_consistency.py` with the reverse direction (every
+module-level third-party import under `src/puma/` resolves to a declared
+dependency); decide whether `seaborn` stays in `requirements.txt` as a
+scripts-only tool or is declared. Ship in v4.0.1.
+
+**Resolution (PR #71).** Commit `4335e61`: `matplotlib>=3.8` is declared in
+`[project].dependencies` with the same lower bound as `requirements.txt`;
+`seaborn` is not declared. `test_requirements_consistency.py` gains
+`test_module_level_imports_are_declared_in_pyproject`, which parses the top
+level of every module under `src/puma/`, maps each third-party import to its
+distribution through `importlib.metadata.packages_distributions()` and fails
+if that distribution is not declared in the dependencies or an extra; imports
+inside functions are out of scope because they are lazy. Before the fix, a
+`pip install -e .` of `develop` and a `pip install puma-cp` (4.0.0) both lacked
+matplotlib and the dashboard app raised `No module named 'matplotlib'`; a
+wheel built from the branch carries `Requires-Dist: matplotlib>=3.8` and
+`import puma.dashboard.app` works from a wheel-only venv. A module-level
+`import ollama` added to a scratch copy makes the new test fail.
+
+**Correction (2026-11-01).** Two statements above are inaccurate and are left
+as written. `seaborn` is not used by `scripts/generate_phase_b_plots.py`:
+nothing in the repository imports it, and the only dependency file that lists
+it is `requirements.txt`. Clone installs are affected too: the README "Manual
+install", `docs/development-workflow.md` §6 and `start_puma.sh` install from
+pyproject (`pip install -e .` or `pip install -e ".[dev]"`), not from
+`requirements.txt`; the Compose image (`Dockerfile`) and the `lint-and-test`
+and `smoke` CI workflows install the requirements files.
+
+### D49 — CI never runs `tests/community/` or `tests/cli/`, skips the mkdocs test and only installs pinned requirements (since S12-N2)
+
+**Status:** RESOLVED in v4.0.1 (PR #77, merged to `develop` 2026-11-02).
+**Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
+
+**Files.** `.github/workflows/lint-and-test.yml`, `.github/workflows/smoke.yml`,
+`requirements-dev.txt`, `tests/integration/test_mkdocs_build.py`.
+
+**Finding.** `lint-and-test.yml` runs `pytest tests/unit/` and
+`pytest tests/integration/ -m "not ollama"`; `smoke.yml` runs `tests/smoke/`.
+No workflow runs `tests/community/` (208 tests) or `tests/cli/` (23 tests);
+both pass locally today. `tests/integration/test_mkdocs_build.py` calls
+`pytest.importorskip("mkdocs")`, and `mkdocs` lives only in the `[docs]`
+extra while the job installs the requirements files, so the test is skipped on
+every CI run. Every job installs the pinned `requirements.txt`, so the
+`PyGithub>=2.4,<3` range declared in `pyproject.toml` is never exercised; the
+`get_rate_limit().core` regression fixed in PR #66 (PyGithub >= 2.7 returns a
+`RateLimitOverview`) therefore passed CI and was found only by a local
+`pip install -e ".[dev]"`.
+
+**Consequence.** The community CLI, which produces the artefacts
+`pumacp/puma-community` consumes, has no CI coverage; pip users resolve newer
+dependency versions than CI ever tests.
+
+**Resolution path.** One `ci/` PR (workflow changes are their own atomic PR per
+the development workflow §3): add `pytest tests/community/ tests/cli/` to
+`lint-and-test`; add a job that installs with `pip install -e ".[dev,docs]"`
+(no pins) and runs `tests/community/`,
+`tests/integration/test_share_results_fake_github.py` and
+`tests/integration/test_mkdocs_build.py`, which also un-skips the mkdocs test.
+Report the resolved PyGithub version in the job log.
+
+**Resolution (PR #77).** Commit `8e9d4f4`: the `lint-and-test` job in
+`.github/workflows/lint-and-test.yml` also runs `pytest tests/community/` and
+`pytest tests/cli/`, and a new `unpinned-deps` job installs with
+`pip install -e ".[dev,docs]"` (no requirements pins), prints the resolved
+PyGithub, gradio-client, jsonschema, matplotlib and pytest versions, and runs
+`tests/community/`, `tests/integration/test_share_results_fake_github.py` and
+`tests/integration/test_mkdocs_build.py`. Triggers, permissions, existing job
+names and the Ollama job are unchanged; `lint-and-test` stays the required
+check. On the PR run both jobs passed: `lint-and-test` ran community (208
+passed, 1 skipped) and cli (23 passed); `unpinned-deps` resolved PyGithub
+2.10.0 and gradio-client 1.14.0, ran community (208 passed, 1 skipped), the
+fake-GitHub test (5 passed) and `test_mkdocs_build.py` (4 passed, none
+skipped). The `smoke.yml` and `requirements-dev.txt` files listed above were
+not changed.
+
+### D50 — Version lookups query distribution `puma` instead of `puma-cp`; `0.0.0-unknown` everywhere (since S12.15)
+
+**Status:** RESOLVED in v4.0.1 (PR #74, merged to `develop` 2026-11-01).
+**Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
+
+**Files.** `src/puma/ui/banner.py:28`, `src/puma/diagnostics/env.py:27`,
+`src/puma/orchestrator/runner.py:718` (**locked** path),
+`src/puma/__init__.py:7`.
+
+**Finding.** All three sites call `importlib.metadata.version("puma")`. The
+distribution has been named `puma-cp` since the S12.15 PyPI hardening, so the
+lookup raises `PackageNotFoundError` and the fallback `0.0.0-unknown` is
+returned in every install mode: editable clone, wheel and container image. It
+surfaces in the banner, in `puma env` ("PUMA version 0.0.0-unknown") and in
+`ProfileSnapshot.puma_version` of every run recorded since the rename. The
+D26 resolution text describes this lookup as the dynamic version source.
+`src/puma/__init__.py` still carries `__version__ = "2.0.0-dev"`, the stale
+sentinel noted under RT3. The inaugural submission is **not** affected: the
+builder resolves `puma_version` from `git describe --tags --abbrev=0` first,
+which gave `3.1.0`, the latest tag on 2026-05-31 (`v4.0.0` was tagged on
+2026-06-02); that published value is correct for its time and must not be
+changed. The exposure is prospective: a pip user without a git checkout falls
+through to the snapshot value `0.0.0-unknown`, which matches the schema's
+semver pattern and would be published.
+
+**Resolution path.** Query `version("puma-cp")` in the three sites (the
+`runner.py` change needs the §3 lock-lift discussion; it does not touch
+metrics), refresh or remove the `__init__.__version__` sentinel, and add a
+unit test asserting the queried distribution name and the resolved value on an
+installed wheel. Ship in v4.0.1.
+
+**Resolution (PR #74).** Commit `9cfd441`: `ui/banner.py`,
+`diagnostics/env.py` and `orchestrator/runner.py` query `version("puma-cp")`;
+the `runner.py` change is that one token only, under the maintainer's lock
+lift for this change. `src/puma/__init__.__version__` is derived from the same
+lookup with the same `0.0.0-unknown` fallback, the pattern `cli.py` uses for
+`--version`, so the `"2.0.0-dev"` sentinel is gone.
+`tests/unit/test_version_lookup.py` (7 tests) asserts the queried
+distribution name and the fallback for the three resolvers and the package
+attribute. Verified in an editable install and in a wheel-only venv run from
+outside the repository: the three resolvers and `__version__` return `4.0.0`,
+and `puma env` prints `PUMA version 4.0.0`; on `develop` before the change the
+same checks gave `0.0.0-unknown` (and `2.0.0-dev` for `__version__`). The
+metric, runner and validate-baseline tests pass unchanged. The inaugural
+submission is unchanged.
+
+### D51 — Minor hygiene findings: test artefacts in the checkout, deprecated license table, mypy on Python 3.12 (since v4.0.0)
+
+**Status:** RESOLVED in v4.0.1: items 1 and 3 by PR #70 and PR #69 (merged to
+`develop` 2026-10-31), item 2 by PR #75 (merged to `develop` 2026-11-01).
+**Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
+
+**Finding and triage.**
+1. *Tests write into the checkout (low).* `tests/unit/test_runner.py`,
+   `tests/unit/test_runspec.py`, `tests/unit/test_profile_codecarbon_config.py`,
+   `tests/integration/test_run_summary.py`,
+   `tests/integration/test_runner_codecarbon.py`,
+   `tests/integration/test_runner_retry_determinism.py` and
+   `tests/integration/test_codecarbon_gpu_detection.py` leave run directories
+   under `results/` and `data/cache/inferences.db` because
+   `orchestrator/runner.py:29` (`RESULTS_ROOT = Path("results")`) and
+   `runtime/cache.py:16` are cwd-relative. Gitignored, so `git status` stays
+   clean, but every local run accumulates artefacts. Fix: an autouse fixture
+   redirecting `RESULTS_ROOT` and the cache path to `tmp_path` for those
+   modules.
+2. *Deprecated license metadata (low now, build-breaking later).*
+   `pyproject.toml:11` uses `license = { text = "MIT" }` plus the
+   `License :: OSI Approved :: MIT License` classifier; setuptools warns on
+   every build and announces removal of support on 2027-02-18. Fix:
+   `license = "MIT"`, `license-files = ["LICENSE"]`, drop the classifier and
+   require `setuptools>=77` in `[build-system]`;
+   `tests/integration/test_publishing_workflows.py` only asserts the field is
+   present.
+3. *mypy error on Python 3.12 only (low).* `mypy src/puma/` passes on 3.11
+   (CI) but on 3.12 reports `src/puma/metrics/calibration.py:36: Incompatible
+   types in assignment (expression has type "complex128", variable has type
+   "float")`, from the numpy stubs' typing of `mask.sum() / n`. The project
+   declares `requires-python >= 3.11`. Fix: `float(mask.sum()) / n` (the module
+   is under strict mypy but not a locked path).
+
+**Resolution path.** Three small independent PRs (`test/`, `build/`, `fix/`),
+none touching locked paths. Ship when convenient; item 2 before 2027-02.
+
+**Resolution of item 1 (PR #70).** Commit `e98db3a`: an autouse fixture in
+`tests/conftest.py` points `runner.RESULTS_ROOT` at `tmp_path` and redirects
+relative `InferenceCache` paths there; absolute paths, as used by the cache
+unit tests, are untouched. No `src/` change. After a full unit, community,
+integration (`-m "not ollama"`) and smoke run, `git status --short --ignored`
+shows no new entry under `results/` or `data/cache/`, and the test counts are
+those of `develop` before the change.
+
+**Resolution of item 3 (PR #69).** Commit `d24aeaa`:
+`src/puma/metrics/calibration.py` computes `float(mask.sum()) / n`, so
+`mypy src/puma/` passes on Python 3.11 and 3.12. The ECE value is unchanged
+(bit-identical on 5000 random inputs).
+
+Item 2 (license metadata) remains open.
+
+**Resolution of item 2 (PR #75).** Commit `8476e1c`: `pyproject.toml` declares
+`license = "MIT"` (SPDX expression) and `license-files = ["LICENSE"]`, drops
+the `License :: OSI Approved :: MIT License` classifier and requires
+`setuptools>=77` in `[build-system]`. `python -m build` no longer prints the
+license deprecation warnings (12 warning lines before, none after); the wheel
+METADATA carries `License-Expression: MIT` and `License-File: LICENSE`, and
+`LICENSE` ships in the wheel and the sdist. setuptools 76.1.0 rejects the new
+fields and 77.0.1 accepts them. The wheel installs in a fresh venv, and
+`pip install -e .` works in a venv with the pinned requirements.
+
+### D52 — Erratum to D38: the proposed action tag `v1.3.0` does not exist (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: v4.0.1 / patch sprint.
+**Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
+
+**File.** This file — the **D38** entry (resolution path), left unchanged.
+
+**Finding.** D38 proposes pinning `actions-ecosystem/action-add-labels` to
+`@v1.3.0` "(latest stable)". No such tag exists; the latest release is
+`v1.1.3` at commit `18f1af5e3544586314bbe15c0273249c770b2daf`.
+
+**Resolution path.** Pin the action in `pumacp/puma-community`
+`.github/workflows/validate-submission.yml` to that commit SHA (or `v1.1.3`).
+
+### D53 — Erratum to D39: the instruction to re-run verification on the inaugural submission is withdrawn (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: v4.0.1 / patch sprint.
+**Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
+
+**File.** This file — the **D39** entry (resolution path), left unchanged.
+
+**Finding.** D39 asks to re-run verification on the inaugural submission
+"to upgrade its `verification_status`". That step is withdrawn: rewriting a
+merged, mirrored submission conflicts with the historical integrity of the
+corpus, and `"verified"` is not a value schema v1.0.0 defines for
+`integrity.verification_status`. The `hf_token=` → `token=` repair of
+`scripts/verify_submissions.py` stands; it applies to future submissions only.
+
+**Resolution path.** Record only; no change to the inaugural submission.
+
+### D54 — Erratum to D47: the leaderboard shows no rows because of a dataset load failure, not filtering (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: v4.0.1 / patch sprint.
+**Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
+
+**File.** This file — the **D47** entry, left unchanged.
+
+**Finding.** D47 corrects D39 by stating the row "is shown with '—', not
+hidden". That is also inaccurate: the deployed leaderboard Space shows no rows
+at all because loading the submissions dataset fails, so neither filtering
+(D39) nor the verification column (D46/D47) explains the empty table.
+
+**Resolution path.** Fix the dataset load in the leaderboard Space
+(`pumaproject/puma-leaderboard`), then re-check D46 and D47 against the live
+page.
+
+### D55 — Errata to `docs/first-submission.md` (documentation; original text unchanged)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: v4.0.1 / patch sprint.
+**Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
+
+**File.** `docs/first-submission.md`, delivered with v4.0.0 and left unchanged.
+
+**Finding.** Four statements no longer hold:
+- lines 68-69: the new row did not become visible on the leaderboard Space
+  (see D54);
+- lines 103-104: the proposed pin `@v1.3.0` does not exist (see D52);
+- lines 108-109: `"verified"` is not a value schema v1.0.0 defines for
+  `integrity.verification_status` (see D53);
+- line 110: the `notify-discord` webhook secret existed; the workflow failed
+  because the post itself failed, not for a missing secret.
+
+**Resolution path.** Apply the four corrections in a docs PR that edits only
+that page, citing this entry.
+
+### D56 — Erratum to D23: the Verifier no longer emits the `sha256:` prefix (documentation)
+
+**Status:** RESOLVED (documentation, 2026-11-01): superseded by the D23
+resolution.
+**Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
+
+**File.** This file — the **D23** entry (description, blocker 2 and open
+decision (b)), left unchanged apart from the appended Decision paragraph.
+
+**Finding.** D23 still describes the Verifier Space as emitting
+`sha256:<hex>`. The prefix was removed in the Verifier at commit `d8a4ffd`
+(as the v3.1.0 release notes record), so blocker 2 and open decision (b) of
+D23 are moot; the remaining difference is the 2-field versus 4-field input,
+settled by the Decision paragraph above.
+
+**Resolution path.** Record only; D23 closes with the pending implementation.
+
+**Resolution (2026-11-01).** D23 is resolved by Space commit `0975ea5`. The
+Verifier hashes the client's 4-field canonical CSV and returns a plain 64-hex
+digest, so the `sha256:` prefix and the 2-field input described in D23 no
+longer apply. The D23 text above its Resolution paragraph stays as written.
+
+### D57 — Erratum to `pumacp/puma-community` docs: automatic merging is described but does not happen (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: v4.0.1 / patch sprint.
+**Discovered:** Post-v4.0.0 maintenance review (2026-10-31).
+
+**Files.** In `pumacp/puma-community`: `docs/maintainer-guide.md:78-84`,
+`wiki/Validation-Process.md:38`, `wiki/FAQ.md:18-20`.
+
+**Finding.** The three passages state that `auto-merge-valid.yml` merges a
+submission PR automatically once it is labelled `valid`. In practice no
+submission has been merged that way: the inaugural submission (PR #8) was
+merged by hand with an admin bypass, as `docs/first-submission.md` records,
+and the validation workflow that applies the label fails before labelling
+(D38).
+
+**Resolution path.** Correct the three passages in `pumacp/puma-community`
+once D38 is fixed and the label-to-merge path has been exercised on a real
+submission; until then describe the maintainer-driven merge as the current
+path.
+
+**Update (2026-11-01).** Two related `pumacp/puma-community` PRs are merged:
+PR #3 (`1ee1376`) grants `wiki-sync.yml` `contents: write` so the wiki push
+can succeed, and PR #14 (`224c4a8`) points the Hugging Face dataset references
+in `README.md`, `docs/mirrors-setup.md` and three `wiki/` pages at
+`pumaproject/puma-community-submissions`. The published wiki pages change
+only when the maintainer dispatches `wiki-sync`. The three passages named
+above are unchanged.
+
+### D58 — `docs/security.md` describes PyPI publishing as OIDC trusted publishing; the workflow uses an API token (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: next patch.
+**Discovered:** v4.0.1 release preparation (2026-11-02).
+
+**Files.** `docs/security.md:50` and `docs/security.md:244`;
+`.github/workflows/publish-pypi.yml:46-52`.
+
+**Finding.** `docs/security.md` line 50 states that PyPI "publishes via OIDC
+`id-token: write` (trusted publishing)", and the workflow table on line 244
+describes `publish-pypi.yml` as "OIDC-based trusted publishing — no PyPI
+token in repo secrets". The workflow does declare `id-token: write` on the
+`publish-pypi` job, but its publish step passes
+`password: ${{ secrets.PYPI_API_TOKEN }}` to `pypa/gh-action-pypi-publish`,
+and the comment above that line (lines 49-51) says "Token auth until trusted
+publishing is configured". The `publish-testpypi` job likewise uses
+`secrets.TEST_PYPI_API_TOKEN`. Publication therefore depends on a long-lived
+API token stored as a repository secret, which is what the document says is
+not the case.
+
+**Consequence.** Documentation only; the workflow works as written. Readers
+of the threat model are told the token-leak class does not apply to PyPI
+publishing when it does, and the trusted-publisher configuration on PyPI
+that the document implies has not been verified.
+
+**Resolution path.** Either configure a trusted publisher for `puma-cp` on
+PyPI (and TestPyPI), remove the two `password:` lines so the action uses the
+`id-token` permission, and delete the token secrets; or correct the two
+passages in `docs/security.md` to describe token authentication. The
+document is unchanged by this entry.
+
+### D59 — Erratum: the Trivy scan covers one image, on tag pushes only, with unfixed CVEs ignored (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of the security documentation (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** `docs/security.md` (threat-model and workflow tables),
+`.github/workflows/publish-docker.yml`.
+
+**Finding.** The only Trivy step in `pumacp/puma` is in
+`publish-docker.yml`: it scans `ghcr.io/pumacp/puma:<version>` with
+`severity: 'CRITICAL,HIGH'`, `exit-code: '1'` and `ignore-unfixed: true`, and
+the workflow runs on `push: tags: ['v*']` (plus manual dispatch). The Compose
+images built from the repo-root `Dockerfile` are never scanned, findings
+without an upstream fix are ignored, and no workflow in `pumacp/puma-community`
+mentions Trivy. The GitHub Security tab holds seven open alerts from the
+v4.0.0 analysis, per the repository maintainer.
+
+**Resolution path.** Describe the scope precisely in `docs/security.md`
+(one published image, tag pushes, unfixed CVEs ignored, Security-tab alerts
+from the v4.0.0 run). Scanning the Compose images is not planned.
+
+### D60 — Erratum: CI workflow names and the scope of mypy strict (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of the CI documentation (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** `.github/workflows/` in `pumacp/puma` and `pumacp/puma-vault`;
+`pyproject.toml` (`[tool.mypy]`).
+
+**Finding.** `pumacp/puma` has no `ci.yml`; the lint, type-check and test job
+lives in `lint-and-test.yml` (the other workflows are `bandit.yml`,
+`docs.yml`, `gitleaks.yml`, `pip-audit.yml`, `publish-docker.yml`,
+`publish-pypi.yml`, `release.yml`, `smoke.yml`, `wiki-sync.yml`). mypy runs
+with `strict = false` globally and `strict = true` only for the override
+modules `puma.metrics.*`, `puma.runtime.*` and `puma.preflight.*`. There is
+no `publish-vault.yml`: `pumacp/puma-vault` deploys from its `v4` branch
+through three workflows that all declare `name: Deploy Quartz to GitHub
+Pages` and trigger on `push: branches: ["v4"]` (`deploy.yaml`, `deploy.yml`,
+`static.yml`), alongside `ci.yaml`, `docker-build-push.yaml`,
+`build-preview.yaml`, `deploy-preview.yaml` and two `*_example.yml` files.
+
+**Resolution path.** Name the workflows as they exist and state the mypy
+strict scope. Renaming workflows and enabling global strict mode are not
+planned.
+
+### D61 — Erratum: verification runs only for submissions added in the latest commit (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of `pumacp/puma-community` (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** `pumacp/puma-community` `scripts/verify_submissions.py`,
+`.github/workflows/verify-submission.yml`.
+
+**Finding.** `verify-submission.yml` runs `scripts/verify_submissions.py`,
+which lists `git diff --name-only --diff-filter=A HEAD~1..HEAD` under
+`submissions/` and verifies only those files, so a submission modified in
+place is never re-verified. This is the behaviour since PR #11 (`e9dc524`,
+2026-10-31, "verify only added submissions and write verified sidecars
+only"), introduced so that historical submissions keep their original
+verification record.
+
+**Resolution path.** Document the added-files-only rule and its rationale.
+Re-verifying modified submissions is not planned.
+
+### D62 — Erratum: submissions are not signed and the schema check is not an enforced pre-merge gate (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of `pumacp/puma-community` (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** `pumacp/puma-community` `README.md:170`
+("signs the integrity hash"), `.github/workflows/validate-submission.yml`;
+`pumacp/puma` `src/puma/community/schema.py` (`payload_signature`),
+`src/puma/community/builder.py`.
+
+**Finding.** `payload_signature` is an optional `string | null` field that
+nothing in `src/puma/community/` sets; the builder fills
+`integrity=Integrity(predictions_summary_hash=...)` only, so no submission
+carries a signature. The `validate` check of `validate-submission.yml` is not
+enforced before merge: on PR #8 (the inaugural submission) the check run
+`validate` concluded `failure` on 2026-05-31 and the PR was merged as
+`111cee3`.
+
+**Resolution path.** Remove the signing claim and describe the validation
+check as advisory until branch protection requires it. Adding submission
+signatures is not planned.
+
+### D63 — Erratum: the "9-check programmatic validation pipeline" has three rejecting checks (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of `pumacp/puma-community` (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** `CHANGELOG.md` (`[4.0.0]`, Security: "A 9-check programmatic
+validation pipeline"), `docs/sprint12-retrospective.md:32` and `:97`;
+`pumacp/puma-community` `.github/workflows/validate-submission.yml`.
+
+**Finding.** `validate-submission.yml` rejects a pull request for three
+reasons: a file under `submissions/` that is not an addition (step "Refuse
+changes to existing submission files"), a JSON Schema violation or unparsable
+JSON (`Draft202012Validator` over `schema/submission.v1.json`), and a filename
+that differs from `submissions/<submission_id>.json`. No other check in that
+workflow rejects a submission.
+
+**Resolution path.** Describe the three checks; the figure "9" has no
+counterpart in the workflow. Extending the pipeline is not planned.
+
+### D64 — Errata to `pumacp/puma-community` documentation: hash recompute, signing, PII scan scope, version range, "merged" label, auto-merge (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Read-only review of `pumacp/puma-community` (2026-11-02).
+**Decision 2026-11-02:** deferred; revisit when the documentation is revised.
+
+**Files.** In `pumacp/puma-community`: `README.md`, `docs/index.md`,
+`wiki/Validation-Process.md`, `wiki/Why-PUMA-Community.md`,
+`wiki/Anonymity-And-Privacy.md`, `wiki/Home.md`, `wiki/Submitting-Results.md`.
+
+**Finding.** Compared with `validate-submission.yml`, `auto-merge-valid.yml`
+and the `submission.v1.json` schema:
+
+- `docs/index.md:120`, `wiki/Validation-Process.md:30-33`,
+  `wiki/Why-PUMA-Community.md:22` and `wiki/Anonymity-And-Privacy.md:61` say
+  the validation workflow recomputes `predictions_summary_hash`; the workflow
+  contains no hash computation. Only the post-merge `verify-submission`
+  workflow checks the hash, for newly added files that publish
+  `raw_predictions_url`.
+- `README.md:170` says the tool "signs the integrity hash"; no signature is
+  produced (see D62).
+- `wiki/Home.md:5` describes submissions as "PII-scanned before" acceptance;
+  the server-side workflow has no PII scan. The canonical scan is client-side
+  in `puma share-results`, as `wiki/FAQ.md:24` and `docs/maintainer-guide.md`
+  state.
+- `wiki/Validation-Process.md:24` says "The PUMA version matches the supported
+  range"; the schema only constrains `puma_version` to the pattern
+  `^\d+\.\d+\.\d+(-[a-zA-Z0-9\.]+)?$`.
+- `wiki/Submitting-Results.md:78` says a "merged" label appears once
+  auto-merge runs; no workflow applies a `merged` label.
+- `README.md:186`, `docs/index.md:62` and `wiki/Validation-Process.md:35-40`
+  describe automatic merging; the `auto-merge-valid.yml` workflow has zero
+  recorded runs (GitHub Actions run list on 2026-11-03), and the only merged
+  submission (PR #8) was merged by hand (see D57).
+
+**Resolution path.** Correct the passages in `pumacp/puma-community` when its
+documentation is revised.
+
+### D65 — Backlog: documented `PUMA_` environment variables that the code does not read (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Audit of `src/puma/` against the project's documented table of
+`PUMA_` environment variables (2026-11-03).
+
+**Files.** `src/puma/` (all `os.environ` reads), `docker-compose.yml`,
+`Dockerfile`, `Dockerfile.publish`, `start_puma.sh`.
+
+**Finding.** Eight variables of the project's documented table of `PUMA_`
+environment variables are not read anywhere under `src/puma/` on `develop`
+(`cab0729`); the code does the following instead:
+
+- `PUMA_DB_PATH`: the database path is the `--db` option of `puma run` and
+  `puma db …`, default `data/puma.db` (`storage/db.py` `_DEFAULT_DB`).
+- `PUMA_LANG`: no language setting exists.
+- `PUMA_OUTPUT_DIR`: run artefacts go to the working-directory `results/`
+  (`orchestrator/runner.py` `RESULTS_ROOT`), plots to the `--output-dir`
+  option of `puma generate-plots`.
+- `PUMA_OLLAMA_HOST`: the code reads `OLLAMA_HOST` (`cli.py`,
+  `scenarios/triage_jira.py:25`, `scenarios/estimation_tawos.py:25`, default
+  `http://localhost:11434`). `start_puma.sh:97` exports `PUMA_OLLAMA_HOST`,
+  which nothing reads.
+- `PUMA_VERBOSE`: the `--verbose` / `-v` flag of the root command
+  (`cli.py:52`).
+- `PUMA_NO_PROGRESS`: no equivalent; `--quiet` suppresses the progress
+  display; the banner and the summary are controlled by `--no-banner` and
+  `--no-summary` (cli.py:45, :53).
+- `PUMA_DASHBOARD_PORT`: the `--port` option of `puma dashboard`, default
+  8501 (`cli.py:440`); `docker-compose.yml` passes `--server.port 8501`.
+- `PUMA_TRACKING_MODE`: the CodeCarbon tracking mode is chosen in code by
+  `get_tracking_mode_and_warnings()` (codecarbon_wrapper.py:39), which
+  returns `machine` or falls back to `process` (codecarbon_wrapper.py:68);
+  it is not configurable.
+
+`docker-compose.yml` sets none of the eight; it sets `OLLAMA_HOST`,
+`LLM_MODEL`, `PYTHONPATH` and the three `PUMA_GPU_*` variables.
+
+**Resolution path.** Decide per variable whether to implement it or to drop it
+from the table, then align the documentation with the implemented set.
+
+### D66 — Note: D42 resolution behaviour for installed wheels (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** D42 merge to `develop` (`be68d4b`, 2026-11-02).
+
+**Files.** `src/puma/resources.py`, `src/puma/storage/db.py`, `setup.py`,
+`MANIFEST.in`.
+
+**Finding.** Since `be68d4b` a wheel built with `python -m build` carries
+byte-identical copies of the runtime data under `puma/_bundled/` and
+`puma.resources.resolve()` falls back to them when the source tree is
+absent. For the database, `storage/db.py` keeps the clone behaviour
+unchanged: when `<repository root>/alembic` exists, `alembic.ini` must be in
+the working directory and `init_db` raises the AC-08 `RuntimeError` when it
+is not. Only an installed wheel, which has no source tree, builds the Alembic
+configuration programmatically with `script_location` set to the bundled
+migrations. The user documentation does not yet describe either behaviour.
+
+**Resolution path.** Describe both cases (clone unchanged; wheel uses the
+bundled copies and migrations) in the next documentation version, and close
+the D42 entry above when that revision lands.
+
+### D67 — Erratum: `docs/security.md` line 182 names the bandit HIGH threshold flag as `-l` (documentation)
+
+**Status:** OPEN (documentation) — owner: maintainer. Target: documentation
+revision (next docs version).
+**Discovered:** Review of `docs/security.md` against `.github/workflows/bandit.yml`
+(2026-11-03).
+
+**File.** `docs/security.md:182`, left unchanged.
+
+**Finding.** The workflow table says bandit "fails the build on `HIGH` (`-l`)".
+In bandit, `-l` is the LOW threshold; HIGH is `-lll`, which is what
+`.github/workflows/bandit.yml` runs in its "Fail on HIGH findings" step since
+`cab0729`. The surrounding text ("Reports `MEDIUM`+ via `-ll`") is correct.
+
+**Resolution path.** Replace `-l` by `-lll` in that cell when the document is
+revised.
+
+### D68 — `puma db migrate` with the default `--db` fails in a working directory without `data/` (since v2.x)
+
+**Status:** OPEN — owner: maintainer. Target: next patch.
+**Discovered:** D42 verification from a wheel-only install (2026-11-03).
+
+**Files.** `src/puma/cli.py` (`db_migrate`, `db_downgrade`, `db_history`),
+`src/puma/storage/db.py` (`_alembic_config_for`).
+
+**Finding.** `puma db migrate` (default `--db data/puma.db`) run from a
+directory that has no `data/` subdirectory fails with
+`(sqlite3.OperationalError) unable to open database file`, exit code 1, and
+creates nothing. The `db` commands build the Alembic configuration and call
+`command.upgrade` directly, without the `path.parent.mkdir(parents=True,
+exist_ok=True)` that `init_db()` performs, so SQLite cannot create the file.
+With an existing `data/` directory the same command succeeds ("Database
+migrated to revision: head"). Reproduced on 2026-11-03 with the develop
+(`cab0729`) wheel in an empty directory.
+
+**Resolution path.** Create the parent directory of the `--db` path in the
+`db` commands (or route them through the same helper as `init_db()`), with a
+CLI test that runs `puma db migrate` from an empty temporary directory.
+
+### D69 — Image built from Dockerfile.publish keeps pip CVE-2026-13346 below the Trivy gate
+
+**Status:** OPEN — owner: maintainer. Target: next patch.
+**Discovered:** D41 follow-up (2026-11-14).
+
+**File.** `Dockerfile.publish` (final stage) in `pumacp/puma`.
+
+**Finding.** The final stage pins pip to 26.1.2, which fixes CVE-2025-8869,
+CVE-2026-1703, CVE-2026-3219, CVE-2026-6357 and CVE-2026-8643 reported for
+the base image's pip 24.0. CVE-2026-13346 (MEDIUM in Trivy) is fixed only
+from pip 26.2.0, whose vendored SBOM (`pip/_vendor/bom.cdx.json`) exposes
+pip's bundled libraries to Trivy. The latest released pip, 26.3, fails the
+gate on 2026-11-14 (measured): its SBOM lists setuptools 70.3.0, reported as
+HIGH CVE-2025-47273 (fixed in 78.1.1), while the installed setuptools is
+84.2.1. pip 26.1.2 ships no SBOM, so Trivy does not inspect its bundled
+libraries.
+
+**Options.** Remove pip from the final stage; add a documented ignore entry;
+or wait for a pip release that passes the gate.
+
+**Decision 2026-11-14:** deferred.
 
 ### P1 captures (Sprint 12)
 
@@ -655,7 +1643,7 @@ so the `<id>.predictions.jsonl` that `puma community verify-hash` and
 `validate --strict` consume had no producer. The S12.1 E2E test worked around
 this by exporting the JSONL directly from the database via `integrity._COLUMNS`.
 
-**Resolution.** Commit `76c0ce1` — `integrity.export_predictions_jsonl` writes
+**Resolution.** Commit `7a753b9` — `integrity.export_predictions_jsonl` writes
 the predictions JSONL using the existing 4-field canonical column list
 (`integrity._COLUMNS`: `instance_id`, `predicted_label`, `predicted_value`,
 `prompt_hash`), and `share-results --dry-run` now emits

@@ -101,3 +101,6 @@ AGENTS.md
 
 # mkdocs build output
 site/
+
+# Wheel-only copies of the runtime data; created in the build directory by setup.py (D42)
+src/puma/_bundled/

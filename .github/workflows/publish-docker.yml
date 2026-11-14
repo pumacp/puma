@@ -37,6 +37,7 @@ jobs:
         with:
           images: ghcr.io/pumacp/puma
           tags: |
+            type=ref,event=branch
             type=ref,event=tag
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -69,6 +70,7 @@ jobs:
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
           ignore-unfixed: true
+          limit-severities-for-sarif: true
 
       - name: Upload Trivy SARIF to the GitHub Security tab
         if: always()

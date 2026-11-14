@@ -148,3 +148,65 @@ class TestCliFlags:
         # --no-summary alone does NOT suppress the banner.
         bare = runner.invoke(app, ["--no-summary"])
         assert "_|_|" in bare.output
+
+
+def _fake_version(value: str):
+    """Return an ``importlib.metadata.version`` stand-in that records the queried name."""
+    seen: list[str] = []
+
+    def fake(name: str) -> str:
+        seen.append(name)
+        return value
+
+    return fake, seen
+
+
+@pytest.mark.unit
+class TestVersionFlag:
+    def test_version_prints_distribution_name_and_version(self, monkeypatch):
+        fake, seen = _fake_version("9.9.9")
+        monkeypatch.setattr("puma.cli.version", fake)
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+        assert result.stdout.strip() == "puma-cp 9.9.9"
+        # The PyPI distribution is ``puma-cp``; the import package name would raise.
+        assert seen == ["puma-cp"]
+
+    def test_version_falls_back_when_distribution_is_not_installed(self, monkeypatch):
+        from importlib.metadata import PackageNotFoundError
+
+        def missing(name: str) -> str:
+            raise PackageNotFoundError(name)
+
+        monkeypatch.setattr("puma.cli.version", missing)
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+        assert result.stdout.strip() == "puma-cp 0.0.0-unknown"
+
+    def test_version_is_eager_and_short_circuits_the_subcommand(self, monkeypatch):
+        fake, _ = _fake_version("9.9.9")
+        monkeypatch.setattr("puma.cli.version", fake)
+        # ``run`` requires a spec argument; the eager flag must win before that is checked.
+        result = runner.invoke(app, ["--version", "run"])
+        assert result.exit_code == 0
+        assert "puma-cp 9.9.9" in result.stdout
+        assert "Missing argument" not in _all_output(result)
+
+    def test_version_does_not_print_the_banner(self, monkeypatch):
+        fake, _ = _fake_version("9.9.9")
+        monkeypatch.setattr("puma.cli.version", fake)
+        result = runner.invoke(app, ["--version"])
+        assert result.exit_code == 0
+        assert "Local LLM benchmarks" not in result.stdout
+
+    def test_version_is_listed_in_root_help(self):
+        from rich.text import Text
+
+        result = runner.invoke(app, ["--no-banner", "--help"], env={"COLUMNS": "200"})
+        assert result.exit_code == 0
+        # Rich colours the option name when a terminal is forced (CI sets
+        # FORCE_COLOR), splitting "--version" across escape sequences; compare
+        # against the plain text instead of the raw stream.
+        plain_help = Text.from_ansi(result.stdout).plain
+        assert "--version" in plain_help
+        assert "Show the installed puma-cp version and exit." in plain_help

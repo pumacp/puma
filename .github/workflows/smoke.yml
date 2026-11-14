@@ -7,6 +7,10 @@ on:
     branches: [main, develop]
   workflow_dispatch:
 
+# Least privilege: the smoke test only runs the suite; no write scope needed.
+permissions:
+  contents: read
+
 jobs:
   smoke:
     runs-on: ubuntu-latest

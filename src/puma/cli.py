@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
 import typer
@@ -19,6 +20,24 @@ app = typer.Typer(
 # top-level main() wrapper can render errors with the same theme/verbosity.
 _CLI_STATE: dict[str, Any] = {}
 
+# Distribution name on PyPI; the import package is ``puma``.
+_DIST_NAME = "puma-cp"
+
+
+def _resolve_version() -> str:
+    """Return the installed ``puma-cp`` distribution version or a fallback."""
+    try:
+        return version(_DIST_NAME)
+    except PackageNotFoundError:
+        return "0.0.0-unknown"
+
+
+def _version_callback(value: bool) -> None:
+    """Eager ``--version`` handler: print the version and exit before anything else runs."""
+    if value:
+        typer.echo(f"{_DIST_NAME} {_resolve_version()}")
+        raise typer.Exit()
+
 
 @app.callback(invoke_without_command=True)
 def _main(
@@ -33,6 +52,13 @@ def _main(
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show full traceback on errors."),
     no_summary: bool = typer.Option(
         False, "--no-summary", help="Suppress the post-run summary table."
+    ),
+    version_flag: bool = typer.Option(
+        False,
+        "--version",
+        help="Show the installed puma-cp version and exit.",
+        callback=_version_callback,
+        is_eager=True,
     ),
 ) -> None:
     """PUMA — Local LLM benchmarking for project management tasks."""
@@ -273,6 +299,8 @@ def validate_baseline(
     0.5867 on the triage baseline), so existing CI commands continue to
     work unchanged.
     """
+    from puma.resources import resolve_cwd
+
     if expected_f1 is not None and expected_mae is not None:
         typer.secho(
             "[ERROR] --expected-f1 and --expected-mae are mutually exclusive.",
@@ -286,11 +314,11 @@ def validate_baseline(
         expected_f1 = 0.5867
 
     if expected_mae is not None:
-        resolved_spec = spec or "specs/runs/baseline_estimation_canonical.yaml"
+        resolved_spec = spec or str(resolve_cwd("specs/runs/baseline_estimation_canonical.yaml"))
         metric_key = "mae"
         expected_value = expected_mae
     else:
-        resolved_spec = spec or "specs/runs/baseline_triage.yaml"
+        resolved_spec = spec or str(resolve_cwd("specs/runs/baseline_triage.yaml"))
         metric_key = "f1_macro"
         expected_value = expected_f1  # type: ignore[assignment]
 

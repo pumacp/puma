@@ -32,7 +32,7 @@ jobs:
               wiki-repo; then
             mkdir wiki-repo
             cd wiki-repo
-            git init -b master
+            git init -b main
             git remote add origin \
               "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.wiki.git"
           fi
