@@ -1545,6 +1545,20 @@ or wait for a pip release that passes the gate.
 
 **Decision 2026-11-14:** deferred.
 
+### D70 — CI "Integration tests with Ollama" job never passed
+
+**Status:** RESOLVED — PR #89 (develop commit `bc7dfab`); the job passed
+12/12 in Lint and Test run 43647442237.
+
+The integration-tests-ollama job in lint-and-test.yml, added in 105a0a8
+(2026-05-16), failed on every push to main and develop until this fix
+(87 runs, including the v4.0.0 and v4.0.1 pushes to main: runs 26795031376
+and 43614611012), with 5 of 12 ollama-marked tests failing. Causes: the job
+installed only the requirements files, so the puma console script was
+missing (test_e2e_publication.py; test_publication_demo.py through
+scripts/publication_demo.sh); test_runner_ece.py hard-coded the Compose
+hostname http://puma_ollama:11434, which does not resolve on the runner.
+
 ### P1 captures (Sprint 12)
 
 Coordinator-level prompt-drift captures. Earlier captures are embedded in the
