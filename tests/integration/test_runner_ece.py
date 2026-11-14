@@ -19,12 +19,15 @@ no ECE in the payload, ``predictions.logprobs_json`` and
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 
 import pytest
 
 from puma.orchestrator.runner import Runner
 from puma.orchestrator.runspec import RunSpec
+
+OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://puma_ollama:11434")
 
 
 def _spec(*, logprobs: bool, sample_size: int = 5) -> RunSpec:
@@ -52,7 +55,7 @@ def test_ece_persisted_in_metrics_when_logprobs_enabled(tmp_path) -> None:
     """End-to-end with logprobs=True: ECE in [0,1] persisted in metrics."""
     spec = _spec(logprobs=True)
     db = tmp_path / "test.db"
-    summary = Runner(spec, db_path=db, ollama_host="http://puma_ollama:11434").run()
+    summary = Runner(spec, db_path=db, ollama_host=OLLAMA_HOST).run()
 
     conn = sqlite3.connect(db)
     cur = conn.cursor()
@@ -77,7 +80,7 @@ def test_logprobs_json_persisted_per_prediction(tmp_path) -> None:
     """At least one prediction row must carry logprobs_json + confidence."""
     spec = _spec(logprobs=True)
     db = tmp_path / "test.db"
-    summary = Runner(spec, db_path=db, ollama_host="http://puma_ollama:11434").run()
+    summary = Runner(spec, db_path=db, ollama_host=OLLAMA_HOST).run()
 
     conn = sqlite3.connect(db)
     cur = conn.cursor()
@@ -111,7 +114,7 @@ def test_ece_absent_and_logprobs_null_when_disabled(tmp_path) -> None:
     predictions.logprobs_json / .confidence remain NULL. Regression guard."""
     spec = _spec(logprobs=False)
     db = tmp_path / "test.db"
-    summary = Runner(spec, db_path=db, ollama_host="http://puma_ollama:11434").run()
+    summary = Runner(spec, db_path=db, ollama_host=OLLAMA_HOST).run()
 
     conn = sqlite3.connect(db)
     cur = conn.cursor()
