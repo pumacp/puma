@@ -108,10 +108,10 @@ PUMA is organized in modular layers under `src/puma/`:
 | Category | Count |
 |----------|-------|
 | Closed methodological findings (F1–F8) | 8 |
-| Resolved technical debt | 13 |
-| Open technical debt | 26 |
+| Resolved technical debt | 27 |
+| Open technical debt | 41 |
 | Inconsistencies resolved in v2.5.0 (I5–I10) | 6 |
-| Total tracked | 39 |
+| Total tracked | 68 |
 
 See [docs/known_debt.md](docs/known_debt.md) for full per-item evidence and resolution traceability.
 
